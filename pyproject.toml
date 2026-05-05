@@ -9,6 +9,12 @@ version = "0.1.0"
 build-backend = "hatchling.build"
 requires = ["hatchling"]
 
+[tool.hatch.build.targets.wheel]
+packages = ["src/gr_sat"]
+
+[tool.hatch.build.targets.sdist]
+include = ["src/gr_sat", "pyproject.toml", "README.md"]
+
 [tool.pixi.workspace]
 channels = ["conda-forge"]
 platforms = ["linux-64"]
@@ -17,7 +23,3 @@ platforms = ["linux-64"]
 gr_sat = { path = ".", editable = true }
 
 [tool.pixi.tasks]
-
-[tool.setuptools.packages.find]
-where = ["."]
-include = ["gr_sat*"]

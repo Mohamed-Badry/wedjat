@@ -1,6 +1,6 @@
 # gr_sat Web Interface & Integration Plan
 
-Based on the analysis of the current `gr_sat` repository, this document outlines the state of the project, major architectural flaws related to online operations, and a comprehensive plan for building a modern web-based frontend (SvelteKit) and API backend (FastAPI), orchestrated via **Docker**.
+Based on the analysis of the current `gr_sat` repository, this document outlines the state of the project, major architectural flaws related to online operations, and a comprehensive plan for building a modern web-based frontend (SvelteKit) and API backend (FastAPI), orchestrated via **Docker**. The initial Docker and SvelteKit scaffolding now exists in the repository; this document still describes the broader target UX and service behavior that remain to be built.
 
 ## 1. Current State Analysis
 The `gr_sat` repository has successfully established a robust **offline machine learning pipeline** for satellite telemetry:

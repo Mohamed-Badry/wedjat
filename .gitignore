@@ -7,6 +7,11 @@ __pycache__
 .env
 logs/
 
+frontend/.svelte-kit/
+frontend/build/
+frontend/node_modules/
+frontend/.tmp/
+
 gp.php
 data/
 satellite-recordings/

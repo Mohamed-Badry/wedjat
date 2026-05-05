@@ -1,0 +1,89 @@
+services:
+  broker:
+    image: eclipse-mosquitto:2.1.2-alpine
+    container_name: watchdog_broker
+    ports:
+      - "1883:1883"
+      - "9001:9001"
+    volumes:
+      - ./mosquitto/config/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+      - mosquitto_data:/mosquitto/data
+      - mosquitto_log:/mosquitto/log
+    restart: unless-stopped
+
+  db:
+    image: timescale/timescaledb:2.26.4-pg15
+    container_name: watchdog_db
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: watchdog
+      POSTGRES_PASSWORD: watchdog_pass
+      POSTGRES_DB: watchdog_db
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U watchdog -d watchdog_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - timescaledb_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: .
+      dockerfile: src/api/Dockerfile
+    container_name: watchdog_backend
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql://watchdog:watchdog_pass@db:5432/watchdog_db
+      MQTT_BROKER_URL: broker
+      MQTT_BROKER_PORT: "1883"
+    volumes:
+      - ./src/api:/app/src/api
+      - ./src/gr_sat:/app/src/gr_sat
+    depends_on:
+      db:
+        condition: service_healthy
+      broker:
+        condition: service_started
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: watchdog_frontend
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - frontend_node_modules:/app/node_modules
+    environment:
+      PUBLIC_API_URL: http://localhost:8000
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+  simulator:
+    build:
+      context: .
+      dockerfile: src/simulator/Dockerfile
+    container_name: watchdog_simulator
+    volumes:
+      - ./src/simulator:/app/src/simulator
+      - ./src/gr_sat:/app/src/gr_sat
+      - ./data/raw:/app/data/raw:ro
+    environment:
+      MQTT_BROKER_URL: broker
+      MQTT_BROKER_PORT: "1883"
+    depends_on:
+      - broker
+    restart: unless-stopped
+
+volumes:
+  timescaledb_data:
+  mosquitto_data:
+  mosquitto_log:
+  frontend_node_modules:

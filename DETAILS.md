@@ -190,8 +190,7 @@ def process_packet(raw_bytes):
 
 *   Richer ingress adapters and network-facing live packet receivers
 *   Advanced alert transport beyond the minimal callback/CLI runtime
-*   Operator-facing dashboard / UI integration
-*   Minimal deterministic online watchdog runtime with packet-by-packet scoring and state transitions
+*   Feature-complete operator-facing dashboard / UI integration (the repo now contains a Bun + SvelteKit shell only)
 
 ---
 

@@ -1,0 +1,29 @@
+@import "tailwindcss";
+
+:root {
+  --color-brand: #b12142;
+  --color-brand-soft: #f3d7dd;
+  --color-muted: #6c7a96;
+  --color-ink: #111827;
+  --color-paper: #f8fafc;
+  --color-panel: rgba(248, 250, 252, 0.78);
+  --color-border: rgba(108, 122, 150, 0.22);
+  --shadow-panel: 0 24px 60px rgba(17, 24, 39, 0.12);
+}
+
+html {
+  color: var(--color-ink);
+  background:
+    radial-gradient(circle at top left, rgba(177, 33, 66, 0.18), transparent 26%),
+    radial-gradient(circle at top right, rgba(108, 122, 150, 0.16), transparent 24%),
+    linear-gradient(180deg, #fff9fb 0%, var(--color-paper) 32%, #eef2f8 100%);
+}
+
+body {
+  min-height: 100vh;
+  font-family: "IBM Plex Sans", "Avenir Next", "Segoe UI", sans-serif;
+}
+
+::selection {
+  background: rgba(177, 33, 66, 0.18);
+}

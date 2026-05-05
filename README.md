@@ -2,11 +2,12 @@
 
 # Project Watchdog (gr_sat)
 
-This repository hosts the **Project Watchdog** codebase, currently focused on offline telemetry processing, per-satellite anomaly-model training, and synthetic-fault benchmarking for amateur satellite telemetry.
+This repository hosts the **Project Watchdog** codebase, currently focused on offline telemetry processing, per-satellite anomaly-model training, synthetic-fault benchmarking, and a pinned Docker-based web/runtime scaffold for local development.
 
 ## 📚 Key Documentation
 
 *   **[Technical Details & Architecture](DETAILS.md)**: Deep dive into the system's design and "Golden Features".
+*   **[WEBSITE_PLAN.md](WEBSITE_PLAN.md)**: Web interface, Docker orchestration, and integration plan.
 *   **[.gemini/GEMINI.md](.gemini/GEMINI.md)**: Active project context and agent instructions.
 
 ## Current Repository Status
@@ -17,18 +18,21 @@ Implemented today:
 *   Shared telemetry/decoder core for historical packet processing
 *   UWE-4 decoder support and telemetry inspection tooling
 *   Minimal deterministic online watchdog runtime for packet-by-packet inference
+*   Docker Compose development stack with pinned service and Python runtime versions
+*   Bun + SvelteKit + Tailwind frontend scaffold with a committed Bun lockfile
 
 Planned, but not yet implemented in this repository:
 
-*   Rich alert transports / dashboards beyond the minimal runtime
+*   Rich alert transports / dashboards beyond the current scaffold shell
 *   Broader live ingress adapters beyond the minimal runtime
+*   Full backend persistence, WebSocket streaming, and operator workflows behind the new frontend routes
 
 ---
 
 ## 🚀 Quick Start Guide
 
 ### 1. Install Prerequisites
-We use **[Pixi](https://pixi.sh/)** for all dependency management (Python, GNU Radio, etc.). You do **not** need to install Python or GNU Radio manually.
+We use **[Pixi](https://pixi.sh/)** for the core Python/data-science environment. You do **not** need to install Python or GNU Radio manually for the offline pipeline.
 
 **Linux / macOS:**
 ```bash
@@ -61,6 +65,17 @@ To download telemetry, you need a **SatNOGS API Token**.
     ```ini
     SATNOGS_API_TOKEN=your_actual_token_here
     ```
+
+### 4. Optional Docker Dev Stack
+For the MQTT broker, TimescaleDB, FastAPI scaffold, frontend scaffold, and simulator scaffold:
+```bash
+docker compose up --build
+```
+
+Notes:
+
+*   The backend and simulator install pinned Python dependencies that mirror the concrete versions currently resolved by Pixi.
+*   The frontend uses Bun with a committed lockfile and a dedicated `node_modules` volume so bind-mounting the source tree does not force a reinstall every container start.
 
 ---
 
@@ -123,6 +138,7 @@ See `src/gr_sat/decoders/uwe4.py` for a complete reference implementation.
 ├── docs/                   # Documentation and analysis outputs
 │   ├── figures/            # Generated plots and diagrams
 │   └── slides.typ          # Typst presentation slides
+├── frontend/               # Bun + SvelteKit + Tailwind web scaffold
 ├── logs/                   # Log files from data pipelines
 ├── notebooks/              # Jupyter notebooks for EDA and prototyping (Jupytext)
 │   ├── telemetry_inspector.py  # Ground truth interactive visual debugger
@@ -132,13 +148,15 @@ See `src/gr_sat/decoders/uwe4.py` for a complete reference implementation.
 │   ├── process_data.py         # Stage 1+2: raw → interim → processed
 │   ├── train_model.py          # Stage 3: Train per-satellite scaler + VAE model
 │   └── generate_faults.py      # Stage 4: Offline synthetic-fault benchmark
-├── src/gr_sat/             # Core library code ("The Shared Core")
-│   ├── telemetry.py        # TelemetryFrame, DecoderRegistry, process_frame()
-│   └── decoders/           # Satellite-specific decoders (Kaitai Structs)
-│       └── uwe4.py         # UWE-4 (NORAD 43880) decoder
+├── src/
+│   ├── api/                # FastAPI scaffold and container definition
+│   ├── gr_sat/             # Core library code ("The Shared Core")
+│   └── simulator/          # Replay/simulator scaffold and container definition
 ├── .gemini/
 │   └── GEMINI.md           # Active project context and agent mandates
 ├── DETAILS.md              # Technical architecture and system design
+├── WEBSITE_PLAN.md         # Web integration plan and target UX
+├── docker-compose.yml      # Docker Compose dev stack
 ├── justfile                # Task runner configuration
 ├── pixi.toml               # Environment and dependency management
 └── README.md               # This file
