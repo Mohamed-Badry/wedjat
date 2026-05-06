@@ -4,6 +4,10 @@
 # Copy .env.example → .env and fill in your values.
 # The ${VAR:-default} syntax provides fallbacks so `docker compose up`
 # works even without an .env file.
+#
+# Development workflow:
+#   docker compose watch        — live sync + auto-rebuild on dep changes
+#   docker compose up --build   — one-shot build + run
 
 services:
   broker:
@@ -57,6 +61,16 @@ services:
       broker:
         condition: service_started
     restart: unless-stopped
+    develop:
+      watch:
+        # Source changes: already bind-mounted, uvicorn --reload picks them up.
+        # Dep changes: full rebuild needed.
+        - action: rebuild
+          path: src/api/requirements.txt
+        - action: rebuild
+          path: src/api/Dockerfile
+        - action: rebuild
+          path: pyproject.toml
 
   frontend:
     build:
@@ -73,6 +87,16 @@ services:
     depends_on:
       - backend
     restart: unless-stopped
+    develop:
+      watch:
+        # Source changes: bind-mounted, Vite HMR handles them.
+        # Dep / config changes: need a rebuild to re-run bun install.
+        - action: rebuild
+          path: frontend/package.json
+        - action: rebuild
+          path: frontend/bun.lock
+        - action: rebuild
+          path: frontend/Dockerfile
 
   simulator:
     build:
@@ -89,6 +113,19 @@ services:
     depends_on:
       - broker
     restart: unless-stopped
+    develop:
+      watch:
+        # No hot-reload — sync + restart the process on source changes.
+        - action: sync+restart
+          path: src/simulator
+          target: /app/src/simulator
+        - action: sync+restart
+          path: src/gr_sat
+          target: /app/src/gr_sat
+        - action: rebuild
+          path: src/simulator/requirements.txt
+        - action: rebuild
+          path: src/simulator/Dockerfile
 
 volumes:
   timescaledb_data:
