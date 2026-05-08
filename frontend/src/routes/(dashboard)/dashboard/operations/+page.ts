@@ -1,0 +1,25 @@
+import type { PageLoad } from './$types';
+import { env } from '$env/dynamic/public';
+
+export const load: PageLoad = async ({ fetch }) => {
+    const apiUrl = env.PUBLIC_API_URL || 'http://127.0.0.1:8000';
+    
+    try {
+        const satsRes = await fetch(`${apiUrl}/api/satellites`);
+        let satellites = [];
+        if (satsRes.ok) {
+            const data = await satsRes.json();
+            satellites = data.satellites;
+        }
+
+        return {
+            satellites
+        };
+    } catch (e) {
+        console.error("Error fetching operations data:", e);
+        return {
+            satellites: [],
+            error: "Could not connect to the backend API."
+        };
+    }
+};

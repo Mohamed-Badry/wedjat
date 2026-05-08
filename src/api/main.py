@@ -101,6 +101,32 @@ def create_app(repository: DashboardDataRepository | None = None) -> FastAPI:
         except KeyError as exc:
             raise HTTPException(status_code=404, detail=str(exc)) from exc
 
+    @app.get("/api/operations/passes")
+    async def operations_passes(
+        ground_station: str = Query(default="cairo"),
+        lookahead_hours: int = Query(default=24, ge=1, le=168),
+        min_elevation: float = Query(default=10.0, ge=0.0, le=90.0),
+        norad_id: int | None = None,
+    ) -> dict:
+        try:
+            return data.predict_passes(
+                ground_station=ground_station,
+                lookahead_hours=lookahead_hours,
+                min_elevation=min_elevation,
+                norad_id=norad_id,
+            )
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+        except KeyError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+    @app.get("/api/ml/sensitivity")
+    async def ml_sensitivity(norad_id: int) -> dict:
+        try:
+            return data.sensitivity_sweep(norad_id=norad_id)
+        except KeyError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+
     return app
 
 
