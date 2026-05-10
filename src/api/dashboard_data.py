@@ -351,6 +351,46 @@ class DashboardDataRepository:
 
     def frames_for(self, norad_id: int) -> pd.DataFrame:
         sat_id = int(norad_id)
+        
+        try:
+            try:
+                from .database import get_engine
+                from .models import TelemetryFrame, RawFrame
+            except ImportError:
+                from database import get_engine
+                from models import TelemetryFrame, RawFrame
+            from sqlmodel import Session, select
+            
+            engine = get_engine()
+            if engine:
+                with Session(engine) as session:
+                    statement = select(TelemetryFrame, RawFrame).join(RawFrame, TelemetryFrame.raw_frame_id == RawFrame.id).where(TelemetryFrame.norad_id == sat_id).order_by(TelemetryFrame.timestamp.asc())
+                    results = session.exec(statement).all()
+                    
+                if results:
+                    rows = []
+                    for tf, rf in results:
+                        row = {
+                            "timestamp": tf.timestamp,
+                            "norad_id": tf.norad_id,
+                            "station_id": rf.station_id,
+                            "raw_frame": rf.raw_frame,
+                            "snr": rf.snr,
+                            "anomaly_score": tf.anomaly_score,
+                            "is_anomaly": tf.is_anomaly,
+                            "missing_fields": tf.missing_fields
+                        }
+                        if isinstance(tf.features, dict):
+                            row.update(tf.features)
+                        rows.append(row)
+                    
+                    df = pd.DataFrame(rows)
+                    df["timestamp"] = pd.to_datetime(df["timestamp"], utc=True)
+                    return df.sort_values("timestamp").reset_index(drop=True)
+        except Exception as e:
+            import logging
+            logging.getLogger("DashboardDataRepository").warning(f"Failed to query DB for {sat_id}: {e}")
+            
         if sat_id not in self._frames_cache:
             path = self.processed_dir / f"{sat_id}.csv"
             if not path.exists():

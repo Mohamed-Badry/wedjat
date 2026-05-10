@@ -6,16 +6,25 @@ from typing import Literal
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 
+from contextlib import asynccontextmanager
+
 try:
     from .dashboard_data import DashboardDataRepository
+    from .mqtt_client import start_mqtt_client
 except ImportError:  # pragma: no cover - used when uvicorn runs from src/api
     from dashboard_data import DashboardDataRepository
-
+    from mqtt_client import start_mqtt_client
 
 def _cors_origins() -> list[str]:
     raw = os.getenv("CORS_ORIGINS", "http://localhost:5173,http://127.0.0.1:5173")
     return [origin.strip() for origin in raw.split(",") if origin.strip()]
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    client = start_mqtt_client()
+    yield
+    if client:
+        client.loop_stop()
 
 def create_app(repository: DashboardDataRepository | None = None) -> FastAPI:
     data = repository or DashboardDataRepository()
@@ -23,6 +32,7 @@ def create_app(repository: DashboardDataRepository | None = None) -> FastAPI:
         title="gr_sat Watchdog API",
         description="FastAPI backend for satellite telemetry dashboard data.",
         version="0.1.0",
+        lifespan=lifespan
     )
     app.add_middleware(
         CORSMiddleware,
