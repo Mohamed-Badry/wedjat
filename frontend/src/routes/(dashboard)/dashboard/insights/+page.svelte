@@ -20,6 +20,56 @@
   let loading = $state(false);
   let telemetryFrames = $state<any[]>([]);
 
+  type FeatureMap = Record<string, unknown>;
+  type NormalizedFeatures = Record<string, number | null> & {
+    batt_voltage: number | null;
+    batt_current: number | null;
+    batt_a_voltage: number | null;
+    batt_b_voltage: number | null;
+    temp_batt_a: number | null;
+    temp_batt_b: number | null;
+    temp_panel_z: number | null;
+  };
+
+  function toFiniteNumber(value: unknown): number | null {
+    if (typeof value === 'number') return Number.isFinite(value) ? value : null;
+    if (typeof value === 'string' && value.trim() !== '') {
+      const parsed = Number(value);
+      return Number.isFinite(parsed) ? parsed : null;
+    }
+    return null;
+  }
+
+  function featureNumber(features: FeatureMap, keys: string[]): number | null {
+    for (const key of keys) {
+      const value = toFiniteNumber(features[key]);
+      if (value !== null) return value;
+    }
+    return null;
+  }
+
+  function batteryVoltage(features: FeatureMap): number | null {
+    const combined = toFiniteNumber(features.batt_voltage);
+    if (combined !== null) return combined;
+
+    const batteryA = toFiniteNumber(features.batt_a_voltage);
+    const batteryB = toFiniteNumber(features.batt_b_voltage);
+    if (batteryA !== null && batteryB !== null) return (batteryA + batteryB) / 2;
+    return batteryA ?? batteryB;
+  }
+
+  function normalizeFeatures(features: FeatureMap): NormalizedFeatures {
+    return {
+      batt_voltage: batteryVoltage(features),
+      batt_current: featureNumber(features, ['batt_current']),
+      batt_a_voltage: featureNumber(features, ['batt_a_voltage']),
+      batt_b_voltage: featureNumber(features, ['batt_b_voltage']),
+      temp_batt_a: featureNumber(features, ['temp_batt_a']),
+      temp_batt_b: featureNumber(features, ['temp_batt_b']),
+      temp_panel_z: featureNumber(features, ['temp_panel_z']),
+    };
+  }
+
   async function fetchTelemetry() {
     loading = true;
     const apiUrl = typeof window !== 'undefined' ? (env.PUBLIC_API_URL || 'http://127.0.0.1:8000') : 'http://backend:8000';
@@ -53,14 +103,20 @@
   // Derive feature arrays from frames
   let featureFrames = $derived(
     telemetryFrames
-      .filter((f: any) => f.features)
-      .map((f: any) => f.features)
+      .filter((f: any): f is { features: FeatureMap } => !!f.features && typeof f.features === 'object')
+      .map((f: { features: FeatureMap }) => normalizeFeatures(f.features))
   );
 
   let eclipseFrames = $derived(
     featureFrames
-      .filter((f: any) => f.temp_panel_z != null && f.batt_current != null && f.batt_voltage != null)
-      .map((f: any) => ({
+      .filter(
+        (f: NormalizedFeatures): f is NormalizedFeatures & {
+          temp_panel_z: number;
+          batt_current: number;
+          batt_voltage: number;
+        } => f.temp_panel_z !== null && f.batt_current !== null && f.batt_voltage !== null
+      )
+      .map((f) => ({
         temp_panel_z: f.temp_panel_z,
         batt_current: f.batt_current,
         batt_voltage: f.batt_voltage,
@@ -69,12 +125,12 @@
 
   let macroFrames = $derived(
     telemetryFrames
-      .filter((f: any) => f.timestamp && f.features)
+      .filter((f: any): f is { timestamp: string; features: FeatureMap } => !!f.timestamp && !!f.features && typeof f.features === 'object')
       .map((f: any) => ({
         timestamp: f.timestamp,
-        batt_voltage: f.features.batt_voltage ?? f.features.batt_a_voltage,
-        temp_batt_a: f.features.temp_batt_a,
-        temp_panel_z: f.features.temp_panel_z,
+        batt_voltage: batteryVoltage(f.features),
+        temp_batt_a: featureNumber(f.features, ['temp_batt_a']),
+        temp_panel_z: featureNumber(f.features, ['temp_panel_z']),
       }))
   );
 

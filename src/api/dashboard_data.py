@@ -283,29 +283,75 @@ class DashboardDataRepository:
 
     def predict_passes(
         self,
-        ground_station: str,
+        ground_station: str | None = "cairo",
+        lat: float | None = None,
+        lon: float | None = None,
+        elevation_m: float = 0.0,
+        station_label: str | None = None,
         lookahead_hours: int = 24,
         min_elevation: float = 10.0,
         norad_id: int | None = None,
+        include_tracks: bool = True,
     ) -> dict[str, Any]:
         from datetime import datetime, timedelta, timezone
         from skyfield.api import load, wgs84
 
         now = datetime.now(timezone.utc)
-        
+
         stations = {
-            "cairo": {"lat": 29.0661, "lon": 31.0994, "elev": 32.0},
-            "berlin": {"lat": 52.5200, "lon": 13.4050, "elev": 34.0},
-            "tokyo": {"lat": 35.6762, "lon": 139.6503, "elev": 40.0},
+            "cairo": {
+                "id": "cairo",
+                "label": "GS-Alpha (Cairo, EG)",
+                "lat": 29.0661,
+                "lon": 31.0994,
+                "elevation_m": 32.0,
+            },
+            "berlin": {
+                "id": "berlin",
+                "label": "GS-Beta (Berlin, DE)",
+                "lat": 52.5200,
+                "lon": 13.4050,
+                "elevation_m": 34.0,
+            },
+            "tokyo": {
+                "id": "tokyo",
+                "label": "GS-Gamma (Tokyo, JP)",
+                "lat": 35.6762,
+                "lon": 139.6503,
+                "elevation_m": 40.0,
+            },
         }
 
-        if ground_station not in stations:
-            raise ValueError(f"Unknown ground station: {ground_station}")
+        if (lat is None) != (lon is None):
+            raise ValueError("Both lat and lon are required for a custom ground station.")
 
-        st_data = stations[ground_station]
-        gs = wgs84.latlon(st_data["lat"], st_data["lon"], elevation_m=st_data["elev"])
+        if lat is not None and lon is not None:
+            if not -90.0 <= lat <= 90.0:
+                raise ValueError("Latitude must be between -90 and 90 degrees.")
+            if not -180.0 <= lon <= 180.0:
+                raise ValueError("Longitude must be between -180 and 180 degrees.")
+            if not -500.0 <= elevation_m <= 10000.0:
+                raise ValueError("Ground station elevation must be between -500 and 10000 meters.")
+            st_data = {
+                "id": "custom",
+                "label": station_label or "Custom Ground Station",
+                "lat": float(lat),
+                "lon": float(lon),
+                "elevation_m": float(elevation_m),
+            }
+        else:
+            station_id = ground_station or "cairo"
+            if station_id not in stations:
+                raise ValueError(f"Unknown ground station: {station_id}")
+            st_data = stations[station_id]
 
-        if norad_id:
+        gs = wgs84.latlon(
+            st_data["lat"],
+            st_data["lon"],
+            elevation_m=st_data["elevation_m"],
+        )
+
+        if norad_id is not None:
             sats = [self.satellite_summary(norad_id)]
         else:
             sats = self.satellite_summaries()
@@ -321,6 +367,34 @@ class DashboardDataRepository:
             by_id = {sat.model.satnum: sat for sat in tle_file}
         except Exception:
             by_id = {}
+
+        def sample_track(sat: Any, t_rise: Any, t_set: Any) -> list[dict[str, Any]]:
+            if not include_tracks:
+                return []
+
+            start_dt = t_rise.utc_datetime()
+            end_dt = t_set.utc_datetime()
+            duration_seconds = (end_dt - start_dt).total_seconds()
+            if duration_seconds <= 0:
+                return []
+
+            sample_count = 32
+            track = []
+            for sample_index in range(sample_count):
+                offset = duration_seconds * sample_index / max(sample_count - 1, 1)
+                sample_dt = start_dt + timedelta(seconds=offset)
+                sample_t = ts.from_datetime(sample_dt)
+                subpoint = sat.at(sample_t).subpoint()
+                alt, az, distance = (sat - gs).at(sample_t).altaz()
+                track.append({
+                    "time": _timestamp_iso(sample_dt),
+                    "lat": round(subpoint.latitude.degrees, 4),
+                    "lon": round(subpoint.longitude.degrees, 4),
+                    "elevation": round(alt.degrees, 1),
+                    "azimuth": round(az.degrees, 1),
+                    "range_km": round(distance.km, 1),
+                })
+            return track
 
         passes = []
         for sat_info in sats:
@@ -359,19 +433,28 @@ class DashboardDataRepository:
                             if abs(start_az - end_az) > 180: # cross 360
                                 direction = "S->N" if end_az < start_az else "N->S"
                                 
-                            passes.append({
+                            pass_record = {
                                 "satellite": sat_info["name"],
                                 "norad_id": sat_id,
                                 "aos": _timestamp_iso(t_rise.utc_datetime()),
                                 "los": _timestamp_iso(t_set.utc_datetime()),
                                 "max_elevation": round(alt.degrees, 1),
                                 "direction": direction
-                            })
+                            }
+                            if include_tracks:
+                                pass_record["track"] = sample_track(sat, t_rise, t_set)
+                            passes.append(pass_record)
                             
         passes.sort(key=lambda p: p["aos"])
             
         return {
-            "ground_station": ground_station,
+            "ground_station": {
+                "id": st_data["id"],
+                "label": st_data["label"],
+                "lat": st_data["lat"],
+                "lon": st_data["lon"],
+                "elevation_m": st_data["elevation_m"],
+            },
             "lookahead_hours": lookahead_hours,
             "min_elevation": min_elevation,
             "passes": passes

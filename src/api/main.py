@@ -1,9 +1,10 @@
 from __future__ import annotations
 
+import asyncio
 import os
 from typing import Literal
 
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, HTTPException, Query, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 
 from contextlib import asynccontextmanager
@@ -130,17 +131,27 @@ def create_app(repository: DashboardDataRepository | None = None) -> FastAPI:
 
     @app.get("/api/operations/passes")
     async def operations_passes(
-        ground_station: str = Query(default="cairo"),
+        ground_station: str | None = Query(default="cairo"),
+        lat: float | None = Query(default=None, ge=-90.0, le=90.0),
+        lon: float | None = Query(default=None, ge=-180.0, le=180.0),
+        elevation_m: float = Query(default=0.0, ge=-500.0, le=10000.0),
+        station_label: str | None = Query(default=None, max_length=80),
         lookahead_hours: int = Query(default=24, ge=1, le=168),
         min_elevation: float = Query(default=10.0, ge=0.0, le=90.0),
         norad_id: int | None = None,
+        include_tracks: bool = Query(default=True),
     ) -> dict:
         try:
             return data.predict_passes(
                 ground_station=ground_station,
+                lat=lat,
+                lon=lon,
+                elevation_m=elevation_m,
+                station_label=station_label,
                 lookahead_hours=lookahead_hours,
                 min_elevation=min_elevation,
                 norad_id=norad_id,
+                include_tracks=include_tracks,
             )
         except ValueError as exc:
             raise HTTPException(status_code=400, detail=str(exc)) from exc

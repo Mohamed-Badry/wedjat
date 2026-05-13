@@ -40,6 +40,27 @@ class OperationsApiTests(unittest.IsolatedAsyncioTestCase):
             self.assertIn("max_elevation", first_pass)
             self.assertIn("direction", first_pass)
 
+    async def test_pass_prediction_accepts_custom_coordinates(self):
+        response = await self._get(
+            "/api/operations/passes",
+            params={
+                "lat": 29.0661,
+                "lon": 31.0994,
+                "elevation_m": 32.0,
+                "station_label": "Custom Cairo Test",
+                "lookahead_hours": 12,
+                "min_elevation": 10.0,
+                "include_tracks": False,
+            },
+        )
+        self.assertEqual(response.status_code, 200)
+        payload = response.json()
+        self.assertEqual(payload["ground_station"]["id"], "custom")
+        self.assertEqual(payload["ground_station"]["label"], "Custom Cairo Test")
+        self.assertAlmostEqual(payload["ground_station"]["lat"], 29.0661)
+        self.assertAlmostEqual(payload["ground_station"]["lon"], 31.0994)
+        self.assertIn("passes", payload)
+
     async def test_pass_prediction_invalid_station(self):
         response = await self._get(
             "/api/operations/passes",
