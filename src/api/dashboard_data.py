@@ -283,9 +283,8 @@ class DashboardDataRepository:
 
     def predict_passes(
         self,
-        ground_station: str | None = "cairo",
-        lat: float | None = None,
-        lon: float | None = None,
+        lat: float,
+        lon: float,
         elevation_m: float = 0.0,
         station_label: str | None = None,
         lookahead_hours: int = 24,
@@ -298,52 +297,20 @@ class DashboardDataRepository:
 
         now = datetime.now(timezone.utc)
 
-        stations = {
-            "cairo": {
-                "id": "cairo",
-                "label": "GS-Alpha (Cairo, EG)",
-                "lat": 29.0661,
-                "lon": 31.0994,
-                "elevation_m": 32.0,
-            },
-            "berlin": {
-                "id": "berlin",
-                "label": "GS-Beta (Berlin, DE)",
-                "lat": 52.5200,
-                "lon": 13.4050,
-                "elevation_m": 34.0,
-            },
-            "tokyo": {
-                "id": "tokyo",
-                "label": "GS-Gamma (Tokyo, JP)",
-                "lat": 35.6762,
-                "lon": 139.6503,
-                "elevation_m": 40.0,
-            },
+        if not -90.0 <= lat <= 90.0:
+            raise ValueError("Latitude must be between -90 and 90 degrees.")
+        if not -180.0 <= lon <= 180.0:
+            raise ValueError("Longitude must be between -180 and 180 degrees.")
+        if not -500.0 <= elevation_m <= 10000.0:
+            raise ValueError("Ground station elevation must be between -500 and 10000 meters.")
+            
+        st_data = {
+            "id": "custom",
+            "label": station_label or "Custom Ground Station",
+            "lat": float(lat),
+            "lon": float(lon),
+            "elevation_m": float(elevation_m),
         }
-
-        if (lat is None) != (lon is None):
-            raise ValueError("Both lat and lon are required for a custom ground station.")
-
-        if lat is not None and lon is not None:
-            if not -90.0 <= lat <= 90.0:
-                raise ValueError("Latitude must be between -90 and 90 degrees.")
-            if not -180.0 <= lon <= 180.0:
-                raise ValueError("Longitude must be between -180 and 180 degrees.")
-            if not -500.0 <= elevation_m <= 10000.0:
-                raise ValueError("Ground station elevation must be between -500 and 10000 meters.")
-            st_data = {
-                "id": "custom",
-                "label": station_label or "Custom Ground Station",
-                "lat": float(lat),
-                "lon": float(lon),
-                "elevation_m": float(elevation_m),
-            }
-        else:
-            station_id = ground_station or "cairo"
-            if station_id not in stations:
-                raise ValueError(f"Unknown ground station: {station_id}")
-            st_data = stations[station_id]
 
         gs = wgs84.latlon(
             st_data["lat"],

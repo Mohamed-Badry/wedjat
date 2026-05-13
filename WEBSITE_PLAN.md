@@ -211,3 +211,58 @@ Current data source: local `data/processed/{norad_id}.csv` plus `models/{norad_i
 ### Phase 5 — Polish
 - Responsive sidebar, loading skeletons, error boundaries
 - Theme verification, performance audit
+
+---
+
+## 9. UI/UX Polish & Modernization Plan
+
+This section outlines the detailed strategy to elevate the visual fidelity of the application, ensuring a modern, "alive," and polished feel through typography, spacing, subtle interactions, and consistent design language.
+
+### A. UI & Asset Polish
+
+#### 1. Shadows & Depth
+Currently, the UI might rely on heavy box-shadows. The goal is to transition to a cleaner, more subtle aesthetic.
+- [ ] **Audit Existing Shadows:** Identify all components using heavy or default Tailwind `box-shadow` values.
+- [ ] **Define Shadow Strategy:** Plan a shift to lighter, more modern utility classes (e.g., `shadow-sm`, border-driven elevation using `border-slate-200/50`, or customized low-opacity drop shadows `shadow-[0_1px_2px_rgba(0,0,0,0.05)]`).
+- [ ] **Apply Subtle Depth:** Replace all hard, dark shadows with the new subtle, layered shadow strategy.
+- [ ] **Incorporate Borders:** Use subtle 1px borders combined with light shadows to create depth without visual noise.
+
+#### 2. Iconography Standardization
+Emojis used as UI elements (especially in sidebars and navigation) can look unprofessional and inconsistent across platforms.
+- [ ] **Audit Emoji Usage:** Identify all instances where emojis are used as icons (e.g., in the sidebar, buttons, status indicators).
+- [ ] **Integrate Icon Library:** Integrate `lucide-svelte` (or `phosphor-svelte`).
+- [ ] **Map Replacements:** Replace emojis with strictly typed icons, leveraging Tailwind utility classes (e.g., `size-5`, `text-slate-500`, `hover:text-primary`) for styling and hover states.
+
+### B. Landing Page Overhaul
+
+The landing page needs to move away from placeholder "status" metrics and instead showcase the actual value and workflows of the application.
+
+- [ ] **Deprecate Status Metrics:** Remove placeholder metrics and "dummy" status indicators from the hero section.
+- [ ] **Redesign Hero Section:** Focus on a strong value proposition. Use a clean, bold typography and a clear CTA ("Enter Dashboard →").
+- [ ] **Feature Highlights:** Surface actual capabilities drawn directly from the dashboard workflows. Create sections/cards for:
+  - **Live Telemetry:** Real-time decoding and monitoring.
+  - **Machine Learning Insights:** VAE anomaly detection and feature correlation.
+  - **Pass Operations:** Predictive tracking and skyplot visualizations.
+- [ ] **Layout Modernization:** Ensure generous whitespace to allow content to breathe. Use a standard zig-zag (text left/image right, then image left/text right) layout for feature highlights.
+
+### C. Animation Strategy & Technical Best Practices
+
+We will adopt a clear division of labor between native Svelte capabilities and GSAP to maximize performance and maintainability.
+
+#### 1. Native Svelte Transitions
+- [ ] **Standard Interactions:** Use `svelte/transition` (`fly`, `fade`, `slide`) for standard component mounting/unmounting (e.g., sidebar toggles, dropdowns, modal visibility states).
+- [ ] **Bundle Efficiency:** Prefer native Svelte transitions for simple UI micro-interactions to avoid unnecessary bundle overhead.
+
+#### 2. GSAP Integration via Svelte Actions
+- [ ] **Complex Animations:** Plan complex landing page sequences and scroll-triggered animations (e.g., ScrollTrigger) using GSAP.
+- [ ] **Declarative Approach:** Mandate the use of **Svelte Actions** (e.g., `use:gsapAction`) to attach timelines directly to DOM nodes, keeping component markup clean and declarative.
+- [ ] **Lifecycle & Cleanup:** Ensure strict adherence to using `gsap.context()` within the action's lifecycle (destroy/update) to ensure proper garbage collection, prevent memory leaks, and handle ScrollTrigger duplication during Hot Module Replacement (HMR).
+
+#### 3. Entry Staggers
+- [ ] **List & Grid Staggers:** When a list of items (e.g., recent anomalies, satellite passes, or feature cards) mounts, use GSAP `stagger` to animate their entry (e.g., slight delay between items) sliding up and fading in.
+- [ ] **Dashboard Load:** Animate the initial dashboard load by staggering the entry of individual data cards for a polished feel.
+
+#### 4. Micro-interactions
+- [ ] **Hover States:** Add subtle scale-ups (e.g., `scale: 1.02`) and shadow transitions to interactive cards and buttons using GSAP.
+- [ ] **Active States:** Add "click" feedback (e.g., slight scale-down) to buttons and actionable elements.
+- [ ] **Data Updates:** Briefly flash, pulse, or use GSAP number-tick animations in the dashboard when new live telemetry data arrives to draw attention without being distracting.

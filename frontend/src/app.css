@@ -18,11 +18,11 @@
   --color-accent-ink:  #e2e8f0;
   --color-accent-ink-2:#94a3b8;
   --color-ok:          #34d399;
-  --shadow-panel:      0 24px 60px rgba(0, 0, 0, 0.40);
-}
+  --shadow-panel:      0 2px 8px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.04);
+  }
 
-/* ── Light mode — applied when <html> has class="light" ── */
-html.light {
+  /* ── Light mode — applied when <html> has class="light" ── */
+  html.light {
   --color-brand-soft:  rgba(177, 33, 66, 0.12);
   --color-ink:         #111827;
   --color-ink-2:       #334155;
@@ -35,8 +35,8 @@ html.light {
   --color-accent-ink:  #cbd5e1;
   --color-accent-ink-2:#94a3b8;
   --color-ok:          #059669;
-  --shadow-panel:      0 24px 60px rgba(17, 24, 39, 0.10);
-}
+  --shadow-panel:      0 2px 8px rgba(17, 24, 39, 0.02), 0 1px 2px rgba(17, 24, 39, 0.01);
+  }
 
 /* ── Base layer ── */
 html {
@@ -133,7 +133,7 @@ body {
 
 .chart-card:hover {
   border-color: rgba(177, 33, 66, 0.2);
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(177, 33, 66, 0.08);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(177, 33, 66, 0.08);
 }
 
 .chart-card-title {

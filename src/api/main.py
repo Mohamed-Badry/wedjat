@@ -131,9 +131,8 @@ def create_app(repository: DashboardDataRepository | None = None) -> FastAPI:
 
     @app.get("/api/operations/passes")
     async def operations_passes(
-        ground_station: str | None = Query(default="cairo"),
-        lat: float | None = Query(default=None, ge=-90.0, le=90.0),
-        lon: float | None = Query(default=None, ge=-180.0, le=180.0),
+        lat: float = Query(..., ge=-90.0, le=90.0),
+        lon: float = Query(..., ge=-180.0, le=180.0),
         elevation_m: float = Query(default=0.0, ge=-500.0, le=10000.0),
         station_label: str | None = Query(default=None, max_length=80),
         lookahead_hours: int = Query(default=24, ge=1, le=168),
@@ -143,7 +142,6 @@ def create_app(repository: DashboardDataRepository | None = None) -> FastAPI:
     ) -> dict:
         try:
             return data.predict_passes(
-                ground_station=ground_station,
                 lat=lat,
                 lon=lon,
                 elevation_m=elevation_m,

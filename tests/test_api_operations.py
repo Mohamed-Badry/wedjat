@@ -20,7 +20,8 @@ class OperationsApiTests(unittest.IsolatedAsyncioTestCase):
         response = await self._get(
             "/api/operations/passes",
             params={
-                "ground_station": "cairo",
+                "lat": 30.0444,
+                "lon": 31.2357,
                 "lookahead_hours": 24,
                 "min_elevation": 10.0,
             },
@@ -65,12 +66,13 @@ class OperationsApiTests(unittest.IsolatedAsyncioTestCase):
         response = await self._get(
             "/api/operations/passes",
             params={
-                "ground_station": "unknown_station",
+                "lat": 190.0,
+                "lon": 31.0994,
                 "lookahead_hours": 24,
                 "min_elevation": 10.0,
             },
         )
-        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.status_code, 422)
         self.assertIn("detail", response.json())
 
 if __name__ == "__main__":

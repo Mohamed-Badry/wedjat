@@ -64,7 +64,7 @@
         { label: 'Anomalies Detected', value: summary.totals.anomaly_count.toLocaleString(), icon: '⚠' },
         { label: 'Total Passes', value: summary.totals.pass_count.toLocaleString(), icon: '🌍' }
       ] as stat}
-        <article class="group relative overflow-hidden rounded-[1.75rem] border border-border bg-panel p-6 shadow-panel backdrop-blur transition-all duration-300 hover:-translate-y-1 hover:border-brand/30 hover:shadow-lg">
+        <article class="group relative overflow-hidden rounded-[1.75rem] border border-border bg-panel p-6 shadow-panel backdrop-blur transition-all duration-300 hover:-translate-y-1 hover:border-brand/30 hover:shadow-md">
           <div class="absolute -right-4 -top-4 text-4xl opacity-[0.06] transition-opacity group-hover:opacity-[0.12]">{stat.icon}</div>
           <p class="text-sm font-medium text-ink-3">{stat.label}</p>
           <p class="mt-3 text-3xl font-semibold text-brand tracking-tight">{stat.value}</p>
