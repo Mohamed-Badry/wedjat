@@ -129,32 +129,34 @@
     </div>
 
     <!-- Offline Benchmark Results -->
-    <div class="space-y-8 pt-4">
-      <div class="space-y-2">
-        <h2 class="text-2xl font-semibold tracking-tight text-ink">Offline Benchmark Results</h2>
-        <p class="text-sm text-ink-3">Static results from synthetic fault injection. These reproduce the Python analysis figures — not live-computed values.</p>
+    <div class="space-y-6 pt-4">
+      <div class="space-y-1">
+        <h2 class="text-xl font-semibold tracking-tight text-ink">Offline Benchmark Results</h2>
+        <p class="text-xs text-ink-3">Static results from synthetic fault injection. These reproduce the Python analysis figures.</p>
+      </div>
+
+      <div class="grid gap-6 xl:grid-cols-2">
+        <div class="chart-card">
+          <p class="chart-card-title">Model Comparison — ROC Curves</p>
+          <p class="mb-4 text-[10px] leading-4 text-ink-3">
+            4 unsupervised models benchmarked. VAE provides the best trade-off for bimodal orbital data.
+          </p>
+          <ModelComparisonROC />
+        </div>
+
+        <div class="chart-card">
+          <p class="chart-card-title">VAE vs. Z-Score Baseline</p>
+          <p class="mb-4 text-[10px] leading-4 text-ink-3">
+            Fault magnitudes swept from subtle to extreme. VAE outperforms static thresholding.
+          </p>
+          <SensitivitySweepPlot />
+        </div>
       </div>
 
       <div class="chart-card">
-        <p class="chart-card-title">Model Comparison — ROC Curves (Anomaly Detection)</p>
-        <p class="mb-4 text-xs leading-5 text-ink-3">
-          4 unsupervised models benchmarked against synthetic faults. The Autoencoder (VAE 5→3→2→3→5) provides the best trade-off for bimodal orbital data.
-        </p>
-        <ModelComparisonROC />
-      </div>
-
-      <div class="chart-card">
-        <p class="chart-card-title">VAE vs. Z-Score Baseline — Sensitivity Sweep</p>
-        <p class="mb-4 text-xs leading-5 text-ink-3">
-          Fault magnitudes swept from subtle to extreme. The VAE massively outperforms static thresholding on subtle anomalies (0.1A current drop during sunlight).
-        </p>
-        <SensitivitySweepPlot />
-      </div>
-
-      <div class="chart-card">
-        <p class="chart-card-title">Autoencoder — Per-Feature Reconstruction Error by Fault Type</p>
-        <p class="mb-4 text-xs leading-5 text-ink-3">
-          Subsystem blame attribution. The feature with the highest reconstruction error identifies which hardware component the autoencoder believes has failed.
+        <p class="chart-card-title">Autoencoder — Per-Feature Reconstruction Error</p>
+        <p class="mb-4 text-[10px] leading-4 text-ink-3">
+          Subsystem blame attribution. The feature with the highest reconstruction error identifies the anomaly source.
         </p>
         <FeatureContributionPlot />
       </div>

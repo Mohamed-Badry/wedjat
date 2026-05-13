@@ -63,7 +63,7 @@
   </aside>
 
   <!-- Main Content -->
-  <div class="flex flex-1 flex-col overflow-hidden">
+  <div class="flex flex-1 flex-col min-h-0 overflow-hidden">
     <!-- Topbar (mobile only) -->
     <header class="flex h-16 shrink-0 items-center justify-between border-b border-border bg-panel px-6 md:hidden">
       <button onclick={toggleSidebar} class="text-ink-2 hover:text-brand transition-colors">
@@ -75,21 +75,11 @@
       <div class="w-5"></div> <!-- Spacer for flex justify-between -->
     </header>
 
-    <main class="flex-1 overflow-auto p-6 md:p-8 lg:p-10">
-      <div class="mx-auto max-w-7xl h-full flex flex-col">
+    <main class="flex-1 relative min-h-0">
+      <div class="absolute inset-0 w-full h-full flex flex-col overflow-y-auto p-6 md:p-8 lg:p-10">
         {@render children()}
       </div>
     </main>
-
-    <!-- Footer -->
-    <footer class="mt-auto border-t border-border bg-panel px-6 py-4 text-center text-sm text-ink-3">
-      <div class="flex justify-center gap-6">
-        <a href="/" class="hover:text-brand transition-colors">Overview</a>
-        <a href="/team" class="hover:text-brand transition-colors">Team</a>
-        <a href="https://github.com" target="_blank" rel="noreferrer" class="hover:text-brand transition-colors">GitHub</a>
-      </div>
-      <p class="mt-2 text-xs opacity-60">gr_sat Watchdog Dashboard • Built with Svelte 5</p>
-    </footer>
   </div>
 </div>
 

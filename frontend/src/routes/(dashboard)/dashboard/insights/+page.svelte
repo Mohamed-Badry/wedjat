@@ -186,43 +186,52 @@
         <p class="py-12 text-center text-ink-3">No telemetry data found. Ensure the backend is running and has processed data.</p>
       </div>
     {:else}
-      <!-- Macro Health (Voltage + Temperature trends) -->
-      <div class="chart-card">
-        <p class="chart-card-title">Macro-Scale Health — Daily Averages</p>
-        <MacroHealthPlot frames={macroFrames} />
-      </div>
+      <!-- Restructured Grid Layout for Charts -->
+      <div class="grid gap-6 xl:grid-cols-3 items-start">
+        
+        <!-- Left/Main Column -->
+        <div class="flex flex-col gap-6 xl:col-span-2">
+          <!-- Macro Health -->
+          <div class="chart-card">
+            <p class="chart-card-title">Macro-Scale Health — Daily Averages</p>
+            <MacroHealthPlot frames={macroFrames} />
+          </div>
 
-      <!-- Eclipse Scatter — The hero physics chart -->
-      <div class="chart-card">
-        <p class="chart-card-title">Physics Verification — Day/Night Operational States</p>
-        <p class="mb-4 text-xs leading-5 text-ink-3">
-          Solar panel temperature exposes the orbital phase. In sunlight, panels charge (positive current). In eclipse, the satellite discharges. A positive current during low panel temp signals a physical anomaly.
-        </p>
-        <EclipseScatterPlot frames={eclipseFrames} />
-      </div>
-
-      <!-- Feature Distributions -->
-      <div class="space-y-4">
-        <div class="flex items-baseline justify-between">
-          <h2 class="text-lg font-medium tracking-tight text-ink">Feature Distributions</h2>
-          <span class="text-xs text-ink-3">{featureFrames.length.toLocaleString()} frames</span>
-        </div>
-        <FeatureDistributionGrid frames={featureFrames} />
-      </div>
-
-      <!-- Correlation + Time Gaps side by side -->
-      <div class="grid gap-8 lg:grid-cols-2">
-        <div class="chart-card">
-          <p class="chart-card-title">Feature Correlation Matrix</p>
-          <CorrelationHeatmap frames={featureFrames} />
+          <!-- Feature Distributions -->
+          <div class="chart-card">
+            <div class="flex items-baseline justify-between mb-4">
+              <h2 class="text-sm font-medium tracking-tight text-ink">Feature Distributions</h2>
+              <span class="text-[10px] uppercase tracking-wider text-ink-3">{featureFrames.length.toLocaleString()} frames</span>
+            </div>
+            <FeatureDistributionGrid frames={featureFrames} />
+          </div>
         </div>
 
-        <div class="chart-card">
-          <p class="chart-card-title">Intra-Pass Time Gap Distribution</p>
-          <p class="mb-3 text-xs leading-5 text-ink-3">
-            Reception cadence within passes. Large gaps indicate dropped packets or orbital geometry constraints.
-          </p>
-          <TimeGapHistogram {timestamps} />
+        <!-- Right/Sidebar Column -->
+        <div class="flex flex-col gap-6">
+          <!-- Eclipse Scatter -->
+          <div class="chart-card">
+            <p class="chart-card-title">Physics Verification (Day/Night)</p>
+            <p class="mb-3 text-[10px] leading-4 text-ink-3">
+              Solar panel temp exposes orbital phase. Positive current during low temp signals an anomaly.
+            </p>
+            <EclipseScatterPlot frames={eclipseFrames} />
+          </div>
+
+          <!-- Correlation Heatmap -->
+          <div class="chart-card">
+            <p class="chart-card-title">Feature Correlation</p>
+            <CorrelationHeatmap frames={featureFrames} />
+          </div>
+
+          <!-- Time Gap Histogram -->
+          <div class="chart-card">
+            <p class="chart-card-title">Intra-Pass Time Gaps</p>
+            <p class="mb-3 text-[10px] leading-4 text-ink-3">
+              Large gaps indicate dropped packets or geometry constraints.
+            </p>
+            <TimeGapHistogram {timestamps} />
+          </div>
         </div>
       </div>
     {/if}

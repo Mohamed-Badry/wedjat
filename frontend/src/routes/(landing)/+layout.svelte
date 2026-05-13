@@ -34,7 +34,7 @@
 />
 
 <div class="min-h-screen">
-  <div class="mx-auto flex min-h-screen w-full max-w-7xl flex-col px-6 py-6 sm:px-8 lg:px-10">
+  <div class="mx-auto flex min-h-screen w-full max-w-[1800px] flex-col px-6 py-6 sm:px-8 lg:px-10">
     <header class="mb-10 rounded-[2rem] border border-border bg-panel px-5 py-4 shadow-panel backdrop-blur sm:px-6">
       <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>

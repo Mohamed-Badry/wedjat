@@ -35,7 +35,7 @@
 
 <div class="h-full w-full">
   <Plot
-    height={220}
+    height={200}
     x={{ type: 'utc', label: false }}
     y={{ label: false, grid: true, domain: [0, yMax] }}
     color={{ domain: [false, true], scheme: [MUTED, BRAND] }}

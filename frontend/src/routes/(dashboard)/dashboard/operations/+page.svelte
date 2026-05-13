@@ -228,7 +228,7 @@
   }
 </script>
 
-<section class="flex flex-col h-full gap-5 animate-in fade-in slide-in-from-bottom-4 duration-500 ease-out">
+<section class="flex flex-col h-full min-h-0 gap-5 animate-in fade-in slide-in-from-bottom-4 duration-500 ease-out">
   <div class="flex-none space-y-1">
     <p class="text-xs font-semibold uppercase tracking-[0.2em] text-muted">Operations Center</p>
     <h1 class="text-3xl font-semibold tracking-tight text-ink">Pass Planning Console</h1>
@@ -313,7 +313,7 @@
     <div class="flex-1 min-h-0 grid gap-5 lg:grid-cols-[400px_minmax(0,1fr)] xl:grid-cols-[450px_minmax(0,1fr)]">
       
       <!-- LEFT COLUMN: Map & Coordinates -->
-      <section class="flex flex-col rounded-[1.5rem] border border-border bg-panel p-5 shadow-panel backdrop-blur overflow-y-auto">
+      <section class="flex flex-col rounded-[1.5rem] border border-border bg-panel p-5 shadow-panel backdrop-blur overflow-hidden">
         <div class="mb-4 flex items-center justify-between">
           <h2 class="text-sm font-semibold uppercase tracking-[0.16em] text-ink-3">Station Map</h2>
           <span class="rounded-full border border-border bg-surface px-2 py-0.5 text-[10px] font-medium text-ink-3">
@@ -368,7 +368,7 @@
       </section>
 
       <!-- RIGHT COLUMN: Pass Results (Timeline & List) -->
-      <section class="flex flex-col min-h-0 overflow-hidden rounded-[1.5rem] border border-border bg-panel shadow-panel backdrop-blur">
+      <section class="flex flex-col flex-1 min-h-0 overflow-hidden rounded-[1.5rem] border border-border bg-panel shadow-panel backdrop-blur">
         {#if loading}
           <div class="flex flex-1 items-center justify-center">
             <div class="h-8 w-8 animate-spin rounded-full border-4 border-surface border-t-brand"></div>

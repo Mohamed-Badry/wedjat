@@ -47,137 +47,143 @@
     <p class="mt-2 text-sm">{error}</p>
   </div>
 {:else if summary}
-  <section class="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500 ease-out">
-    <div class="space-y-3">
+  <section class="flex flex-col h-full min-h-0 gap-5 animate-in fade-in slide-in-from-bottom-4 duration-500 ease-out">
+    <div class="flex-none space-y-1">
       <p class="text-xs font-semibold uppercase tracking-[0.2em] text-muted">System Overview</p>
-      <h1 class="text-4xl font-semibold tracking-tight text-ink">Dashboard Home</h1>
-      <p class="max-w-3xl text-base leading-7 text-ink-2">
-        Live operations overview, telemetry throughput, and recent system anomalies.
-      </p>
+      <h1 class="text-3xl font-semibold tracking-tight text-ink">Dashboard Home</h1>
     </div>
 
     <!-- Totals -->
-    <div class="grid gap-4 md:grid-cols-4">
+    <div class="flex-none grid gap-4 md:grid-cols-4">
       {#each [
         { label: 'Active Satellites', value: summary.totals.satellite_count, icon: '🛰' },
         { label: 'Total Frames', value: summary.totals.frame_count.toLocaleString(), icon: '📡' },
         { label: 'Anomalies Detected', value: summary.totals.anomaly_count.toLocaleString(), icon: '⚠' },
         { label: 'Total Passes', value: summary.totals.pass_count.toLocaleString(), icon: '🌍' }
       ] as stat}
-        <article class="group relative overflow-hidden rounded-[1.75rem] border border-border bg-panel p-6 shadow-panel backdrop-blur transition-all duration-300 hover:-translate-y-1 hover:border-brand/30 hover:shadow-md">
-          <div class="absolute -right-4 -top-4 text-4xl opacity-[0.06] transition-opacity group-hover:opacity-[0.12]">{stat.icon}</div>
-          <p class="text-sm font-medium text-ink-3">{stat.label}</p>
-          <p class="mt-3 text-3xl font-semibold text-brand tracking-tight">{stat.value}</p>
+        <article class="group relative overflow-hidden rounded-[1.25rem] border border-border bg-panel p-4 shadow-panel backdrop-blur transition-all duration-300 hover:-translate-y-1 hover:border-brand/30 hover:shadow-md">
+          <div class="absolute -right-2 -top-2 text-3xl opacity-[0.06] transition-opacity group-hover:opacity-[0.12]">{stat.icon}</div>
+          <p class="text-xs font-medium text-ink-3">{stat.label}</p>
+          <p class="mt-1 text-2xl font-semibold text-brand tracking-tight">{stat.value}</p>
         </article>
       {/each}
     </div>
 
-    <!-- Throughput Sparkline -->
-    {#if summary.throughput_buckets && summary.throughput_buckets.length > 0}
-      <div class="chart-card">
-        <p class="chart-card-title">Throughput (24h)</p>
-        <div class="flex items-end gap-6">
-          <div class="flex-1">
-            <SparklinePlot data={summary.throughput_buckets} width={600} height={56} />
+    <!-- Main Grid Layout -->
+    <div class="flex-1 min-h-0 grid gap-5 lg:grid-cols-[1fr_1.5fr] xl:grid-cols-[1.5fr_2fr]">
+
+      <!-- Left Col (Component Health & Recent Anomalies) -->
+      <div class="flex flex-col gap-5 min-h-0">
+        <!-- Service Status -->
+        <div class="flex flex-col rounded-[1.25rem] border border-border bg-panel shadow-panel backdrop-blur flex-none">
+          <div class="bg-surface/35 p-4 border-b border-border shrink-0">
+            <h2 class="text-sm font-semibold uppercase tracking-[0.16em] text-ink-3">Component Health</h2>
           </div>
-          <div class="flex flex-col items-end gap-1 shrink-0 text-right">
-            <span class="text-2xl font-semibold tracking-tight text-ink">
-              {summary.throughput_buckets.reduce((s: number, b: any) => s + b.frame_count, 0).toLocaleString()}
-            </span>
-            <span class="text-xs text-ink-3">total frames</span>
+          <div class="flex flex-col gap-px bg-border p-4 shrink-0">
+            {#each summary.service_status as component}
+              <div class="group flex items-center justify-between bg-surface p-3.5 transition-colors hover:bg-surface/80 rounded-lg">
+                <div>
+                  <p class="text-sm font-medium capitalize text-ink transition-colors group-hover:text-brand">{component.name.replace('_', ' ')}</p>
+                  <p class="text-xs text-ink-3">{component.detail}</p>
+                </div>
+                <div class="flex h-2.5 w-2.5 shrink-0 rounded-full transition-all duration-300 {component.status === 'online' ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.6)]' : 'bg-brand shadow-[0_0_8px_rgba(177,33,66,0.6)]'}"></div>
+              </div>
+            {/each}
           </div>
         </div>
-      </div>
-    {/if}
 
-    <div class="grid gap-8 lg:grid-cols-3">
-      <!-- Service Status -->
-      <div class="space-y-4">
-        <h2 class="text-lg font-medium tracking-tight text-ink">Component Health</h2>
-        <div class="flex flex-col gap-3">
-          {#each summary.service_status as component}
-            <div class="group flex items-center justify-between rounded-[1.25rem] border border-border bg-surface p-4 transition-colors hover:border-brand/30">
-              <div>
-                <p class="text-sm font-medium capitalize text-ink transition-colors group-hover:text-brand">{component.name.replace('_', ' ')}</p>
-                <p class="mt-1 text-xs text-ink-3">{component.detail}</p>
+        <!-- Recent Anomalies -->
+        <div class="flex flex-col flex-1 min-h-0 rounded-[1.25rem] border border-border bg-panel shadow-panel backdrop-blur overflow-hidden">
+          <div class="bg-surface/35 p-4 border-b border-border shrink-0">
+            <h2 class="text-sm font-semibold uppercase tracking-[0.16em] text-ink-3">Recent Anomalies</h2>
+          </div>
+          <div class="flex-1 min-h-0 overflow-y-auto p-4 flex flex-col gap-4">
+            {#each summary.recent_anomalies as anomaly}
+              <div class="relative overflow-hidden shrink-0 rounded-xl border border-brand/30 bg-brand/5 p-5 transition-all duration-300 hover:border-brand/50">
+                <div class="flex items-center justify-between">
+                  <span class="rounded-md bg-brand/20 px-2.5 py-1 text-[11px] font-semibold tracking-widest text-brand">NORAD {anomaly.norad_id}</span>
+                  <span class="text-xs font-medium text-ink-3">{new Date(anomaly.timestamp).toLocaleTimeString()}</span>
+                </div>
+                <div class="mt-4 flex items-baseline gap-2">
+                  <span class="text-3xl font-bold tracking-tight text-ink">{anomaly.score?.toFixed(2) || 'N/A'}</span>
+                  <span class="text-xs font-semibold uppercase tracking-wider text-ink-3">score</span>
+                </div>
               </div>
-              <div class="flex h-3 w-3 shrink-0 rounded-full transition-all duration-300 {component.status === 'online' ? 'bg-emerald-500 shadow-[0_0_12px_rgba(16,185,129,0.6)]' : 'bg-brand shadow-[0_0_12px_rgba(177,33,66,0.6)]'}"></div>
+            {/each}
+            {#if summary.recent_anomalies.length === 0}
+              <div class="p-6 text-center text-sm text-ink-3">
+                No recent anomalies detected.
+              </div>
+            {/if}
+          </div>
+        </div>      </div>
+
+      <!-- Center/Right Col -->
+      <div class="flex flex-col gap-5 min-h-0">        
+        <!-- Throughput Sparkline -->
+        {#if summary.throughput_buckets && summary.throughput_buckets.length > 0}
+          <div class="flex-none chart-card">
+            <div class="flex items-center justify-between mb-2">
+              <p class="chart-card-title">Throughput (24h)</p>
+              <div class="text-right">
+                <span class="text-xl font-semibold tracking-tight text-ink">
+                  {summary.throughput_buckets.reduce((s: number, b: any) => s + b.frame_count, 0).toLocaleString()}
+                </span>
+                <span class="text-[10px] uppercase tracking-wider text-ink-3 ml-1">total frames</span>
+              </div>
             </div>
-          {/each}
-        </div>
-      </div>
-
-      <!-- Active Satellites -->
-      <div class="space-y-4 lg:col-span-2">
-        <h2 class="text-lg font-medium tracking-tight text-ink">Active Profiles</h2>
-        <div class="overflow-hidden rounded-[1.5rem] border border-border bg-panel shadow-panel backdrop-blur">
-          <table class="w-full text-left text-sm">
-            <thead class="border-b border-border bg-surface/50 text-ink-3">
-              <tr>
-                <th class="px-6 py-4 font-medium">Satellite</th>
-                <th class="px-6 py-4 font-medium">Decoder</th>
-                <th class="px-6 py-4 font-medium">Frames</th>
-                <th class="px-6 py-4 font-medium">Model Status</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-border">
-              {#each summary.active_satellites as sat}
-                <tr class="transition-colors hover:bg-surface/80">
-                  <td class="px-6 py-4">
-                    <span class="font-medium text-ink">{sat.name}</span>
-                    <span class="ml-2 rounded-md bg-surface px-1.5 py-0.5 text-xs text-ink-3">NORAD {sat.norad_id}</span>
-                  </td>
-                  <td class="px-6 py-4 text-ink-2">{sat.decoder || 'Generic'}</td>
-                  <td class="px-6 py-4 font-mono text-xs text-ink-2">{sat.dataset.row_count.toLocaleString()}</td>
-                  <td class="px-6 py-4">
-                    <span class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium {sat.model.status === 'ready' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' : 'bg-brand/10 text-brand'}">
-                      {sat.model.status}
-                    </span>
-                  </td>
-                </tr>
-              {/each}
-              {#if summary.active_satellites.length === 0}
-                <tr>
-                  <td colspan="4" class="px-6 py-8 text-center text-ink-3">No satellites active.</td>
-                </tr>
-              {/if}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-    <!-- Recent Anomalies -->
-    <div class="space-y-4">
-      <h2 class="text-lg font-medium tracking-tight text-ink">Recent Anomalies</h2>
-      <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {#each summary.recent_anomalies as anomaly}
-          <div class="group relative overflow-hidden rounded-[1.5rem] border border-brand/20 bg-brand/5 p-6 transition-all duration-300 hover:-translate-y-1 hover:border-brand/40 hover:bg-brand/10 hover:shadow-lg">
-            <!-- Subtle glow accent -->
-            <div class="absolute -right-8 -top-8 h-24 w-24 rounded-full bg-brand/10 blur-2xl transition-opacity group-hover:bg-brand/20"></div>
-            <div class="relative">
-              <div class="flex items-center justify-between">
-                <span class="rounded-md bg-brand/20 px-2 py-1 text-xs font-semibold tracking-widest text-brand">NORAD {anomaly.norad_id}</span>
-                <span class="text-xs text-ink-3">{new Date(anomaly.timestamp).toLocaleString()}</span>
-              </div>
-              <div class="mt-5 flex items-baseline gap-2">
-                <span class="text-3xl font-bold tracking-tight text-ink transition-colors group-hover:text-brand">{anomaly.score?.toFixed(2) || 'N/A'}</span>
-                <span class="text-sm font-medium text-ink-3">score</span>
-              </div>
-              <p class="mt-2 text-xs font-medium text-ink-2">Threshold: {anomaly.threshold?.toFixed(2) || 'N/A'}</p>
+            <div class="h-16 w-full">
+              <SparklinePlot data={summary.throughput_buckets} width={900} height={60} />
             </div>
-          </div>
-        {/each}
-        {#if summary.recent_anomalies.length === 0}
-          <div class="col-span-full rounded-[1.5rem] border border-border border-dashed p-10 text-center text-ink-3">
-            <p>No recent anomalies detected.</p>
           </div>
         {/if}
+
+        <!-- Active Profiles Table -->
+        <div class="flex flex-col flex-1 min-h-0 rounded-[1.25rem] border border-border bg-panel shadow-panel backdrop-blur">
+          <div class="bg-surface/35 p-4 border-b border-border shrink-0">
+            <h2 class="text-sm font-semibold uppercase tracking-[0.16em] text-ink-3">Active Profiles</h2>
+          </div>
+          <div class="flex-1 min-h-0 overflow-y-auto relative">
+            <table class="w-full text-left text-xs">
+              <thead class="sticky top-0 bg-surface/90 backdrop-blur text-ink-3 shadow-sm z-10">
+                <tr>
+                  <th class="px-4 py-3 font-medium uppercase tracking-wider">Satellite</th>
+                  <th class="px-4 py-3 font-medium uppercase tracking-wider">Decoder</th>
+                  <th class="px-4 py-3 font-medium uppercase tracking-wider">Frames</th>
+                  <th class="px-4 py-3 font-medium uppercase tracking-wider">Model Status</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-border">
+                {#each summary.active_satellites as sat}
+                  <tr class="transition-colors hover:bg-surface/80">
+                    <td class="px-4 py-3">
+                      <span class="font-semibold text-ink">{sat.name}</span>
+                      <span class="ml-2 rounded border border-border bg-surface px-1 py-0.5 text-[9px] text-ink-3">NORAD {sat.norad_id}</span>
+                    </td>
+                    <td class="px-4 py-3 text-ink-2">{sat.decoder || 'Generic'}</td>
+                    <td class="px-4 py-3 font-mono text-ink-2">{sat.dataset.row_count.toLocaleString()}</td>
+                    <td class="px-4 py-3">
+                      <span class="inline-flex items-center gap-1 rounded bg-panel border border-border px-1.5 py-0.5 text-[10px] font-medium {sat.model.status === 'ready' ? 'text-emerald-500' : 'text-brand'}">
+                        <span class="h-1.5 w-1.5 rounded-full {sat.model.status === 'ready' ? 'bg-emerald-500' : 'bg-brand'}"></span>
+                        {sat.model.status}
+                      </span>
+                    </td>
+                  </tr>
+                {/each}
+                {#if summary.active_satellites.length === 0}
+                  <tr>
+                    <td colspan="4" class="px-4 py-8 text-center text-ink-3">No satellites active.</td>
+                  </tr>
+                {/if}
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
     </div>
   </section>
 {:else}
-  <div class="flex h-[60vh] items-center justify-center">
+  <div class="flex h-full items-center justify-center">
     <div class="relative flex h-12 w-12 items-center justify-center">
       <div class="absolute inset-0 rounded-full border-4 border-surface border-t-brand animate-spin"></div>
       <div class="h-2 w-2 rounded-full bg-brand"></div>

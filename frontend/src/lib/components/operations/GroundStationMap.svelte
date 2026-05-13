@@ -87,7 +87,8 @@
     const m = L.map(mapContainer, {
       center: [location.lat, location.lon],
       zoom: 2,
-      worldCopyJump: true
+      worldCopyJump: true,
+      scrollWheelZoom: true
     });
 
     // Cleaner map tiles - CartoDB Voyager (lighter but clean)
