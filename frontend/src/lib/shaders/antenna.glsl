@@ -225,7 +225,8 @@ void main() {
     float final_alpha = max(final_ant_alpha, final_beam_alpha) * u_opacity;
 
     if (final_alpha < 0.01) { discard; }
-    fragColor = vec4(final_col, final_alpha);
+    // Premultiply alpha for correct compositing in Chromium
+    fragColor = vec4(final_col * final_alpha, final_alpha);
 }
 
 #endif

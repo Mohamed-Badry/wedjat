@@ -2,6 +2,7 @@
   import { page } from "$app/stores";
   import AntennaBackground from "$lib/components/AntennaBackground.svelte";
   import { themeState, toggleTheme } from "$lib/theme.svelte";
+  import { Sun, Moon } from "lucide-svelte";
 
   let { children } = $props();
 
@@ -16,10 +17,11 @@
   let antennaColorOn = $derived(themeState.isLight ? "#3a5068" : "#7eb8da");
   let antennaBeamColor = $derived(themeState.isLight ? "#8a1833" : "#B12142");
 
-  let antennaMaxDist = $derived(themeState.isLight ? 375 : 300);
-  let antennaBeamWidth = $derived(themeState.isLight ? 125 : 150);
-  let antennaSignalFadeScale = $derived(themeState.isLight ? 2.0 : 1.0);
-  let antennaBaseFadeScale = $derived(themeState.isLight ? 1.8 : 1.0);
+  // Keep spatial geometry identical across themes to prevent density shifts
+  const antennaMaxDist = 350;
+  const antennaBeamWidth = 130;
+  const antennaSignalFadeScale = 1.5;
+  const antennaBaseFadeScale = 1.2;
 </script>
 
 <AntennaBackground
@@ -59,10 +61,15 @@
 
           <button
             onclick={toggleTheme}
-            class="ml-1 rounded-full border border-border px-3 py-2 text-xs text-ink-3 transition hover:border-brand hover:text-brand"
-            title="Toggle light / dark mode"
+            class="ml-2 flex h-9 w-9 items-center justify-center rounded-full border border-border bg-surface text-ink-3 shadow-sm transition-all hover:scale-105 hover:border-brand hover:text-brand"
+            title="Toggle theme"
+            aria-label="Toggle theme"
           >
-            {themeState.isLight ? "☽" : "☀"}
+            {#if themeState.isLight}
+              <Moon class="size-4" />
+            {:else}
+              <Sun class="size-4" />
+            {/if}
           </button>
         </nav>
       </div>

@@ -50,14 +50,19 @@
     <div class="border-t border-border p-4">
       <button
         onclick={toggleTheme}
-        class="flex w-full items-center justify-between rounded-xl px-4 py-3 text-sm font-medium text-ink-2 hover:bg-surface hover:text-ink transition-colors"
+        class="group relative flex w-full items-center justify-between overflow-hidden rounded-xl border border-border bg-surface/50 px-4 py-3 text-sm font-medium text-ink-2 transition-all hover:border-brand/50 hover:bg-surface hover:text-ink hover:shadow-sm"
       >
-        <span>Theme</span>
-        {#if themeState.isLight}
-          <Moon class="size-5 opacity-80" />
-        {:else}
-          <Sun class="size-5 opacity-80" />
-        {/if}
+        <!-- Subtle background glow on hover -->
+        <div class="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-brand/5 to-transparent transition-transform duration-500 group-hover:translate-x-full"></div>
+        
+        <span class="relative z-10">{themeState.isLight ? 'Light Mode' : 'Dark Mode'}</span>
+        <div class="relative z-10 flex h-6 w-6 items-center justify-center rounded-md bg-panel shadow-sm">
+          {#if themeState.isLight}
+            <Sun class="size-3.5 text-amber-500" />
+          {:else}
+            <Moon class="size-3.5 text-blue-400" />
+          {/if}
+        </div>
       </button>
     </div>
   </aside>

@@ -1,9 +1,18 @@
 <!doctype html>
-<html lang="en" class="light">
+<html lang="en">
   <head>
     <meta charset="utf-8" />
     <link rel="icon" href="%sveltekit.assets%/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script>
+      (function() {
+        try {
+          var stored = localStorage.getItem('theme');
+          var isLight = stored === 'light' || (!stored && window.matchMedia('(prefers-color-scheme: light)').matches);
+          if (isLight) document.documentElement.classList.add('light');
+        } catch (e) {}
+      })();
+    </script>
     %sveltekit.head%
   </head>
   <body data-sveltekit-preload-data="hover">

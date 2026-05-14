@@ -377,7 +377,6 @@
 <canvas
   bind:this={canvas}
   use:trackPointer
-  style="touch-action: none;
-  mix-blend-mode: {lightMode ? 'multiply' : 'screen'};"
+  style="touch-action: none;"
   class="fixed inset-0 -z-10 h-full w-full"
 ></canvas>
