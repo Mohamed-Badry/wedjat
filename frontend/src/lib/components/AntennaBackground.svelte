@@ -79,6 +79,8 @@
   let innerHeight = 0;
   let targetX = 0,
     targetY = 0;
+  let followX = 0,
+    followY = 0;
   let currentX = 0,
     currentY = 0;
   let hasMoved = false;
@@ -239,8 +241,14 @@
       opacity = 0;
     }
 
-    currentX += (targetX - currentX) * smoothness;
-    currentY += (targetY - currentY) * smoothness;
+    // Double exponential smoothing for a non-linear ease-in/ease-out delay
+    // Multiplier of 1.5 keeps the overall tracking speed similar to the original 
+    // while providing a much smoother initial acceleration curve.
+    followX += (targetX - followX) * (smoothness * 1.5);
+    followY += (targetY - followY) * (smoothness * 1.5);
+    
+    currentX += (followX - currentX) * (smoothness * 1.5);
+    currentY += (followY - currentY) * (smoothness * 1.5);
 
     gl.useProgram(program);
 
