@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@plugin "@tailwindcss/typography";
 
 /* ── Design tokens (Tailwind v4 @theme) ──
    Registered so utilities like text-ink, bg-panel, text-brand etc. work.
