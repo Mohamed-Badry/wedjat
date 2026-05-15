@@ -66,7 +66,7 @@
         </p>
         <div class="my-6 rounded-xl border border-brand/30 bg-brand/5 p-5">
           <p class="m-0 text-sm leading-relaxed text-ink">
-            <strong>Why Z-Score Fails:</strong> A tiny 0.1A current drop doesn't trigger the Z-Score (red line) because the satellite's normal changes are bigger than the error. The VAE (blue line) catches it because the current no longer matches the panel temperature, causing a spike in the error score.
+            <strong>Why Z-Score Fails:</strong> A tiny 0.1A current drop doesn't trigger the Z-Score because the satellite's normal changes are bigger than the error. The VAE catches it because the current no longer matches the panel temperature, causing a spike in the error score.
           </p>
         </div>
       </div>
