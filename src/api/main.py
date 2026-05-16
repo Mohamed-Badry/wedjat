@@ -58,7 +58,7 @@ def create_app(repository: DashboardDataRepository | None = None) -> FastAPI:
     )
 
     @app.get("/")
-    async def read_root() -> dict:
+    def read_root() -> dict:
         return {
             "status": "online",
             "message": "gr_sat Watchdog API is online.",
@@ -73,11 +73,11 @@ def create_app(repository: DashboardDataRepository | None = None) -> FastAPI:
         }
 
     @app.get("/api/status")
-    async def status() -> dict:
+    def status() -> dict:
         return data.status_payload()
 
     @app.get("/api/dashboard/summary")
-    async def dashboard_summary() -> dict:
+    def dashboard_summary() -> dict:
         return data.dashboard_summary()
 
     @app.websocket("/api/ws/dashboard")
@@ -85,14 +85,14 @@ def create_app(repository: DashboardDataRepository | None = None) -> FastAPI:
         await websocket.accept()
         try:
             while True:
-                payload = data.dashboard_summary()
+                payload = await run_in_threadpool(data.dashboard_summary)
                 await websocket.send_json(payload)
                 await asyncio.sleep(2)
         except WebSocketDisconnect:
             pass
 
     @app.get("/api/satellites")
-    async def satellites() -> dict:
+    def satellites() -> dict:
         summaries = data.satellite_summaries()
         return {
             "count": len(summaries),
@@ -100,14 +100,14 @@ def create_app(repository: DashboardDataRepository | None = None) -> FastAPI:
         }
 
     @app.get("/api/satellites/{norad_id}")
-    async def satellite_detail(norad_id: int) -> dict:
+    def satellite_detail(norad_id: int) -> dict:
         try:
             return data.satellite_summary(norad_id)
         except KeyError as exc:
             raise HTTPException(status_code=404, detail=str(exc)) from exc
 
     @app.get("/api/telemetry/recent")
-    async def recent_telemetry(
+    def recent_telemetry(
         norad_id: int | None = None,
         limit: int = Query(default=20, ge=1, le=10000),
     ) -> dict:
@@ -117,7 +117,7 @@ def create_app(repository: DashboardDataRepository | None = None) -> FastAPI:
             raise HTTPException(status_code=404, detail=str(exc)) from exc
 
     @app.get("/api/anomalies/recent")
-    async def recent_anomalies(
+    def recent_anomalies(
         norad_id: int | None = None,
         limit: int = Query(default=20, ge=1, le=200),
     ) -> dict:
@@ -127,7 +127,7 @@ def create_app(repository: DashboardDataRepository | None = None) -> FastAPI:
             raise HTTPException(status_code=404, detail=str(exc)) from exc
 
     @app.get("/api/telemetry/throughput")
-    async def telemetry_throughput(
+    def telemetry_throughput(
         norad_id: int | None = None,
         bucket: Literal["hour", "day"] = "day",
         limit: int = Query(default=30, ge=1, le=365),
@@ -166,7 +166,7 @@ def create_app(repository: DashboardDataRepository | None = None) -> FastAPI:
             raise HTTPException(status_code=404, detail=str(exc)) from exc
 
     @app.get("/api/ml/sensitivity")
-    async def ml_sensitivity(norad_id: int) -> dict:
+    def ml_sensitivity(norad_id: int) -> dict:
         try:
             return data.sensitivity_sweep(norad_id=norad_id)
         except KeyError as exc:

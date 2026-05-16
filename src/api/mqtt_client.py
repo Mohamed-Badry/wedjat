@@ -68,46 +68,51 @@ def on_message(client, userdata, msg):
                 missing = [f"{res.failure.stage}: {res.failure.code}"]
 
         with Session(engine, expire_on_commit=False) as session:
-            raw_record = RawFrame(
-                timestamp=timestamp,
-                norad_id=norad_id,
-                station_id=station_id,
-                raw_frame=raw_hex,
-                snr=snr,
-            )
-            session.add(raw_record)
-            session.commit()
+            try:
+                raw_record = RawFrame(
+                    timestamp=timestamp,
+                    norad_id=norad_id,
+                    station_id=station_id,
+                    raw_frame=raw_hex,
+                    snr=snr,
+                )
+                session.add(raw_record)
 
-            # Score anomaly if possible
-            is_anomaly = False
-            anomaly_score = None
+                # Score anomaly if possible
+                is_anomaly = False
+                anomaly_score = None
 
-            if res.frame:
-                repo = DashboardDataRepository()
-                model_status = repo.model_status(norad_id)
-                if model_status.status == "ready":
-                    # Let's mock a single row dataframe to use the repo's internal scoring for now
-                    df = pd.DataFrame([features])
-                    df["timestamp"] = timestamp
-                    df["is_anomaly"] = False
-                    df["anomaly_score"] = float("nan")
-                    df = repo._score_frames(norad_id, df, model_status)
-                    if not df.empty and not pd.isna(df.iloc[0]["anomaly_score"]):
-                        anomaly_score = float(df.iloc[0]["anomaly_score"])
-                        is_anomaly = bool(df.iloc[0]["is_anomaly"])
+                if res.frame:
+                    repo = DashboardDataRepository()
+                    model_status = repo.model_status(norad_id)
+                    if model_status.status == "ready":
+                        # Let's mock a single row dataframe to use the repo's internal scoring for now
+                        df = pd.DataFrame([features])
+                        df["timestamp"] = timestamp
+                        df["is_anomaly"] = False
+                        df["anomaly_score"] = float("nan")
+                        df = repo._score_frames(norad_id, df, model_status)
+                        if not df.empty and not pd.isna(df.iloc[0]["anomaly_score"]):
+                            anomaly_score = float(df.iloc[0]["anomaly_score"])
+                            is_anomaly = bool(df.iloc[0]["is_anomaly"])
 
-            telem_record = TelemetryFrame(
-                timestamp=timestamp,
-                norad_id=norad_id,
-                raw_frame_id=raw_record.id,
-                features=features,
-                anomaly_score=anomaly_score,
-                is_anomaly=is_anomaly,
-                missing_fields=missing,
-            )
-            session.add(telem_record)
-            session.commit()
-            logger.info(f"Persisted frame for NORAD {norad_id}")
+                telem_record = TelemetryFrame(
+                    timestamp=timestamp,
+                    norad_id=norad_id,
+                    raw_frame_id=raw_record.id,
+                    features=features,
+                    anomaly_score=anomaly_score,
+                    is_anomaly=is_anomaly,
+                    missing_fields=missing,
+                )
+                session.add(telem_record)
+                
+                # Single atomic commit
+                session.commit()
+                logger.info(f"Persisted frame for NORAD {norad_id}")
+            except Exception as e:
+                session.rollback()
+                logger.error(f"Transaction failed, rolled back: {e}", exc_info=True)
 
     except Exception as e:
         logger.error(f"Error processing MQTT message: {e}", exc_info=True)

@@ -617,6 +617,16 @@ class DashboardDataRepository:
                         dfs.append(db_df)
             except Exception as e:
                 import logging
+                
+                try:
+                    from sqlalchemy.exc import SQLAlchemyError
+                    if isinstance(e, SQLAlchemyError):
+                        logging.getLogger("DashboardDataRepository").error(
+                            f"Critical database query failure for {sat_id}: {e}"
+                        )
+                        raise RuntimeError(f"Database query failed: {e}") from e
+                except ImportError:
+                    pass
 
                 logging.getLogger("DashboardDataRepository").warning(
                     f"Failed to query DB for {sat_id}: {e}"
