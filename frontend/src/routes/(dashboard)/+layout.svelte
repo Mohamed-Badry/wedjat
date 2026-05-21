@@ -2,13 +2,14 @@
   import { page } from "$app/stores";
   import { themeState, toggleTheme } from "$lib/theme.svelte";
   import { slide } from "svelte/transition";
-  import { Home, Satellite, Zap, LineChart, Activity, Menu, X, Moon, Sun, BookOpen, BrainCircuit } from "lucide-svelte";
+  import { Home, Satellite, Zap, LineChart, Activity, Menu, X, Moon, Sun, BookOpen, BrainCircuit, Search } from "lucide-svelte";
 
   let { children } = $props();
 
   const dashboardLinks = [
     { href: "/dashboard", label: "Dashboard Home", icon: Home },
     { href: "/dashboard/analytics", label: "Analytics", icon: LineChart },
+    { href: "/dashboard/inspector", label: "Inspector", icon: Search },
     { href: "/dashboard/operations", label: "Operations", icon: Satellite },
     { href: "/dashboard/live", label: "Live Watcher", icon: Zap },
     { href: "/dashboard/ml", label: "ML Interface", icon: Activity },

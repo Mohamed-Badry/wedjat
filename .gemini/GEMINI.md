@@ -15,6 +15,7 @@
 *   **Frontend:** Svelte 5 + Tailwind v4 + Bun. Use semantic CSS token classes (`text-ink`, `bg-panel`, etc.) — never hardcode Tailwind color values like `text-slate-700`.
 *   **Docker Secrets:** All credentials use `${VAR:-default}` in `docker-compose.yml`, sourced from `.env`. Never hardcode secrets in compose or Dockerfiles.
 *   **Documentation:** ALWAYS update relevant documentation (e.g., `DETAILS.md`, `README.md`, `docs/slides.typ`) to ensure it remains consistent with code changes.
+*   **Dictionary & Tooltips (NEW):** When adding new telemetry fields, quality metrics, or scientific concepts to the dashboard, ALWAYS update the `frontend/src/lib/data/dictionary.ts` file. It serves as the single source of truth for the entire application. Use the `<Tooltip text={getFeatureDescription(key)} />` component in the Svelte UI to display these definitions to the operator.
 *   **Paths:**
     *   `src/gr_sat/`: Library code (Shared Core, Telemetry Models).
     *   `src/gr_sat/decoders/`: Satellite-specific decoders (Kaitai Structs).

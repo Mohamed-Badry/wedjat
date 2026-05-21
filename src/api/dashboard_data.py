@@ -246,6 +246,7 @@ class DashboardDataRepository:
                 "timestamp": _timestamp_iso(row["timestamp"]),
                 "norad_id": int(row["norad_id"]),
                 "source": "historical_processed_csv",
+                "raw_frame": _json_value(row.get("raw_frame")),
                 "features": features,
                 "quality": quality,
                 "model": {

@@ -144,6 +144,7 @@ def process_satellite(norad_id: str):
                     decoded = dict(decoded_outcome.data)
                     decoded["timestamp"] = timestamp_str
                     decoded["observation_id"] = record.get("observation_id")
+                    decoded["raw_frame"] = hex_payload
                     interim_rows.append(decoded)
                 else:
                     decode_failures += 1
@@ -185,6 +186,8 @@ def process_satellite(norad_id: str):
             adapted = dict(adapted_outcome.data)
             adapted["timestamp"] = row["timestamp"]
             adapted["observation_id"] = row.get("observation_id")
+            if "raw_frame" in row:
+                adapted["raw_frame"] = row["raw_frame"]
             adapted_rows.append(adapted)
         else:
             adapt_failures += 1
