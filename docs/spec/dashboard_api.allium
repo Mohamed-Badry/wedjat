@@ -1,0 +1,96 @@
+-- allium: 3
+-- dashboard_api.allium
+
+-- Scope: Backend API & Dashboard Contracts
+-- Includes:
+--   - REST API operations exposed to the frontend/dashboard
+--   - Value objects representing the JSON payloads
+-- Excludes:
+--   - FastAPI router mechanics and middleware
+--   - Pandas dataframe manipulations and memory caching
+--   - Database ORM models and queries
+--   - ML inference execution (which generates the data)
+
+value Float {}
+
+value SatelliteIdentity {
+    norad_id: Integer
+    name: String
+}
+
+value DatasetSummary {
+    window_start: Timestamp?
+    window_end: Timestamp?
+    row_count: Integer
+    anomaly_count: Integer
+    partial_frame_count: Integer
+    pass_count: Integer
+}
+
+value ModelStatus {
+    status: String
+    detail: String
+    threshold: Float?
+    inference_mode: String?
+    artifact_version: String?
+    feature_names: List<String>
+    diagnosis_feature_names: List<String>
+}
+
+value SatelliteSummary {
+    identity: SatelliteIdentity
+    dataset: DatasetSummary
+    model: ModelStatus
+}
+
+value TelemetryView {
+    timestamp: Timestamp
+    norad_id: Integer
+    source: String
+    raw_frame: String?
+    -- Contains SI-unit features extracted from raw payload
+    features: Any 
+    -- Contains pipeline diagnostics (e.g. frame_is_complete, dropped_packet_suspect)
+    quality: Any
+    -- Contains the anomaly_score and threshold
+    model: Any
+}
+
+value AnomalyView {
+    timestamp: Timestamp
+    norad_id: Integer
+    score: Float?
+    threshold: Float?
+    features: Any
+    reconstructed_features: Any?
+    scaled_features: Any?
+    scaled_reconstructed_features: Any?
+    feature_contributions: Any?
+    quality: Any
+}
+
+value ThroughputBucket {
+    timestamp: Timestamp
+    frame_count: Integer
+    anomaly_count: Integer
+}
+
+contract DashboardAPI {
+    -- Core Dashboard endpoints
+    get_status: (req: Any) -> Any
+    get_dashboard_summary: (req: Any) -> Any
+    
+    -- Satellite Registry endpoints
+    get_satellites: (req: Any) -> List<SatelliteSummary>
+    get_satellite_detail: (norad_id: Integer) -> SatelliteSummary
+    
+    -- Telemetry & Anomaly endpoints
+    get_recent_telemetry: (norad_id: Integer?, limit: Integer) -> List<TelemetryView>
+    get_recent_anomalies: (norad_id: Integer?, limit: Integer) -> List<AnomalyView>
+    get_throughput: (norad_id: Integer?, bucket: String, limit: Integer) -> List<ThroughputBucket>
+    
+    -- Analytical & Operations endpoints
+    get_analytics: (norad_id: Integer?) -> Any
+    predict_passes: (lat: Float, lon: Float, elevation_m: Float, lookahead_hours: Integer, min_elevation: Float, norad_id: Integer?) -> Any
+    get_ml_sensitivity: (norad_id: Integer) -> Any
+}

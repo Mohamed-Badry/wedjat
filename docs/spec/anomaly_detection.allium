@@ -1,0 +1,107 @@
+-- allium: 3
+-- anomaly_detection.allium
+
+-- Scope: Anomaly Detection and Diagnosis Pipeline
+-- Includes:
+--   - Model training workflow and data filtering
+--   - Runtime anomaly detection and feature diagnosis scoring
+--   - Synthetic fault injection for benchmarking
+-- Excludes:
+--   - PyTorch tensor manipulation and neural network architecture specifics (hidden_dim, latent_dim)
+--   - File system serialization mechanics (e.g., .pt, .pkl files)
+--   - Scikit-learn StandardScaler implementation details
+
+use "./telemetry_pipeline.allium" as telemetry
+
+value Float {}
+
+value MLDatasetSplit {
+    train_start: Timestamp
+    train_end: Timestamp
+    validation_start: Timestamp
+    validation_end: Timestamp
+    test_start: Timestamp
+    test_end: Timestamp
+}
+
+entity AnomalyModelArtifact {
+    satellite: telemetry/SatelliteProfile
+    version: String
+    status: active | deprecated
+    
+    -- Training metrics
+    split: MLDatasetSplit
+    train_row_count: Integer
+    
+    -- Operating parameters
+    operating_threshold: Float
+    
+    feature_names: List<String>
+    diagnosis_feature_names: List<String>
+}
+
+entity TelemetryInference {
+    frame: telemetry/ProcessedTelemetry
+    model: AnomalyModelArtifact
+    
+    anomaly_score: Float
+    
+    -- Stage 1: Detection
+    is_anomaly: anomaly_score > model.operating_threshold
+    
+    -- Stage 2: Diagnosis (evaluated when is_anomaly is true)
+    top_contributing_feature: String? when is_anomaly = true
+}
+
+entity BenchmarkReport {
+    model: AnomalyModelArtifact
+    auroc: Float
+    recall_at_5_fpr: Float
+    
+    -- Captures diagnosis isolation accuracy per fault type
+    diagnosis_accuracy: Any
+}
+
+rule TrainAnomalyModel {
+    when: TrainModelRequested(satellite)
+    
+    -- ProcessedTelemetry frames are filtered before training:
+    -- 1. Exclude frames that match 'baseline extreme' conditions
+    -- 2. Exclude frames where is_complete = false
+    
+    ensures: AnomalyModelArtifact.created(
+        satellite: satellite,
+        status: active
+        -- threshold is derived from scoring the validation set
+    )
+}
+
+rule RunAnomalyInference {
+    when: frame: telemetry/ProcessedTelemetry.created
+    requires: frame.status = valid
+    requires: frame.is_complete = true
+    
+    -- Relies on the most recent active model for the satellite
+    let model = (AnomalyModelArtifact where satellite = frame.raw_source.satellite and status = active).first()
+    requires: model != null
+    
+    ensures: TelemetryInference.created(
+        frame: frame,
+        model: model
+        -- anomaly_score is calculated via model reconstruction error
+    )
+}
+
+rule GenerateBenchmarkFaults {
+    when: BenchmarkRequested(model)
+    
+    -- Conceptually:
+    -- 1. Take chronological test set frames
+    -- 2. Inject synthetic faults (e.g., panel_failure, thermal_runaway)
+    -- 3. Run inference against the model
+    -- 4. Calculate classification and diagnosis accuracy
+    
+    ensures: BenchmarkReport.created(
+        model: model
+    )
+}

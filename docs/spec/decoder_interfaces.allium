@@ -1,0 +1,40 @@
+-- allium: 3
+-- decoder_interfaces.allium
+
+-- Scope: Satellite Decoder Interfaces
+-- Includes:
+--   - The abstract contract that all satellite-specific decoders must implement.
+--   - The structures for intermediate (decode) and final (adapt) outcomes.
+--   - Standardized processing failure representations.
+-- Excludes:
+--   - The DecoderRegistry pattern (which is a Python DI/routing mechanism).
+--   - Specific Kaitai Struct parsing logic (e.g., UWE-4 struct layouts).
+--   - Python exception handling and class hierarchies.
+
+use "./telemetry_pipeline.allium" as telemetry
+
+value ByteArray {}
+value FieldMap {} -- Abstract representation of a dynamic dictionary of fields
+
+value ProcessingFailure {
+    stage: String
+    code: String
+    message: String
+}
+
+value StageOutcome {
+    data: FieldMap?
+    failure: ProcessingFailure?
+}
+
+contract SatelliteDecoder {
+    -- Stage 1: Parse raw binary payload into a dictionary of satellite-specific fields.
+    -- Implementations use binary parsers (e.g., Kaitai Structs) to extract all fields
+    -- natively as transmitted by the satellite.
+    decode: (payload: ByteArray) -> StageOutcome
+
+    -- Stage 2: Convert the interim satellite-specific fields into standard SI-unit fields.
+    -- Implementations must map their specific fields to satisfy the GoldenFeatures contract,
+    -- applying scaling factors (e.g., mV -> V) and aggregations where necessary.
+    adapt: (decoded_fields: FieldMap) -> StageOutcome
+}

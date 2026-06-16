@@ -1,0 +1,130 @@
+-- allium: 3
+-- telemetry_pipeline.allium
+
+-- Scope: Telemetry Processing & Data Pipeline
+-- Includes:
+--   - Frame fetching logic (SatNOGS API extraction)
+--   - Two-stage processing pipeline: Decode (Kaitai) and Adapt (Golden Features)
+--   - Deduplication and Cadence Annotation
+-- Excludes:
+--   - SatNOGS API pagination, rate limiting, and HTTP error handling
+--   - Specific Kaitai Struct binary parsing mechanics
+--   - Specific decoder implementations (e.g., UWE-4)
+--   - File system storage details (raw/interim/processed CSVs)
+
+value Float {}
+
+entity SatelliteProfile {
+    norad_id: Integer
+    pass_gap: Duration
+    cadence_tolerance_ratio: Float
+    cadence_min_tolerance: Duration
+    rolling_window: Integer
+    required_features: Set<String>
+}
+
+contract GoldenFeatures {
+    -- The universal data transfer object (DTO) for all satellite telemetry
+    -- Represents SI-unit adapted values.
+    timestamp: Timestamp
+    norad_id: Integer
+    source: String
+    
+    src_callsign: String?
+    dest_callsign: String?
+    
+    batt_voltage: Float?
+    batt_current: Float?
+    batt_a_voltage: Float?
+    batt_b_voltage: Float?
+    batt_a_current: Float?
+    batt_b_current: Float?
+    power_consumption: Float?
+    
+    temp_obc: Float?
+    temp_batt_a: Float?
+    temp_batt_b: Float?
+    temp_panel_z: Float?
+    
+    uptime: Integer?
+}
+
+entity RawTelemetry {
+    satellite: SatelliteProfile
+    timestamp: Timestamp
+    observation_id: String
+    payload_hex: String
+}
+
+entity ProcessedTelemetry {
+    raw_source: RawTelemetry
+    status: valid | invalid
+    
+    failed_stage: decode | adapt when status = invalid
+    failure_code: String when status = invalid
+    
+    -- When valid, satisfies the GoldenFeatures contract
+    -- (We model this as inline fields for now, as Allium doesn't yet support contract composition in entities)
+    batt_voltage: Float? when status = valid
+    batt_current: Float? when status = valid
+    temp_obc: Float? when status = valid
+    uptime: Integer? when status = valid
+    
+    -- Pipeline Diagnostics (annotated after adaptation)
+    is_complete: Boolean when status = valid
+    is_irregular_cadence: Boolean when status = valid
+    dropped_packet_suspect: Boolean when status = valid
+}
+
+rule ProcessFrame {
+    when: RawTelemetry.created(raw)
+    
+    -- Abstract representation of `decode_with_diagnostics` and `adapt_with_diagnostics`.
+    -- Depending on the decoder logic, the frame either succeeds or fails.
+    
+    ensures: ProcessedTelemetry.created(
+        raw_source: raw,
+        status: valid,
+        is_complete: false,             -- Populated in later stage
+        is_irregular_cadence: false,    -- Populated in later stage
+        dropped_packet_suspect: false   -- Populated in later stage
+    )
+    
+    -- Or failed path (Decode failure):
+    ensures: ProcessedTelemetry.created(
+        raw_source: raw,
+        status: invalid,
+        failed_stage: decode,
+        failure_code: "invalid_hex_payload"
+    )
+}
+
+rule DeduplicateExactFrames {
+    when: f1: ProcessedTelemetry.created
+    requires: f1.status = valid
+    
+    ensures:
+        for f2 in ProcessedTelemetry where f2.raw_source.satellite = f1.raw_source.satellite and f2 != f1 and f2.status = valid:
+            if f2.raw_source.timestamp = f1.raw_source.timestamp and f2.raw_source.payload_hex = f1.raw_source.payload_hex:
+                not exists f2
+}
+
+rule AnnotateCompleteness {
+    when: frame: ProcessedTelemetry.created
+    requires: frame.status = valid
+    
+    -- Models `feature_completeness_mask`
+    -- Evaluates if the frame has non-null values for all required_features.
+    ensures: frame.is_complete = true 
+}
+
+rule AnnotateCadence {
+    when: frame: ProcessedTelemetry.created
+    requires: frame.status = valid
+    
+    -- Abstractly models `annotate_pass_and_cadence_metadata`
+    -- Evaluates temporal distance between adjacent frames in a pass.
+    
+    ensures: frame.is_irregular_cadence = true      -- When cadence breaks tolerance limits
+    ensures: frame.dropped_packet_suspect = true    -- When cadence suggests exactly 1-2 missing packets
+}
