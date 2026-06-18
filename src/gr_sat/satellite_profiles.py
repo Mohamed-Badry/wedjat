@@ -74,7 +74,6 @@ UWE4_PROFILE = SatelliteProfile(
             "batt_current",
             "temp_batt_a",
             "temp_batt_b",
-            "temp_panel_z",
         ),
     ),
     pass_gap_seconds=120.0,

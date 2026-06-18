@@ -374,8 +374,9 @@ class DashboardDataRepository:
                         }
                         
                         # Calculate contribution on scaled values (how the model actually sees it)
+                        diagnosis_feature_names = set(metadata.diagnosis_feature_names or feat_names)
                         feature_contributions = {
-                            f: float(abs(X_scaled[0][i] - recon_np[0][i])) for i, f in enumerate(feat_names)
+                            f: float(abs(X_scaled[0][i] - recon_np[0][i])) for i, f in enumerate(feat_names) if f in diagnosis_feature_names
                         }
                 except Exception as e:
                     import logging

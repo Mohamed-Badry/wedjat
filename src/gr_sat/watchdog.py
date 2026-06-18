@@ -73,6 +73,10 @@ class OnlineWatchdog:
         self._pass_gap_seconds = self.profile.pass_gap_seconds
         self._rolling_window = self.profile.rolling_window
         self._recent_frames: deque[TelemetryFrame] = deque(maxlen=self._rolling_window)
+        self._diagnosis_mask = [
+            self.metadata.feature_names.index(f)
+            for f in (self.metadata.diagnosis_feature_names or self.metadata.feature_names)
+        ]
 
     @classmethod
     def from_artifacts(
@@ -141,6 +145,7 @@ class OnlineWatchdog:
                 mu,
                 logvar,
                 kld_weight=self.metadata.kld_weight,
+                diagnosis_mask=self._diagnosis_mask,
             )
         return float(score_tensor.item())
 

@@ -59,19 +59,25 @@ def compute_kld(mu, logvar, reduction="none"):
     return kld
 
 
-def compute_anomaly_scores(recon_x, x, mu, logvar, kld_weight=DEFAULT_KLD_WEIGHT):
-    mse = torch.mean((x - recon_x) ** 2, dim=1)
+def compute_anomaly_scores(recon_x, x, mu, logvar, kld_weight=DEFAULT_KLD_WEIGHT, diagnosis_mask=None):
+    if diagnosis_mask is not None:
+        mse = torch.mean(((x - recon_x) ** 2)[:, diagnosis_mask], dim=1)
+    else:
+        mse = torch.mean((x - recon_x) ** 2, dim=1)
     kld = compute_kld(mu, logvar, reduction="none")
     return mse + kld_weight * kld
 
 
-def vae_loss(recon_x, x, mu, logvar, kld_weight=0.01):
+def vae_loss(recon_x, x, mu, logvar, kld_weight=0.01, diagnosis_mask=None):
     """
     Loss function for VAE.
     1. MSE Loss (Reconstruction)
     2. KL Divergence (Latent space regularization)
     """
-    MSE = F.mse_loss(recon_x, x, reduction="mean")
+    if diagnosis_mask is not None:
+        MSE = F.mse_loss(recon_x[:, diagnosis_mask], x[:, diagnosis_mask], reduction="mean")
+    else:
+        MSE = F.mse_loss(recon_x, x, reduction="mean")
 
     # KL Divergence: -0.5 * sum(1 + log(sigma^2) - mu^2 - sigma^2)
     # Using 'mean' to keep it scaled nicely with MSE

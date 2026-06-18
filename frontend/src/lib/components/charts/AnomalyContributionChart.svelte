@@ -5,12 +5,16 @@
     actual = {}, 
     expected = {},
     scaledActual = {},
-    scaledExpected = {}
+    scaledExpected = {},
+    activeFeatures = null,
+    height = 200
   } = $props<{ 
     actual: Record<string, number>, 
     expected: Record<string, number>,
     scaledActual: Record<string, number>,
-    scaledExpected: Record<string, number>
+    scaledExpected: Record<string, number>,
+    activeFeatures?: string[] | null,
+    height?: number
   }>();
 
   const ACTUAL_LBL = 'Actual';
@@ -19,7 +23,7 @@
   const EXPECTED_COLOR = 'var(--color-highlight)';
 
   let sortedFeatures = $derived(
-    Object.keys(expected).sort((a, b) => Math.abs(scaledActual[b] - scaledExpected[b]) - Math.abs(scaledActual[a] - scaledExpected[a]))
+    (activeFeatures || Object.keys(expected)).sort((a, b) => Math.abs(scaledActual[b] - scaledExpected[b]) - Math.abs(scaledActual[a] - scaledExpected[a]))
   );
 
   let dataActual = $derived(sortedFeatures.map(f => ({ 
@@ -45,7 +49,7 @@
 
 <div class="w-full">
   {#if Object.keys(scaledExpected).length > 0}
-    <Plot height={200}
+    <Plot {height}
       x={{ label: 'Standardized Deviation (Z-Score)', grid: true, nice: true }}
       y={{ label: false, domain: sortedFeatures }}
       marginTop={12} marginRight={20} marginBottom={40} marginLeft={90}>

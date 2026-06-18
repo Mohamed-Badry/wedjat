@@ -155,94 +155,126 @@
               Select an anomaly from the queue to inspect.
             </div>
           {:else}
-            <div class="flex flex-col gap-8">
+            <div class="flex flex-col h-full gap-5">
               
-              <!-- Severity Meter -->
-              <section class="flex flex-col items-center justify-center bg-surface/50 rounded-xl border border-border p-6 shadow-sm">
-                 <h3 class="text-xs font-semibold uppercase tracking-wider text-ink-3 mb-4">Anomaly Severity</h3>
-                 <div class="flex items-end gap-4">
-                   <div class="flex flex-col items-center">
-                     <span class="text-4xl font-bold tracking-tight text-critical">{selectedAnomaly.score.toFixed(3)}</span>
-                     <span class="text-[10px] uppercase tracking-wider text-ink-3 mt-1">Reconstruction Error</span>
-                   </div>
-                   <div class="h-10 border-r border-border mx-4"></div>
-                   <div class="flex flex-col items-center">
-                     <span class="text-2xl font-bold tracking-tight text-ink-2">{selectedAnomaly.threshold.toFixed(3)}</span>
-                     <span class="text-[10px] uppercase tracking-wider text-ink-3 mt-1">Detection Threshold</span>
-                   </div>
-                 </div>
-              </section>
+              <div class="flex shrink-0 gap-5 flex-col 2xl:flex-row">
+                <div class="flex flex-col gap-4 2xl:w-[280px]">
+                  <!-- Severity Meter -->
+                  <section class="flex flex-col items-center justify-center bg-surface/50 rounded-xl border border-border p-5 shadow-sm h-full">
+                     <h3 class="text-[10px] font-semibold uppercase tracking-wider text-ink-3 mb-3">Anomaly Severity</h3>
+                     <div class="flex items-end gap-3">
+                       <div class="flex flex-col items-center">
+                         <span class="text-3xl font-bold tracking-tight text-critical leading-none">{selectedAnomaly.score.toFixed(3)}</span>
+                         <span class="text-[9px] uppercase tracking-wider text-ink-3 mt-1.5 text-center">Recon Error</span>
+                       </div>
+                       <div class="h-8 border-r border-border mx-2"></div>
+                       <div class="flex flex-col items-center">
+                         <span class="text-xl font-bold tracking-tight text-ink-2 leading-none">{selectedAnomaly.threshold.toFixed(3)}</span>
+                         <span class="text-[9px] uppercase tracking-wider text-ink-3 mt-1.5 text-center">Threshold</span>
+                       </div>
+                     </div>
+                  </section>
+  
 
-              <!-- Contribution Bar Chart -->
-              {#if selectedAnomaly.feature_contributions && selectedAnomaly.reconstructed_features}
-                <section class="flex flex-col border border-border bg-surface/30 rounded-xl p-4 shadow-sm">
-                   <h3 class="text-xs font-semibold uppercase tracking-wider text-ink-3 mb-2 flex items-center gap-2">
-                    <span class="inline-block h-2 w-2 rounded-full bg-critical"></span>
-                    Feature Error Contribution
-                  </h3>
-                  <AnomalyContributionChart 
-                    actual={selectedAnomaly.features} 
-                    expected={selectedAnomaly.reconstructed_features} 
-                    scaledActual={selectedAnomaly.scaled_features || {}} 
-                    scaledExpected={selectedAnomaly.scaled_reconstructed_features || {}} 
-                  />
-                </section>
-              {/if}
-
-              <!-- Actual vs Expected Grid -->
-              <section class="flex flex-col">
-                <div class="flex items-center justify-between mb-4">
-                  <h3 class="text-xs font-semibold uppercase tracking-wider text-ink-3 flex items-center gap-2">
-                    <span class="inline-block h-2 w-2 rounded-full bg-critical"></span>
-                    Actual vs. Expected (VAE)
-                  </h3>
-                  <p class="text-[10px] text-ink-3 max-w-sm text-right">
-                    The VAE model flags anomalies when physical relationships break. The feature with the highest delta (Contribution) is the root cause.
-                  </p>
                 </div>
 
+                <!-- Contribution Bar Chart -->
                 {#if selectedAnomaly.feature_contributions && selectedAnomaly.reconstructed_features}
-                  {@const features = Object.entries(selectedAnomaly.feature_contributions).sort((a: any, b: any) => b[1] - a[1])}
-                  
-                  <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                    {#each features as [key, contribution], i}
-                      {@const isRootCause = i === 0}
-                      <div class="flex flex-col rounded-xl border {isRootCause ? 'border-critical bg-critical/5 shadow-md shadow-critical/10' : 'border-border bg-surface/50'} p-4 transition-colors">
-                        <div class="flex items-center justify-between gap-2 mb-3">
-                          <span class="text-[10px] font-semibold uppercase tracking-wider {isRootCause ? 'text-critical' : 'text-ink-3'} truncate">{key}</span>
-                          <Tooltip text={getFeatureDescription(key)} align={i % 3 === 2 ? 'right' : 'left'} />
-                        </div>
-                        
-                        <div class="flex items-center justify-between mb-2">
-                          <div class="flex flex-col">
-                            <span class="text-[9px] uppercase tracking-wider text-ink-3">Actual</span>
-                            <span class="font-mono text-sm font-medium text-ink mt-0.5">
-                              {Number(selectedAnomaly.features[key]).toFixed(3)}
-                            </span>
-                          </div>
-                          <div class="flex flex-col text-right">
-                            <span class="text-[9px] uppercase tracking-wider text-ink-3">Expected</span>
-                            <span class="font-mono text-sm font-medium text-ink-2 mt-0.5">
-                              {Number(selectedAnomaly.reconstructed_features[key]).toFixed(3)}
-                            </span>
-                          </div>
-                        </div>
-
-                        <div class="mt-2 pt-2 border-t {isRootCause ? 'border-critical/20' : 'border-border/50'} flex items-center justify-between">
-                          <span class="text-[9px] uppercase tracking-wider {isRootCause ? 'text-critical' : 'text-ink-3'}">Delta (Contribution)</span>
-                          <span class="font-mono text-xs font-bold {isRootCause ? 'text-critical' : 'text-ink'}">
-                            {Number(contribution).toFixed(4)}
-                          </span>
-                        </div>
-                      </div>
-                    {/each}
-                  </div>
-                {:else}
-                  <div class="p-6 text-center text-sm text-ink-3 rounded-xl border border-border border-dashed bg-surface/30">
-                    Expected feature reconstruction data is not available for this anomaly. 
-                    <br><span class="text-xs opacity-70">(Did you restart the backend to clear the cache?)</span>
-                  </div>
+                  <section class="flex flex-col border border-border bg-surface/30 rounded-xl p-3 shadow-sm flex-1">
+                     <h3 class="text-[10px] font-semibold uppercase tracking-wider text-ink-3 mb-1 flex items-center gap-2">
+                      <span class="inline-block h-1.5 w-1.5 rounded-full bg-critical"></span>
+                      Error Contribution
+                    </h3>
+                    <div class="h-[160px] w-full">
+                      <AnomalyContributionChart 
+                        actual={selectedAnomaly.features} 
+                        expected={selectedAnomaly.reconstructed_features} 
+                        scaledActual={selectedAnomaly.scaled_features || {}} 
+                        scaledExpected={selectedAnomaly.scaled_reconstructed_features || {}}
+                        activeFeatures={Object.keys(selectedAnomaly.feature_contributions)}
+                        height={160}
+                      />
+                    </div>
+                  </section>
                 {/if}
+              </div>
+
+              <!-- Actual vs Expected Grid -->
+              <section class="flex flex-col flex-1 min-h-0 overflow-y-auto pr-2 pb-2">
+                <div class="flex flex-col 2xl:flex-row gap-6">
+                  
+                  <div class="flex flex-col flex-1 min-w-0">
+                    <div class="flex items-center justify-between mb-4">
+                      <h3 class="text-xs font-semibold uppercase tracking-wider text-ink-3 flex items-center gap-2">
+                        <span class="inline-block h-2 w-2 rounded-full bg-critical"></span>
+                        Actual vs. Expected (VAE)
+                      </h3>
+                      <p class="text-[10px] text-ink-3 max-w-xs text-right">
+                        The VAE model flags anomalies when physical relationships break. The feature with the highest delta (Contribution) is the root cause.
+                      </p>
+                    </div>
+    
+                    {#if selectedAnomaly.feature_contributions && selectedAnomaly.reconstructed_features}
+                      {@const features = Object.entries(selectedAnomaly.feature_contributions).sort((a: any, b: any) => b[1] - a[1])}
+                      
+                      <div class="grid grid-cols-1 xl:grid-cols-2 gap-4">
+                        {#each features as [key, contribution], i}
+                          {@const isRootCause = i === 0}
+                          <div class="flex flex-col rounded-xl border {isRootCause ? 'border-critical bg-critical/5 shadow-md shadow-critical/10' : 'border-border bg-surface/50'} p-4 transition-colors">
+                            <div class="flex items-center justify-between gap-2 mb-3">
+                              <span class="text-[10px] font-semibold uppercase tracking-wider {isRootCause ? 'text-critical' : 'text-ink-3'} truncate">{key}</span>
+                              <Tooltip text={getFeatureDescription(key)} align={i % 2 === 1 ? 'right' : 'left'} />
+                            </div>
+                            
+                            <div class="flex items-center justify-between mb-2">
+                              <div class="flex flex-col">
+                                <span class="text-[9px] uppercase tracking-wider text-ink-3">Actual</span>
+                                <span class="font-mono text-sm font-medium text-ink mt-0.5">
+                                  {Number(selectedAnomaly.features[key]).toFixed(3)}
+                                </span>
+                              </div>
+                              <div class="flex flex-col text-right">
+                                <span class="text-[9px] uppercase tracking-wider text-ink-3">Expected</span>
+                                <span class="font-mono text-sm font-medium text-ink-2 mt-0.5">
+                                  {Number(selectedAnomaly.reconstructed_features[key]).toFixed(3)}
+                                </span>
+                              </div>
+                            </div>
+    
+                            <div class="mt-2 pt-2 border-t {isRootCause ? 'border-critical/20' : 'border-border/50'} flex items-center justify-between">
+                              <span class="text-[9px] uppercase tracking-wider {isRootCause ? 'text-critical' : 'text-ink-3'}">Delta (Contribution)</span>
+                              <span class="font-mono text-xs font-bold {isRootCause ? 'text-critical' : 'text-ink'}">
+                                {Number(contribution).toFixed(4)}
+                              </span>
+                            </div>
+                          </div>
+                        {/each}
+                      </div>
+                    {:else}
+                      <div class="p-6 text-center text-sm text-ink-3 rounded-xl border border-border border-dashed bg-surface/30">
+                        Expected feature reconstruction data is not available for this anomaly. 
+                        <br><span class="text-xs opacity-70">(Did you restart the backend to clear the cache?)</span>
+                      </div>
+                    {/if}
+                  </div>
+
+                  <!-- Right Sidebar: Context Variables -->
+                  {#if Object.keys(selectedAnomaly.features).some(f => !selectedAnomaly.feature_contributions[f])}
+                    {@const contextFeatures = Object.keys(selectedAnomaly.features).filter(f => !selectedAnomaly.feature_contributions.hasOwnProperty(f))}
+                    <div class="flex flex-col 2xl:w-[220px] shrink-0 border-t 2xl:border-t-0 2xl:border-l border-border/50 pt-5 2xl:pt-0 2xl:pl-6">
+                      <h4 class="text-[10px] font-semibold uppercase tracking-wider text-ink-3 mb-4">Context Variables (Masked)</h4>
+                      <div class="grid grid-cols-2 2xl:grid-cols-1 gap-3">
+                        {#each contextFeatures as ctxFeature}
+                           <div class="flex flex-col gap-1 border-l-2 border-brand/40 pl-3 py-0.5" title={getFeatureDescription(ctxFeature)}>
+                             <span class="text-[9px] uppercase tracking-wider text-ink-3 leading-none">{ctxFeature}</span>
+                             <span class="font-mono text-sm font-bold text-ink leading-none mt-0.5">{Number(selectedAnomaly.features[ctxFeature]).toFixed(2)}</span>
+                           </div>
+                        {/each}
+                      </div>
+                    </div>
+                  {/if}
+
+                </div>
               </section>
               
             </div>

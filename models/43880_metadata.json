@@ -3,8 +3,7 @@
     "batt_voltage",
     "batt_current",
     "temp_batt_a",
-    "temp_batt_b",
-    "temp_panel_z"
+    "temp_batt_b"
   ],
   "feature_contract_version": 3,
   "feature_names": [
@@ -19,16 +18,16 @@
   "kld_weight": 0.05,
   "latent_dim": 3,
   "norad_id": "43880",
-  "test_end": "2026-04-11T16:38:05+00:00",
-  "test_rows": 1103,
-  "test_start": "2026-03-23T10:57:34+00:00",
-  "threshold": 0.29517000913619995,
+  "test_end": "2026-06-18T09:20:07+00:00",
+  "test_rows": 1457,
+  "test_start": "2026-05-24T09:29:50+00:00",
+  "threshold": 0.3145592510700226,
   "threshold_percentile": 95.0,
-  "train_end": "2026-03-02T00:44:29+00:00",
-  "train_rows": 8817,
+  "train_end": "2026-04-23T22:38:48+00:00",
+  "train_rows": 11649,
   "train_start": "2025-08-31T22:03:01+00:00",
-  "validation_end": "2026-03-23T10:57:26+00:00",
-  "validation_rows": 1102,
-  "validation_start": "2026-03-02T05:25:18+00:00",
+  "validation_end": "2026-05-24T09:29:48+00:00",
+  "validation_rows": 1456,
+  "validation_start": "2026-04-23T22:38:58+00:00",
   "version": 2
 }

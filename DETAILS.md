@@ -55,8 +55,8 @@ The intended system is split into two distinct environments that share a common 
 * **Algorithm: Unified PyTorch Variational Autoencoder (VAE)**
     *   **Historical Note:** We initially attempted a "Hybrid Pipeline" using `sklearn.covariance.EllipticEnvelope` as a Stage 1 screener. We deprecated it because LEO telemetry physics strictly dictate *Bimodal* operating states (Day/Night). A linear boundary drawing Gaussians was unable to wrap both states without dropping ~50% of the anomaly recalls.
     *   **The VAE Approach:** A PyTorch VAE mathematically handles non-linear bounds efficiently.
-    *   **Stage 1 (Detection):** Calculate the overall frame reconstruction error (MSE) + Kullback-Leibler Divergence (KLD). The current repository now calibrates the operating threshold on a chronological validation split during training and persists it alongside the model metadata.
-    *   **Stage 2 (Diagnosis):** For flagged frames, inspect the per-node Mean Squared Error. The node with the largest error isolates the Root Cause.
+    *   **Stage 1 (Detection):** Calculate the overall frame reconstruction error (MSE) + Kullback-Leibler Divergence (KLD). To prevent bimodal external environmental variables (like `temp_panel_z` as an eclipse proxy) from falsely inflating the MSE, the loss and anomaly scores are computed using a **Diagnosis Mask**. The VAE takes all features as input to learn context, but only internal health metrics contribute to the anomaly threshold.
+    *   **Stage 2 (Diagnosis):** For flagged frames, inspect the per-node Mean Squared Error of the masked internal health metrics. The node with the largest error isolates the Root Cause.
 
 #### 3. Interpretability & Benchmarking (The Edge)
 An opaque "Anomaly Score" (e.g., 0.95) is useless to an operator. We provide actionable insights by analyzing the **reconstruction error per feature** in Stage 2.
@@ -165,8 +165,8 @@ def process_packet(raw_bytes):
 *   **Pipeline:** `Raw JSONL` -> `Decode` -> `Normalize` -> `CSV`.
 *   **Status:** Successfully processed UWE-4 (43880) data into a historical processed dataset used for model training and review.
 
-#### 3. Model Training + Offline Benchmarking (`scripts/train_model.py`, `scripts/generate_faults.py`)
-*   **Training:** Per-satellite `StandardScaler` + PyTorch `TelemetryVAE`.
+#### 3. Model Training + Offline Benchmarking (`src/gr_sat/training.py`, `src/gr_sat/evaluation.py`)
+*   **Training:** Per-satellite `StandardScaler` + PyTorch `TelemetryVAE` with Contextual Diagnosis Masking.
 *   **Benchmarking:** Synthetic-fault evaluation for comparative offline model analysis.
 *   **Threshold Persistence:** The anomaly threshold is calibrated on a chronological validation split during training and persisted in the model metadata artifact (`models/<norad>_metadata.json`).
 
