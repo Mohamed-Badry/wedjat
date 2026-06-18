@@ -1,6 +1,6 @@
 <script lang="ts">
   import ResponsivePlot from './ResponsivePlot.svelte';
-  import { Dot, Link } from 'svelteplot';
+  import * as Plot from '@observablehq/plot';
 
   let { 
     actual = {}, 
@@ -20,8 +20,8 @@
 
   const ACTUAL_LBL = 'Actual';
   const EXPECTED_LBL = 'Expected';
-  const ACTUAL_COLOR = 'var(--color-brand)';
-  const EXPECTED_COLOR = 'var(--color-highlight)';
+  const ACTUAL_COLOR = 'var(--color-critical)'; // Red (stands out clearly as anomalous)
+  const EXPECTED_COLOR = 'var(--color-brand)'; // Purple (distinct from the actual line)
 
   let sortedFeatures = $derived(
     (activeFeatures || Object.keys(expected)).sort((a: string, b: string) => Math.abs(scaledActual[b] - scaledExpected[b]) - Math.abs(scaledActual[a] - scaledExpected[a]))
@@ -46,26 +46,31 @@
     val1: Number(scaledExpected[f]),
     val2: Number(scaledActual[f])
   })));
+
+  let plotOptions = $derived({
+    x: { label: 'Standardized Deviation (Z-Score)', labelAnchor: 'center', grid: true, nice: true },
+    y: { label: null, domain: sortedFeatures, tickFormat: (d: string) => d.replace(/_/g, ' ').toUpperCase() },
+    marginTop: 12,
+    marginRight: 20,
+    marginBottom: 40,
+    marginLeft: 110,
+    marks: [
+      Plot.link(dataLinks, { x1: "val1", x2: "val2", y1: "feature", y2: "feature", stroke: "var(--color-ink-3)", strokeWidth: 2, strokeOpacity: 0.5 }),
+      Plot.dot(dataExpected, { 
+        x: "value", y: "feature", fill: EXPECTED_COLOR, r: 5,
+        title: (d: any) => `${d.feature}\nExpected (Raw): ${d.raw.toFixed(3)}\nZ-Score: ${d.value.toFixed(3)}`
+      }),
+      Plot.dot(dataActual, { 
+        x: "value", y: "feature", fill: ACTUAL_COLOR, r: 5,
+        title: (d: any) => `${d.feature}\nActual (Raw): ${d.raw.toFixed(3)}\nZ-Score: ${d.value.toFixed(3)}`
+      })
+    ]
+  });
 </script>
 
 <div class="w-full">
   {#if Object.keys(scaledExpected).length > 0}
-    <ResponsivePlot {height}
-      x={{ label: 'Standardized Deviation (Z-Score)', labelAnchor: 'center', grid: true, nice: true }}
-      y={{ label: false, domain: sortedFeatures, tickFormat: (d: string) => d.replace(/_/g, ' ').toUpperCase() }}
-      marginTop={12} marginRight={20} marginBottom={40} marginLeft={110}>
-      
-      <!-- Connect Expected to Actual -->
-      <Link data={dataLinks} x1="val1" x2="val2" y1="feature" y2="feature" stroke="var(--color-ink-3)" strokeWidth={2} strokeOpacity={0.5} />
-      
-      <!-- Expected Dots -->
-      <Dot data={dataExpected} x="value" y="feature" fill={EXPECTED_COLOR} r={5} 
-           title={(d: any) => `${d.feature}\nExpected (Raw): ${d.raw.toFixed(3)}\nZ-Score: ${d.value.toFixed(3)}`} />
-           
-      <!-- Actual Dots (Plotted last so they sit on top if they overlap) -->
-      <Dot data={dataActual} x="value" y="feature" fill={ACTUAL_COLOR} r={5}
-           title={(d: any) => `${d.feature}\nActual (Raw): ${d.raw.toFixed(3)}\nZ-Score: ${d.value.toFixed(3)}`} />
-    </ResponsivePlot>
+    <ResponsivePlot height={height} options={plotOptions} />
     
     <div class="mt-1 flex items-center justify-center gap-6 text-[0.65rem] uppercase tracking-wider font-semibold text-ink-3">
       <span class="flex items-center gap-1.5">

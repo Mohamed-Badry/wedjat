@@ -6,7 +6,7 @@
   ];
 </script>
 
-<section class="space-y-8">
+<section class="space-y-8 mx-auto w-full max-w-[1800px] px-4 sm:px-8 lg:px-10">
   <div class="space-y-3">
     <p class="text-xs font-semibold uppercase tracking-[0.2em] text-muted">About the project</p>
     <h1 class="text-4xl font-semibold tracking-tight text-ink">A compact academic project shell</h1>

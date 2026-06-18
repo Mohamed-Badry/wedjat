@@ -7,13 +7,13 @@ if (typeof window !== 'undefined') {
 }
 
 type GsapActionOptions = {
-  animation: (node: HTMLElement, context: gsap.Context) => void;
+  animation: (node: HTMLElement) => void;
 };
 
 export function gsapAction(node: HTMLElement, options: GsapActionOptions) {
   let ctx = gsap.context(() => {
     if (options && typeof options.animation === 'function') {
-      options.animation(node, ctx);
+      options.animation(node);
     }
   }, node);
 
@@ -22,7 +22,7 @@ export function gsapAction(node: HTMLElement, options: GsapActionOptions) {
       ctx.revert();
       ctx = gsap.context(() => {
         if (newOptions && typeof newOptions.animation === 'function') {
-          newOptions.animation(node, ctx);
+          newOptions.animation(node);
         }
       }, node);
     },

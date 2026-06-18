@@ -22,11 +22,13 @@
     presets = [],
     selectedTrack = [],
     onLocationChange,
+    previewMode = false
   } = $props<{
     location: StationLocation;
     presets?: StationLocation[];
     selectedTrack?: TrackPoint[];
     onLocationChange?: (location: StationLocation) => void;
+    previewMode?: boolean;
   }>();
 
   let mapContainer: HTMLElement;
@@ -86,9 +88,13 @@
 
     const m = L.map(mapContainer, {
       center: [location.lat, location.lon],
-      zoom: 2,
+      zoom: previewMode ? 3 : 2,
       worldCopyJump: true,
-      scrollWheelZoom: true
+      scrollWheelZoom: !previewMode,
+      dragging: !previewMode,
+      zoomControl: !previewMode,
+      doubleClickZoom: !previewMode,
+      touchZoom: !previewMode
     });
 
     // Cleaner map tiles - CartoDB Voyager (lighter but clean)
@@ -98,19 +104,33 @@
       maxZoom: 20
     }).addTo(m);
 
-    currentMarker = L.marker([location.lat, location.lon], { zIndexOffset: 1000 }).addTo(m);
+    const activeIcon = L.divIcon({
+      className: 'active-station-icon',
+      html: `
+        <div class="relative w-4 h-4">
+          <div class="absolute inset-0 rounded-full bg-brand/50 animate-ping"></div>
+          <div class="absolute inset-[2px] rounded-full bg-brand border-2 border-white shadow-[0_0_10px_rgba(139,92,246,0.8)]"></div>
+        </div>
+      `,
+      iconSize: [16, 16],
+      iconAnchor: [8, 8]
+    });
+
+    currentMarker = L.marker([location.lat, location.lon], { icon: activeIcon, zIndexOffset: 1000 }).addTo(m);
     
     map = m;
 
-    map.on('click', (e) => {
-      onLocationChange?.({
-        id: 'custom',
-        label: 'Custom Ground Station',
-        lat: roundCoord(e.latlng.lat),
-        lon: roundCoord(e.latlng.lng),
-        elevationM: location.elevationM,
+    if (!previewMode) {
+      map.on('click', (e) => {
+        onLocationChange?.({
+          id: 'custom',
+          label: 'Custom Ground Station',
+          lat: roundCoord(e.latlng.lat),
+          lon: roundCoord(e.latlng.lng),
+          elevationM: location.elevationM,
+        });
       });
-    });
+    }
 
     // Preset markers
     presets.forEach((preset: StationLocation) => {
