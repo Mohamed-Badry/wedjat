@@ -89,3 +89,20 @@ clean:
     rm -rf __pycache__ .pytest_cache
     find . -name "*.pyc" -delete
     find . -name "__pycache__" -type d -exec rm -rf {} + 2>/dev/null || true
+
+# --- Phase 3: Frontend (SvelteKit + Tailwind) ---
+
+# Run the frontend development server
+# Usage: just frontend-dev
+frontend-dev:
+    cd frontend && bun run dev
+
+# Build the frontend for production
+# Usage: just frontend-build
+frontend-build:
+    cd frontend && bun run build
+
+# Preview the built frontend production bundle
+# Usage: just frontend-preview
+frontend-preview:
+    cd frontend && bun run preview

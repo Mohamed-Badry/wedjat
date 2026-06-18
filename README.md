@@ -2,135 +2,179 @@
 
 # Project Watchdog (gr_sat)
 
-This repository hosts the **Project Watchdog** codebase, currently focused on offline telemetry processing, per-satellite anomaly-model training, synthetic-fault benchmarking, and a pinned Docker-based web/runtime scaffold for local development.
+This repository hosts the **Project Watchdog** codebase, an end-to-end pipeline for satellite telemetry analysis. It features offline telemetry processing, per-satellite anomaly-model training, synthetic-fault benchmarking, a robust FastAPI backend, and a premium SvelteKit + Tailwind dashboard.
 
 ## 📚 Key Documentation
 
-*   **[Technical Details & Architecture](DETAILS.md)**: Deep dive into the system's design and "Golden Features".
-*   **[WEBSITE_PLAN.md](WEBSITE_PLAN.md)**: Web interface, Docker orchestration, and integration plan.
+*   **[Technical Details & Architecture](DETAILS.md)**: Deep dive into the system's design, ML models, and "Golden Features".
+*   **[WEBSITE_PLAN.md](WEBSITE_PLAN.md)**: Web interface, Docker orchestration, and UX integration plan.
 *   **[.gemini/GEMINI.md](.gemini/GEMINI.md)**: Active project context and agent instructions.
 
 ## Current Repository Status
 
-Implemented today:
+**Core Pipeline & Backend:**
+*   Offline SatNOGS fetch -> decode -> normalize -> train -> benchmark workflow.
+*   Shared telemetry/decoder core with UWE-4 decoder support.
+*   Minimal deterministic online watchdog runtime for packet-by-packet inference.
+*   FastAPI dashboard REST endpoints (status, telemetry, anomalies, throughput).
+*   Docker Compose development stack with pinned service versions.
+*   **V3 Hybrid Edge-to-Cloud Architecture** with robust Offline CSV Fallback.
 
-*   Offline SatNOGS fetch -> decode -> normalize -> train -> benchmark workflow
-*   Shared telemetry/decoder core for historical packet processing
-*   UWE-4 decoder support and telemetry inspection tooling
-*   Minimal deterministic online watchdog runtime for packet-by-packet inference
-*   FastAPI dashboard REST endpoints for service status, satellite/model summaries, recent telemetry, recent anomalies, and throughput buckets
-*   Docker Compose development stack with pinned service and Python runtime versions
-*   Bun + SvelteKit + Tailwind frontend scaffold with a committed Bun lockfile
-*   **V3 Hybrid Edge-to-Cloud Architecture** finalized with diagramming and strict component mapping
-*   **Hardened Edge Simulator:** TLS-encrypted MQTT transmission with seamless offline CSV fallback buffering in the event of ground-station network partitions
-*   **Allium Domain Specifications:** Formally verified system contracts (`docs/spec/`) defining the telemetry pipelines and edge resilience mechanisms
-
-Planned, but not yet implemented in this repository:
-
-*   Rich alert transports / dashboards beyond the current scaffold shell
-*   Broader live ingress adapters beyond the minimal runtime
-*   Full backend persistence, WebSocket streaming, and operator workflows behind the new frontend routes
+**Frontend Dashboard (SvelteKit + TailwindCSS):**
+*   Premium, dark-themed responsive UI with dynamic animations.
+*   Live Watcher feed with real-time anomaly detection glowing states.
+*   Comprehensive ML Report dashboard with Error Contribution and Expected vs. Actual metrics.
+*   Interactive EDA charts (Sensitivity Sweeps, Feature Contributions).
+*   Mobile-friendly sidebar navigation and responsive plot containers.
 
 ---
 
 ## 🚀 Quick Start Guide
 
 ### 1. Install Prerequisites
-We use **[Pixi](https://pixi.sh/)** for the core Python/data-science environment. You do **not** need to install Python or GNU Radio manually for the offline pipeline.
+We use **[Pixi](https://pixi.sh/)** for the core Python environment, and **[Bun](https://bun.sh/)** for the frontend.
 
 **Linux / macOS:**
 ```bash
 curl -fsSL https://pixi.sh/install.sh | bash
+curl -fsSL https://bun.sh/install | bash
 ```
 
 **Windows (PowerShell):**
 ```powershell
 powershell -ExecutionPolicy Bypass -c "irm -useb https://pixi.sh/install.ps1 | iex"
+powershell -c "irm bun.sh/install.ps1 | iex"
 ```
 
 ### 2. Setup the Project
 Clone the repo and install dependencies:
 ```bash
 git clone https://github.com/Mohamed-Badry/watchdog.git
+cd watchdog
 pixi install
+cd frontend && bun install && cd ..
 ```
 
 ### 3. Configure API Keys
 To download telemetry, you need a **SatNOGS API Token**.
-
-1.  Log in to [SatNOGS Network](https://network.satnogs.org/login/) (create an account if needed).
-2.  Go to **[Your Profile / Edit](https://db.satnogs.org/user/edit)**.
-3.  Copy the **API Token** at the bottom of the page.
-4.  Create your configuration file:
+1.  Log in to [SatNOGS Network](https://network.satnogs.org/login/).
+2.  Go to **[Your Profile / Edit](https://db.satnogs.org/user/edit)** and copy your **API Token**.
+3.  Create your config and paste your token:
     ```bash
     cp .env.example .env
     ```
-5.  Open `.env` and paste your token:
-    ```ini
-    SATNOGS_API_TOKEN=your_actual_token_here
-    ```
 
 ### 4. Optional Docker Dev Stack
-For the MQTT broker, TimescaleDB, FastAPI scaffold, frontend scaffold, and simulator scaffold:
+For the MQTT broker, TimescaleDB, FastAPI backend, and simulator:
 ```bash
 docker compose up --build
 ```
 
-Notes:
-
-*   The backend and simulator install pinned Python dependencies that mirror the concrete versions currently resolved by Pixi.
-*   The frontend uses Bun with a committed lockfile and a dedicated `node_modules` volume so bind-mounting the source tree does not force a reinstall every container start.
-
 ---
 
-## 📂 Data Pipeline
+## 🛠 Usage & Task Lifecycle
 
-The project processes satellite telemetry through three distinct stages. Each stage has a corresponding directory under `data/` and a clear boundary of responsibility:
-
-*   **`data/raw/`**: Original JSONL files fetched directly from the SatNOGS DB API via `scripts/fetch_training_data.py`. One file per day per satellite.
-*   **`data/interim/`**: CSV files with all decoded telemetry fields, extracted exactly as `satnogs-decoders` (Kaitai Structs) parses them — no unit conversion or renaming.
-*   **`data/processed/`**: Finalized CSV files mapped to our SI-unit "Golden Features" and used for model training.
-
----
-
-## 🛠 Usage
-
-We use `just` (installed automatically by Pixi) to run common tasks.
+We use `just` (installed automatically by Pixi) to run all common tasks across the stack.
 
 **Recommended:** Enter the Pixi environment first:
 ```bash
 pixi shell
 ```
 
-**Common Commands:**
+### Phase 1: Data Pipeline (The Lab)
+Fetch, decode, and normalize telemetry into ML-ready "Golden Features".
 ```bash
 just fetch                  # Download telemetry (interactive)
 just fetch --norad 43880    # Download specific satellite
 just process                # Run decode + normalize pipeline (interactive)
 just process --norad 43880  # Process specific satellite
-just analyze-targets        # Regenerate target analysis
-just viz-passes             # Generate pass visualizations
-pixi run python scripts/watchdog_runtime.py --norad 43880 --help
-just --list                 # Show all available commands
 ```
 
-*(If you don't have `just` globally, prefix with `pixi run`, e.g. `pixi run just fetch`)*
-
-## Backend Dashboard API
-
-The FastAPI backend now exposes the initial dashboard-home data contracts from the local processed CSV/model artifacts:
-
-*   `GET /api/status` — API/database/artifact status and dashboard links.
-*   `GET /api/dashboard/summary` — service cards, totals, active satellites, recent anomalies, and throughput sparkline buckets.
-*   `GET /api/satellites` and `GET /api/satellites/{norad_id}` — dataset, decoder, feature-contract, and model health summaries.
-*   `GET /api/telemetry/recent?norad_id=43880&limit=20` — recent frames with `features`, `quality`, and `model` sections.
-*   `GET /api/anomalies/recent?norad_id=43880&limit=20` — recent anomaly records sorted newest-first.
-*   `GET /api/telemetry/throughput?norad_id=43880&bucket=day&limit=30` — bucketed frame/anomaly counts.
-
-Run regression coverage with:
-
+### Phase 2: Machine Learning Pipeline
+Train Autoencoder (VAE) models on the processed data and benchmark them.
 ```bash
-pixi run just test
+just train --norad 43880            # Train VAE model for a specific satellite
+just benchmark --norad 43880        # Run synthetic-fault benchmark
+just train-benchmark 43880 100      # Train for 100 epochs, then benchmark immediately
+```
+
+### Phase 3: Operations & Frontend
+Run the minimal backend watchdog runtime and the beautiful SvelteKit dashboard.
+```bash
+just watchdog --norad 43880 --help  # Run backend anomaly watchdog
+just frontend-dev                   # Start frontend SvelteKit development server (localhost:5173)
+just frontend-build                 # Build the frontend production bundle
+just frontend-preview               # Preview the production build
+```
+
+*To see all available commands, run `just` or `just --list`.*
+
+---
+
+## 📂 Complete Data & Directory Structure
+
+Project Watchdog is strictly organized to separate raw data pipelines, machine learning models, core logic, simulated environments, and user interfaces.
+
+```text
+.
+├── data/                       # Local data storage (ignored by git, populated by scripts)
+│   ├── raw/                    # Stage 0: Raw JSONL files fetched directly from SatNOGS DB API
+│   │   ├── 43880/              # e.g., UWE-4 raw telemetry records
+│   │   └── ...                 # Other satellite NORAD ID directories
+│   ├── interim/                # Stage 1: Kaitai-decoded telemetry CSVs (unaltered fields)
+│   └── processed/              # Stage 2: SI-unit "Golden Features" CSVs mapped for Machine Learning
+├── frontend/                   # Bun + SvelteKit Web Dashboard
+│   ├── src/                
+│   │   ├── lib/                # Shared internal components
+│   │   │   ├── api.ts          # Strongly-typed fetch wrappers for the FastAPI backend
+│   │   │   ├── components/     # UI elements (charts, tables, layout components)
+│   │   │   └── chart-theme.ts  # Unified design tokens mapping CSS variables to SveltePlot
+│   │   └── routes/             # File-system based router pages
+│   │       ├── (dashboard)/    # Authenticated/Main App layout group
+│   │       │   └── dashboard/  # Dashboard views:
+│   │       │       ├── live/   # Real-time packet watcher feed
+│   │       │       ├── ml/     # Model telemetry root cause analysis & reports
+│   │       │       ├── eda/    # Exploratory Data Analysis (sensitivity, stats)
+│   │       │       ├── operations/# Satellite/model status summaries
+│   │       │       └── inspector/ # Ground-truth telemetry variable explorer
+│   │       └── (landing)/      # Public facing landing pages
+│   ├── tailwind.config.ts      # Tailwind design configuration (Amethyst themes, plugins)
+│   └── package.json            # Bun dependencies (SvelteKit, Tailwind, Lucide, Observable Plot)
+├── src/                        # Python Backend & Shared Library Code
+│   ├── api/                    # FastAPI Dashboard Endpoints
+│   │   ├── main.py             # Entrypoint: handles REST routes, artifacts, and summary stats
+│   │   └── Dockerfile          # FastAPI service container definition
+│   ├── gr_sat/                 # Core domain logic ("The Shared Core")
+│   │   ├── decoders/           # Kaitai Struct adapters (e.g. uwe4.py, registry pattern)
+│   │   ├── telemetry.py        # Central abstractions for telemetry frames
+│   │   ├── models/             # Shared PyTorch/Scikit models (VAE, Autoencoders, Scalers)
+│   │   └── utils/              # Data parsing and time manipulation helpers
+│   └── simulator/              # Edge Simulator Environment
+│       ├── edge_node.py        # Hardened Edge Simulator (TLS MQTT + Offline CSV Buffering)
+│       └── Dockerfile          # Simulator service container definition
+├── scripts/                    # Executable Pipeline & ML Scripts
+│   ├── fetch_training_data.py  # Pipeline Stage 0: Fetches SatNOGS historical API data
+│   ├── process_data.py         # Pipeline Stage 1+2: Decodes & normalizes telemetry to Golden Features
+│   ├── train_model.py          # Pipeline Stage 3: Trains VAE models on processed satellite data
+│   ├── generate_faults.py      # Pipeline Stage 4: Injects synthetic faults and benchmarks models
+│   └── watchdog_runtime.py     # Minimal deterministic online runtime for stream processing
+├── notebooks/                  # Interactive Jupytext Notebooks for Prototyping
+│   ├── uwe4_pipeline_eda.py    # Multi-scale EDA, hyperparameter sweeps, statistical profiling
+│   └── telemetry_inspector.py  # Visual ground-truth debugger
+├── docs/                       # Formal Documentation & Architecture
+│   ├── spec/                   # Allium formally verified domain system contracts
+│   ├── architecture_diagrams/  # Architecture assets & Typst layouts
+│   └── slides.typ              # Typst presentation slides
+├── models/                     # Persisted local ML artifacts (Scalers, PyTorch Models, Metadata)
+├── mosquitto/                  # MQTT Broker configuration and TLS certificates
+├── tests/                      # Python `unittest` regression coverage
+├── .gemini/                    # Agentic context mandates & conversation brain (`GEMINI.md`)
+├── .agents/                    # Custom Allium and domain skills for Antigravity
+├── docker-compose.yml          # Docker development stack (MQTT, DB, API, Frontend, Simulator)
+├── justfile                    # Centralized task runner (Makefile alternative)
+├── pixi.toml                   # Conda-compatible environment & dependency manager
+├── pyproject.toml              # Ruff linting & Python metadata
+└── README.md                   # You are here
 ```
 
 ---
@@ -143,45 +187,6 @@ The decoder system uses `satnogs-decoders` (Kaitai Structs) for binary parsing a
 2. Subclass `BaseDecoder` and implement `decode()` + `adapt()`
 3. Register with `@DecoderRegistry.register(NORAD_ID)`
 4. Import in `src/gr_sat/decoders/__init__.py`
-
-See `src/gr_sat/decoders/uwe4.py` for a complete reference implementation.
-
----
-
-## 🗂️ Full Project Structure
-
-```text
-.
-├── data/                   # Local data storage (gitignored)
-│   ├── raw/                # Raw JSONL fetches from SatNOGS DB API
-│   ├── interim/            # Decoded telemetry CSVs (all Kaitai fields)
-│   └── processed/          # SI-unit "Golden Features" CSVs (ML-ready)
-├── docs/                   # Documentation and analysis outputs
-│   ├── figures/            # Generated plots and diagrams
-│   └── slides.typ          # Typst presentation slides
-├── frontend/               # Bun + SvelteKit + Tailwind web scaffold
-├── logs/                   # Log files from data pipelines
-├── notebooks/              # Jupyter notebooks for EDA and prototyping (Jupytext)
-│   ├── telemetry_inspector.py  # Ground truth interactive visual debugger
-│   └── uwe4_pipeline_eda.py    # Multi-scale EDA and model configuration sweeps
-├── scripts/                # Executable pipeline scripts
-│   ├── fetch_training_data.py  # Stage 0: SatNOGS API → data/raw/
-│   ├── process_data.py         # Stage 1+2: raw → interim → processed
-│   ├── train_model.py          # Stage 3: Train per-satellite scaler + VAE model
-│   └── generate_faults.py      # Stage 4: Offline synthetic-fault benchmark
-├── src/
-│   ├── api/                # FastAPI scaffold and container definition
-│   ├── gr_sat/             # Core library code ("The Shared Core")
-│   └── simulator/          # Replay/simulator scaffold and container definition
-├── .gemini/
-│   └── GEMINI.md           # Active project context and agent mandates
-├── DETAILS.md              # Technical architecture and system design
-├── WEBSITE_PLAN.md         # Web integration plan and target UX
-├── docker-compose.yml      # Docker Compose dev stack
-├── justfile                # Task runner configuration
-├── pixi.toml               # Environment and dependency management
-└── README.md               # This file
-```
 
 ### Currently Supported Satellites
 
