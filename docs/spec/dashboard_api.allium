@@ -96,5 +96,10 @@ contract DashboardAPI {
     -- Analytical & Operations endpoints
     get_analytics: (norad_id: Integer?) -> Any
     predict_passes: (lat: Float, lon: Float, elevation_m: Float, lookahead_hours: Integer, min_elevation: Float, norad_id: Integer?) -> Any
+    
+    @invariant FreshOrbitalElements
+        -- Pass predictions are guaranteed to use orbital elements (TLEs) no older than 6 hours.
+        -- If upstream sources fail, the system gracefully degrades to the most recent cached elements rather than failing.
+
     get_ml_sensitivity: (norad_id: Integer) -> Any
 }

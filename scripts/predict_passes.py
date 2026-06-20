@@ -37,9 +37,23 @@ def main():
     print(f"Targeting {len(target_ids)} satellites from the Golden Cohort.")
 
     print("Fetching TLE data from CelesTrak (this may take a moment)...")
-    # load.tle_file() downloads to a cache if a filename is given, or just memory
-    # We'll rely on skyfield's caching logic
-    satellites = load.tle_file(TLE_URL, filename=str(DATA_DIR / "celestrak_active.txt"))
+    from skyfield.api import Loader
+    custom_loader = Loader(str(DATA_DIR))
+    filename = "celestrak_active.txt"
+    file_path = DATA_DIR / filename
+    
+    reload = True
+    if file_path.exists():
+        if custom_loader.days_old(filename) < 0.25:
+            reload = False
+            print("Using recently cached TLEs.")
+            
+    try:
+        satellites = custom_loader.tle_file(TLE_URL, filename=filename, reload=reload)
+    except Exception as e:
+        print(f"Warning: Failed to fetch new TLEs: {e}")
+        print("Attempting to fallback to stale cache...")
+        satellites = custom_loader.tle_file(TLE_URL, filename=filename, reload=False)
 
     # Filter for our targets
     {sat.name: sat for sat in satellites}

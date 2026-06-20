@@ -7,6 +7,7 @@ from __future__ import annotations
 
 from datetime import timedelta, timezone
 from typing import Any
+from pathlib import Path
 
 try:
     from .serialization import timestamp_iso
@@ -77,17 +78,42 @@ def predict_passes(
         elevation_m=station_data["elevation_m"],
     )
 
-    ts = load.timescale()
+    from skyfield.api import Loader
+    import os
+    
+    # Use a dedicated cache directory instead of polluting the current working directory
+    cache_dir = Path("data/tle")
+    cache_dir.mkdir(parents=True, exist_ok=True)
+    custom_loader = Loader(str(cache_dir))
+    
+    ts = custom_loader.timescale()
     t0 = ts.from_datetime(now)
     t1 = ts.from_datetime(now + timedelta(hours=lookahead_hours))
 
     # Load Celestrak TLEs using skyfield
     url = "https://celestrak.org/NORAD/elements/gp.php?GROUP=active&FORMAT=tle"
+    filename = "celestrak_active.tle"
+    
+    # Check if cache is older than 6 hours (0.25 days)
+    reload = True
+    file_path = cache_dir / filename
+    if file_path.exists():
+        if custom_loader.days_old(filename) < 0.25:
+            reload = False
+            
     try:
-        tle_file = load.tle_file(url)
+        tle_file = custom_loader.tle_file(url, filename=filename, reload=reload)
         by_id = {sat.model.satnum: sat for sat in tle_file}
-    except Exception:
-        by_id = {}
+    except Exception as e:
+        import logging
+        logging.error(f"Failed to fetch updated TLEs: {e}")
+        try:
+            # Fallback to whatever is cached if the download failed (e.g. 403 Forbidden)
+            tle_file = custom_loader.tle_file(url, filename=filename, reload=False)
+            by_id = {sat.model.satnum: sat for sat in tle_file}
+            logging.info("Successfully fell back to stale TLE cache.")
+        except Exception:
+            by_id = {}
 
     passes: list[dict[str, Any]] = []
     for sat_info in satellite_summaries:
