@@ -44,6 +44,8 @@ def get_engine():
         # Avoid asyncpg if we are using psycopg2 in requirements
         url = settings.url.replace("postgres://", "postgresql://")
         _engine = create_engine(url, pool_pre_ping=True)
+        from sqlmodel import SQLModel
+        SQLModel.metadata.create_all(_engine)
         return _engine
     return None
 

@@ -4,10 +4,14 @@ import asyncio
 import os
 from typing import Literal
 
-from fastapi import FastAPI, HTTPException, Query, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, HTTPException, Query, WebSocket, WebSocketDisconnect, Depends, Request
 from fastapi.concurrency import run_in_threadpool
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
+
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
 
 from contextlib import asynccontextmanager
 
@@ -18,6 +22,14 @@ except ImportError:  # pragma: no cover - used when uvicorn runs from src/api
     from dashboard_data import DashboardDataRepository
     from mqtt_client import start_mqtt_client
 
+try:
+    from .auth import verify_api_key, seed_master_key
+except ImportError:
+    from auth import verify_api_key, seed_master_key
+
+logger = logging.getLogger("api")
+limiter = Limiter(key_func=get_remote_address)
+
 
 def _cors_origins() -> list[str]:
     raw = os.getenv("CORS_ORIGINS", "http://localhost:5173,http://127.0.0.1:5173")
@@ -26,7 +38,9 @@ def _cors_origins() -> list[str]:
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    client = start_mqtt_client()
+    # Seed the master API key from environment before starting services
+    seed_master_key()
+    client = start_mqtt_client(repository=app.state.repository)
     yield
     if client:
         client.loop_stop()
@@ -46,15 +60,20 @@ def create_app(repository: DashboardDataRepository | None = None) -> FastAPI:
         description="FastAPI backend for satellite telemetry dashboard data.",
         version="0.1.0",
         lifespan=lifespan,
+        dependencies=[Depends(verify_api_key)],
     )
+    
+    app.state.limiter = limiter
+    app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+    
     # Compress massive JSON payloads (like 10k telemetry frames) to save bandwidth
     app.add_middleware(GZipMiddleware, minimum_size=1000)
     app.add_middleware(
         CORSMiddleware,
         allow_origins=_cors_origins(),
-        allow_credentials=False,
-        allow_methods=["*"],
-        allow_headers=["*"],
+        allow_credentials=True,
+        allow_methods=["GET", "OPTIONS", "POST"],
+        allow_headers=["X-API-Key", "Content-Type", "Authorization", "Accept"],
     )
 
     @app.get("/")
@@ -138,14 +157,17 @@ def create_app(repository: DashboardDataRepository | None = None) -> FastAPI:
             raise HTTPException(status_code=404, detail=str(exc)) from exc
 
     @app.get("/api/analytics")
-    def analytics_report(norad_id: int | None = None) -> dict:
+    @limiter.limit("10/minute")
+    def analytics_report(request: Request, norad_id: int | None = None) -> dict:
         try:
             return data.analytics_report(norad_id=norad_id)
         except KeyError as exc:
             raise HTTPException(status_code=404, detail=str(exc)) from exc
 
     @app.get("/api/operations/passes")
+    @limiter.limit("20/minute")
     async def operations_passes(
+        request: Request,
         lat: float = Query(..., ge=-90.0, le=90.0),
         lon: float = Query(..., ge=-180.0, le=180.0),
         elevation_m: float = Query(default=0.0, ge=-500.0, le=10000.0),
@@ -173,7 +195,8 @@ def create_app(repository: DashboardDataRepository | None = None) -> FastAPI:
             raise HTTPException(status_code=404, detail=str(exc)) from exc
 
     @app.get("/api/ml/sensitivity")
-    def ml_sensitivity(norad_id: int) -> dict:
+    @limiter.limit("5/minute")
+    def ml_sensitivity(request: Request, norad_id: int) -> dict:
         try:
             return data.sensitivity_sweep(norad_id=norad_id)
         except KeyError as exc:

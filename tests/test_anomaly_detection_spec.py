@@ -54,20 +54,18 @@ class AnomalyDetectionSpecTests(unittest.TestCase):
         # Maps to split object in metadata
         pass # Covered implicitly below
 
-    @patch("train_model.MODELS_DIR")
-    @patch("train_model.PROCESSED_DIR")
-    def test_rule_success_TrainAnomalyModel_creates_AnomalyModelArtifact(self, mock_processed, mock_models):
+    def test_rule_success_TrainAnomalyModel_creates_AnomalyModelArtifact(self):
         """
         Obligation: rule-success.TrainAnomalyModel
         Obligation: rule-entity-creation.TrainAnomalyModel.1
         Obligation: entity-fields.AnomalyModelArtifact
         """
-        mock_models.return_value = self.models_dir
-        mock_processed.return_value = self.processed_dir
-        train_model.MODELS_DIR = self.models_dir
-        train_model.PROCESSED_DIR = self.processed_dir
-
-        metadata = train_model.train_for_satellite("43880", epochs=1)
+        metadata = train_model.train_for_satellite(
+            "43880", 
+            epochs=1, 
+            models_dir=str(self.models_dir), 
+            processed_dir=str(self.processed_dir)
+        )
 
         # Verify AnomalyModelArtifact creation
         self.assertIsNotNone(metadata)
@@ -103,27 +101,27 @@ class AnomalyDetectionSpecTests(unittest.TestCase):
         score_anomaly = 0.6
         self.assertTrue(score_anomaly > threshold)
 
-    @patch("generate_faults.DOCS_DIR")
-    @patch("generate_faults.PROCESSED_DIR")
-    @patch("generate_faults.MODELS_DIR")
-    def test_rule_success_GenerateBenchmarkFaults(self, mock_models, mock_processed, mock_docs):
+    def test_rule_success_GenerateBenchmarkFaults(self):
         """
         Obligation: rule-success.GenerateBenchmarkFaults
         Obligation: rule-entity-creation.GenerateBenchmarkFaults.1
         Obligation: entity-fields.BenchmarkReport
         """
-        # Set up globals for testing
-        train_model.MODELS_DIR = self.models_dir
-        train_model.PROCESSED_DIR = self.processed_dir
-        generate_faults.MODELS_DIR = self.models_dir
-        generate_faults.PROCESSED_DIR = self.processed_dir
-        generate_faults.DOCS_DIR = self.docs_dir
-        
         # Must train first
-        train_model.train_for_satellite("43880", epochs=1)
+        train_model.train_for_satellite(
+            "43880", 
+            epochs=1,
+            models_dir=str(self.models_dir),
+            processed_dir=str(self.processed_dir)
+        )
         
         # Inject faults and evaluate
-        generate_faults.evaluate("43880")
+        generate_faults.evaluate(
+            "43880",
+            models_dir=str(self.models_dir),
+            processed_dir=str(self.processed_dir),
+            docs_dir=str(self.docs_dir)
+        )
         
         # BenchmarkReport created (docs/benchmark_43880.md)
         benchmark_file = self.docs_dir / "benchmark_43880.md"
@@ -138,19 +136,17 @@ class AnomalyDetectionSpecTests(unittest.TestCase):
         self.assertIn("panel_failure", content)
         self.assertIn("thermal_runaway", content)
 
-    @patch("train_model.MODELS_DIR")
-    @patch("train_model.PROCESSED_DIR")
-    def test_rule_failure_RunAnomalyInference_requires_clauses(self, mock_processed, mock_models):
+    def test_rule_failure_RunAnomalyInference_requires_clauses(self):
         """
         Obligation: rule-failure.RunAnomalyInference.1,2,3
         Verify that incomplete frames are rejected from inference.
         """
-        mock_models.return_value = self.models_dir
-        mock_processed.return_value = self.processed_dir
-        train_model.MODELS_DIR = self.models_dir
-        train_model.PROCESSED_DIR = self.processed_dir
-        
-        train_model.train_for_satellite("43880", epochs=1)
+        train_model.train_for_satellite(
+            "43880", 
+            epochs=1,
+            models_dir=str(self.models_dir),
+            processed_dir=str(self.processed_dir)
+        )
         
         from gr_sat.satellite_profiles import feature_completeness_mask
         

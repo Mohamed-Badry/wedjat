@@ -15,8 +15,12 @@ services:
     container_name: watchdog_broker
     ports:
       - "1883:1883"
+    environment:
+      - MQTT_USERNAME=${MQTT_USERNAME:-watchdog}
+      - MQTT_PASSWORD=${MQTT_PASSWORD:-secretpassword}
+    entrypoint: ["/mosquitto/entrypoint.sh"]
     volumes:
-      - ./mosquitto/config/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+      - ./mosquitto/entrypoint.sh:/mosquitto/entrypoint.sh:ro
       - mosquitto_data:/mosquitto/data
       - mosquitto_log:/mosquitto/log
     restart: unless-stopped

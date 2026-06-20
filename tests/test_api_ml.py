@@ -49,6 +49,7 @@ class MlApiTests(unittest.IsolatedAsyncioTestCase):
 
         repository = DashboardDataRepository(root=self.root)
         self.app = create_app(repository)
+        self.app.state.limiter.enabled = False
 
     def tearDown(self):
         self.tmpdir.cleanup()

@@ -3,7 +3,18 @@ from sqlmodel import Field, SQLModel, Column
 from sqlalchemy import Integer, Identity
 from sqlalchemy.dialects.postgresql import JSONB
 from datetime import datetime
+from datetime import datetime, timezone
+import secrets
 
+class ApiKey(SQLModel, table=True):
+    __tablename__ = "api_keys"
+    id: Optional[int] = Field(
+        default=None, sa_column=Column(Integer, Identity(always=True), primary_key=True)
+    )
+    key: str = Field(default_factory=lambda: secrets.token_urlsafe(32), index=True, unique=True)
+    description: str
+    is_active: bool = Field(default=True)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class RawFrame(SQLModel, table=True):
     __tablename__ = "raw_frames"

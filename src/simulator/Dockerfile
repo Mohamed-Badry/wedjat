@@ -13,7 +13,6 @@ COPY src/simulator/requirements.txt /tmp/requirements.txt
 RUN --mount=type=cache,target=/root/.cache/pip,sharing=locked \
     python -m pip install --no-compile -r /tmp/requirements.txt
 
-COPY src/gr_sat /app/src/gr_sat
 COPY src/simulator /app/src/simulator
 
 WORKDIR /app/src/simulator

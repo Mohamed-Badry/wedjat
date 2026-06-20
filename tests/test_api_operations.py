@@ -5,6 +5,7 @@ from api.main import create_app
 class OperationsApiTests(unittest.IsolatedAsyncioTestCase):
     def setUp(self):
         self.app = create_app()
+        self.app.state.limiter.enabled = False
 
     async def _get(self, path: str, params: dict | None = None):
         transport = httpx.ASGITransport(app=self.app)
