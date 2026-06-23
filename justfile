@@ -106,3 +106,14 @@ frontend-build:
 # Usage: just frontend-preview
 frontend-preview:
     cd frontend && bun run preview
+
+# --- Documentation ---
+
+# Compile all Typst slide decks into PDFs
+docs:
+    @for deck in docs/slides/*.typ; do \
+        filename=$(basename -- "$deck"); \
+        name="${filename%.*}"; \
+        echo "Compiling $deck to docs/slides/$name.pdf"; \
+        cd docs && typst compile --root .. "slides/$filename" "slides/$name.pdf" && cd ..; \
+    done
