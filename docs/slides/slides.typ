@@ -127,6 +127,7 @@ Instead of just logging data, this system provides early warnings for satellite 
   )
 ]
 
+
 = Phase 1: The Selection Funnel
 
 == Selection Criteria
@@ -156,7 +157,7 @@ We analyzed 149 active satellites in the target band to identify dominant commun
     - No single "universal" standard exists across the entire fleet.
   ],
   align(center + horizon)[
-    #image("figures/modulation_distribution.png", width: 100%)
+    #image("../figures/modulation_distribution.png", width: 100%)
   ],
 )
 
@@ -177,6 +178,7 @@ We narrow the funnel by applying technical constraints required for edge anomaly
 
 #v(0.5em)
 *Result:* We converged on a "Golden Cohort" of 2 targets that provide high-fidelity telemetry for ML training.
+
 
 = Phase 2: Operational Planning
 
@@ -217,7 +219,7 @@ Despite having fewer passes than INSPIRESat-1, UWE-4 is our primary "Golden Path
 Where to point the antenna for the Top targets.
 
 #align(center)[
-  #image("figures/skyplot_top_candidates.png", height: 85%)
+  #image("../figures/skyplot_top_candidates.png", height: 85%)
 ]
 
 == Operational Reality: Schedule
@@ -225,7 +227,7 @@ Where to point the antenna for the Top targets.
 When to operate the ground station (Next 48 Hours).
 
 #align(center)[
-  #image("figures/timeline_schedule.png", height: 80%)
+  #image("../figures/timeline_schedule.png", height: 80%)
 ]
 
 
@@ -267,6 +269,24 @@ Two distinct environments sharing a single *Shared Core*.
   `temp_panel_z`, "Celsius", "Orbit-phase context",
   `uptime`, "Seconds", "Time since reset",
 )
+
+
+= Architecture & Integration
+
+== The Edge-to-Cloud Topology
+
+#align(center)[
+  #image("../architecture_diagrams/architecture_v3_hybrid_cloud.png", height: 80%)
+]
+
+== The Dockerized Application Stack
+
+Our Cloud VPS is fully containerized with an automated nightly training job.
+
+#align(center)[
+  #image("../architecture_diagrams/docker_components.png", height: 75%)
+]
+
 
 = Implementation Logic
 
@@ -321,7 +341,7 @@ Telemetry extraction from UWE-4 (NORAD 43880).
 Perfect mapping from `satnogs-decoders` to our Golden Features (Volts, Amps, °C).
 
 #align(center)[
-  #image("figures/telemetry_43880.png", height: 80%)
+  #image("../figures/telemetry_43880.png", height: 80%)
 ]
 
 == The Inspector Tool
@@ -329,7 +349,7 @@ Perfect mapping from `satnogs-decoders` to our Golden Features (Volts, Amps, °C
 We built an interactive debugger (`telemetry_inspector`) to verify decoders against real historical data.
 
 #align(center)[
-  #image("figures/decoded_packets.png", height: 75%)
+  #image("../figures/dashboard_telemetry_inspector.png", height: 75%)
 ]
 
 == Summary of Phase 3
@@ -337,6 +357,7 @@ We built an interactive debugger (`telemetry_inspector`) to verify decoders agai
 1. *Targeting:* Locked onto *UWE-4* (43880) as our primary target.
 2. *Pipeline:* Processing is operational, successfully generating structurally clean ML inputs.
 3. *Data Strategy:* Fetching 180+ days of data to capture seasonal variations.
+
 
 = Phase 4: Exploratory Data Analysis & Physics
 
@@ -368,7 +389,7 @@ We successfully consolidated 7 months of UWE-4 raw telemetry.
 )[Visualizing 7 months of continuous telemetry reveals massive seasonal variations in solar charging efficiencies rather than short-term noise.]
 
 #align(center)[
-  #image("figures/timeseries_macro_7month.png", width: 75%)
+  #image("../figures/timeseries_macro_7month.png", width: 75%)
 ]
 
 == The Day/Night Orbit Cycle
@@ -388,7 +409,7 @@ An unsupervised model must learn both "normal" states to avoid false alarms duri
 == The Bimodality in Data
 
 #align(center)[
-  #image("figures/feature_distributions.png", width: 85%)
+  #image("../figures/feature_distributions.png", width: 85%)
 ]
 
 == Multivariate Physics & Correlations
@@ -399,7 +420,7 @@ When entering eclipse, solar arrays physically cannot generate power.
   columns: (1fr, 1.2fr),
   gutter: 1.5em,
   align(center)[
-    #image("figures/eclipse_scatter.png", width: 100%)
+    #image("../figures/eclipse_scatter.png", width: 100%)
   ],
   [
     #v(1em)
@@ -428,9 +449,10 @@ Anomaly detection is limited by Line-Of-Sight (LOS) availability.
     Traditional time-series models (LSTMs) fail because state memory expires between passes. We use stateless models that evaluate frames independently.
   ],
   align(center)[
-    #image("figures/time_gap_distribution.png", width: 100%)
+    #image("../figures/time_gap_distribution.png", width: 100%)
   ],
 )
+
 
 = Phase 5: Model Selection History & Current Baseline
 
@@ -450,7 +472,7 @@ Because *real* spacecraft anomalies are undocumented in our clean set, we benchm
 We tested 4 unsupervised mathematical models against the synthetic faults.
 
 #align(center)[
-  #image("figures/model_comparison_roc.png", width: 60%)
+  #image("../figures/model_comparison_roc.png", width: 60%)
 ]
 
 // #v(0.5em)
@@ -463,7 +485,7 @@ We tested 4 unsupervised mathematical models against the synthetic faults.
 A 100% detection rate on extreme faults proves nothing; basic thresholds can catch +45°C thermal spikes. We swept the fault magnitudes from subtle to extreme to find the operational crossover where the VAE's multivariate awareness actually outperforms a simple Z-Score limit.
 
 #align(center)[
-  #image("figures/sensitivity_sweep.png", height: 60%)
+  #image("../figures/sensitivity_sweep.png", height: 60%)
 ]
 
 *The Verdict:* The VAE massively outperforms dumb thresholding (Z-Score) during subtle anomalies (like a 0.1A current drop during sunlight), while performing equally well on obvious, extreme faults.
@@ -503,7 +525,7 @@ We have deployed the real-time watchdog as a 5-container microservice stack:
     - *Simulator:* Replays data to test the pipeline.
   ],
   align(center)[
-    #image("architecture_diagrams/architecture_v2_edge_deployment.png", width: 100%)
+    #image("../architecture_diagrams/architecture_v2_edge_deployment.png", width: 100%)
   ]
 )
 
@@ -511,3 +533,5 @@ We have deployed the real-time watchdog as a 5-container microservice stack:
 
 1. *Implemented now:* Offline ML pipeline, VAE training, Dockerized 5-component microservice stack, FastAPI backend, and SvelteKit real-time dashboard.
 2. *Next Step:* Integrate live SDR (Software Defined Radio) ingress, expand decoder coverage, and tune production anomaly thresholds based on live operational feedback.
+
+

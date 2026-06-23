@@ -76,7 +76,7 @@
 
 
 #align(center)[
-  #image("figures/feature_distributions.png", width: 75%)
+  #image("../figures/feature_distributions.png", width: 75%)
 ]
 
 = 2. Deep-Dive Exploratory Data Analysis
@@ -88,7 +88,7 @@
 )[Over the 7-month dataset, we see extreme seasonality in satellite thermodynamics and charge cycles. The baselines shift massively over the year.]
 
 #align(center)[
-  #image("figures/timeseries_macro_7month.png", width: 75%)
+  #image("../figures/timeseries_macro_7month.png", width: 75%)
 ]
 
 == The Bimodality Challenge (Day vs. Eclipse)
@@ -97,7 +97,7 @@
   columns: (1fr, 1.2fr),
   gutter: 1.5em,
   align(center)[
-    #image("figures/eclipse_scatter.png", width: 100%)
+    #image("../figures/eclipse_scatter.png", width: 100%)
   ],
   [
     #v(1em)
@@ -116,7 +116,7 @@
 )[PCA proves our 5 physical features are heavily correlated and can be mathematically compressed, validating our Autoencoder hypothesis.]
 
 #align(center)[
-  #image("figures/pca_analysis.png", width: 90%)
+  #image("../figures/pca_analysis.png", width: 90%)
 ]
 
 = 3. The Edge Discontinuity
@@ -142,7 +142,7 @@ Edge station inference is strictly constrained by Line-Of-Sight passes.
     *Conclusion:* We require *Stateless Ensembles* (evaluating each frame in a vacuum).
   ],
   align(center)[
-    #image("figures/time_gap_distribution.png", width: 100%)
+    #image("../figures/time_gap_distribution.png", width: 100%)
   ],
 )
 
@@ -153,7 +153,7 @@ Edge station inference is strictly constrained by Line-Of-Sight passes.
 We benchmarked several unsupervised models against synthetic physical faults. The current shipped benchmark script evaluates `Thermal Runaway` and `Panel Failure`; `Sensor Stuck` was an earlier notebook-only experiment.
 
 #align(center)[
-  #image("figures/model_comparison_roc.png", width: 65%)
+  #image("../figures/model_comparison_roc.png", width: 65%)
 ]
 
 
@@ -169,7 +169,7 @@ We benchmarked several unsupervised models against synthetic physical faults. Th
 A 100% detection rate on extreme faults proves nothing; basic thresholds can catch +45°C thermal spikes. We swept the fault magnitudes from subtle to extreme to find the operational crossover where the VAE's multivariate awareness actually outperforms a simple Z-Score limit.
 
 #align(center)[
-  #image("figures/sensitivity_sweep.png", height: 60%)
+  #image("../figures/sensitivity_sweep.png", height: 60%)
 ]
 
 *The Verdict:* The VAE massively outperforms dumb thresholding (Z-Score) during subtle anomalies (like a 0.1A current drop during sunlight), while performing equally well on obvious, extreme faults.
@@ -202,7 +202,7 @@ A 100% detection rate on extreme faults proves nothing; basic thresholds can cat
 #text(size: 16pt)[Planned dashboard widget: a time-series view tracking variables throughout a specific satellite pass overhead.]
 
 #align(center)[
-  #image("figures/pass_dynamics_micro.png", width: 90%)
+  #image("../figures/pass_dynamics_micro.png", width: 90%)
 ]
 
 == Autoencoder Feature Imputation (Widget #2)
@@ -212,7 +212,7 @@ A 100% detection rate on extreme faults proves nothing; basic thresholds can cat
 )[When Stage 2 triggers, the UI will display *Actual Values* against the Autoencoder's *Reconstructed/Expected Values* to show the exact delta forcing the anomaly.]
 
 #align(center)[
-  #image("figures/ae_feature_contribution.png", width: 90%)
+  #image("../figures/ae_feature_contribution.png", width: 90%)
 ]
 
 == Final Live Dashboard Strategy
