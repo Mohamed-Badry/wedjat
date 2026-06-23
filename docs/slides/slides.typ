@@ -273,12 +273,22 @@ Two distinct environments sharing a single *Shared Core*.
 
 = Architecture & Integration
 
-#focus-slide[
-  #image("../architecture_diagrams/architecture_v3_horizontal.png", width: 95%, fit: "contain")
+== Architecture
+
+#align(center)[
+  #image("../architecture_diagrams/architecture_v3_horizontal.png", width: 100%)
 ]
 
-#focus-slide[
-  #image("../architecture_diagrams/docker_components_horizontal.png", width: 95%, fit: "contain")
+== ML Pipeline
+
+#align(center)[
+  #image("../architecture_diagrams/ml_pipeline_architecture.png", width: 100%)
+]
+
+== Docker Setup
+
+#align(center)[
+  #image("../architecture_diagrams/docker_components_horizontal.png", width: 100%)
 ]
 
 
