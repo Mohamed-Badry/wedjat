@@ -273,16 +273,12 @@ Two distinct environments sharing a single *Shared Core*.
 
 = Architecture & Integration
 
-== The Edge-to-Cloud Topology
-
-#align(center)[
-  #image("../architecture_diagrams/architecture_v3_hybrid_cloud.png", height: 82%)
+#focus-slide[
+  #image("../architecture_diagrams/architecture_v3_horizontal.png", width: 95%, fit: "contain")
 ]
 
-== The Dockerized Application Stack
-
-#align(center)[
-  #image("../architecture_diagrams/docker_components_horizontal.png", height: 82%)
+#focus-slide[
+  #image("../architecture_diagrams/docker_components_horizontal.png", width: 95%, fit: "contain")
 ]
 
 
