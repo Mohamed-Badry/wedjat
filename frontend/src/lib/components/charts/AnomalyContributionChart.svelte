@@ -52,7 +52,7 @@
   {#if Object.keys(scaledExpected).length > 0}
     <ResponsivePlot {height}
       x={{ label: 'Standardized Deviation (Z-Score)', labelAnchor: 'center', grid: true, nice: true }}
-      y={{ label: false, domain: sortedFeatures, tickFormat: (d) => d.replace(/_/g, ' ').toUpperCase() }}
+      y={{ label: false, domain: sortedFeatures, tickFormat: (d: string) => d.replace(/_/g, ' ').toUpperCase() }}
       marginTop={12} marginRight={20} marginBottom={40} marginLeft={110}>
       
       <!-- Connect Expected to Actual -->
