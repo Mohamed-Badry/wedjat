@@ -38,3 +38,13 @@ contract SatelliteDecoder {
     -- applying scaling factors (e.g., mV -> V) and aggregations where necessary.
     adapt: (decoded_fields: FieldMap) -> StageOutcome
 }
+
+surface DecoderTestInterface {
+    facing tester: String
+    context result: StageOutcome
+    exposes:
+        result.data
+        result.failure.stage
+        result.failure.code
+        result.failure.message
+}

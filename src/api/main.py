@@ -110,13 +110,53 @@ def create_app(repository: DashboardDataRepository | None = None) -> FastAPI:
     @app.websocket("/api/ws/dashboard")
     async def websocket_dashboard(websocket: WebSocket):
         await websocket.accept()
+        subscribed_norad_ids = set()
+
+        async def message_receiver():
+            try:
+                while True:
+                    msg = await websocket.receive_json()
+                    action = msg.get("action")
+                    norad_id = msg.get("norad_id")
+                    if action == "subscribe":
+                        subscribed_norad_ids.add(norad_id)
+                        await websocket.send_json({"subscribed": True, "norad_id": norad_id})
+                    elif action == "unsubscribe":
+                        subscribed_norad_ids.discard(norad_id)
+                        await websocket.send_json({"unsubscribed": True, "norad_id": norad_id})
+            except WebSocketDisconnect:
+                pass
+            except Exception:
+                pass
+
+        receiver_task = asyncio.create_task(message_receiver())
+
         try:
+            last_frame_timestamps = {}
+            last_anomaly_timestamps = {}
             while True:
-                payload = await run_in_threadpool(data.dashboard_summary)
-                await websocket.send_json(payload)
+                for norad_id in list(subscribed_norad_ids):
+                    # Push Telemetry
+                    telemetry_data = await run_in_threadpool(data.recent_frames, norad_id=norad_id, limit=1)
+                    if telemetry_data.get("frames"):
+                        frame = telemetry_data["frames"][0]
+                        if frame["timestamp"] != last_frame_timestamps.get(norad_id):
+                            last_frame_timestamps[norad_id] = frame["timestamp"]
+                            await websocket.send_json({"type": "push_telemetry", "frame": frame})
+
+                    # Push Anomaly Alerts
+                    anomaly_data = await run_in_threadpool(data.recent_anomalies, norad_id=norad_id, limit=1)
+                    if anomaly_data.get("anomalies"):
+                        anomaly = anomaly_data["anomalies"][0]
+                        if anomaly["timestamp"] != last_anomaly_timestamps.get(norad_id):
+                            last_anomaly_timestamps[norad_id] = anomaly["timestamp"]
+                            await websocket.send_json({"type": "push_anomaly_alert", "alert": anomaly})
+                
                 await asyncio.sleep(2)
         except WebSocketDisconnect:
             pass
+        finally:
+            receiver_task.cancel()
 
     @app.get("/api/satellites")
     def satellites() -> dict:

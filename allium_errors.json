@@ -1,0 +1,401 @@
+{
+  "command": "check",
+  "diagnostics": [
+    {
+      "code": "allium.status.noExit",
+      "location": {
+        "col": 13,
+        "file": "docs/spec/telemetry_pipeline.allium",
+        "line": 61
+      },
+      "message": "Status 'valid' in entity 'ProcessedTelemetry' has no observed transition to a different status.",
+      "severity": "warning"
+    },
+    {
+      "code": "allium.status.noExit",
+      "location": {
+        "col": 21,
+        "file": "docs/spec/telemetry_pipeline.allium",
+        "line": 61
+      },
+      "message": "Status 'invalid' in entity 'ProcessedTelemetry' has no observed transition to a different status.",
+      "severity": "warning"
+    },
+    {
+      "code": "allium.field.unused",
+      "location": {
+        "col": 5,
+        "file": "docs/spec/telemetry_pipeline.allium",
+        "line": 18
+      },
+      "message": "Field 'SatelliteProfile.norad_id' is declared but not referenced elsewhere.",
+      "severity": "info"
+    },
+    {
+      "code": "allium.field.unused",
+      "location": {
+        "col": 5,
+        "file": "docs/spec/telemetry_pipeline.allium",
+        "line": 19
+      },
+      "message": "Field 'SatelliteProfile.pass_gap' is declared but not referenced elsewhere.",
+      "severity": "info"
+    },
+    {
+      "code": "allium.field.unused",
+      "location": {
+        "col": 5,
+        "file": "docs/spec/telemetry_pipeline.allium",
+        "line": 20
+      },
+      "message": "Field 'SatelliteProfile.cadence_tolerance_ratio' is declared but not referenced elsewhere.",
+      "severity": "info"
+    },
+    {
+      "code": "allium.field.unused",
+      "location": {
+        "col": 5,
+        "file": "docs/spec/telemetry_pipeline.allium",
+        "line": 21
+      },
+      "message": "Field 'SatelliteProfile.cadence_min_tolerance' is declared but not referenced elsewhere.",
+      "severity": "info"
+    },
+    {
+      "code": "allium.field.unused",
+      "location": {
+        "col": 5,
+        "file": "docs/spec/telemetry_pipeline.allium",
+        "line": 22
+      },
+      "message": "Field 'SatelliteProfile.rolling_window' is declared but not referenced elsewhere.",
+      "severity": "info"
+    },
+    {
+      "code": "allium.field.unused",
+      "location": {
+        "col": 5,
+        "file": "docs/spec/telemetry_pipeline.allium",
+        "line": 23
+      },
+      "message": "Field 'SatelliteProfile.required_features' is declared but not referenced elsewhere.",
+      "severity": "info"
+    },
+    {
+      "code": "allium.field.unused",
+      "location": {
+        "col": 5,
+        "file": "docs/spec/telemetry_pipeline.allium",
+        "line": 55
+      },
+      "message": "Field 'RawTelemetry.observation_id' is declared but not referenced elsewhere.",
+      "severity": "info"
+    },
+    {
+      "code": "allium.field.unused",
+      "location": {
+        "col": 5,
+        "file": "docs/spec/telemetry_pipeline.allium",
+        "line": 63
+      },
+      "message": "Field 'ProcessedTelemetry.failed_stage' is declared but not referenced elsewhere.",
+      "severity": "info"
+    },
+    {
+      "code": "allium.field.unused",
+      "location": {
+        "col": 5,
+        "file": "docs/spec/telemetry_pipeline.allium",
+        "line": 64
+      },
+      "message": "Field 'ProcessedTelemetry.failure_code' is declared but not referenced elsewhere.",
+      "severity": "info"
+    },
+    {
+      "code": "allium.field.unused",
+      "location": {
+        "col": 5,
+        "file": "docs/spec/telemetry_pipeline.allium",
+        "line": 68
+      },
+      "message": "Field 'ProcessedTelemetry.batt_voltage' is declared but not referenced elsewhere.",
+      "severity": "info"
+    },
+    {
+      "code": "allium.field.unused",
+      "location": {
+        "col": 5,
+        "file": "docs/spec/telemetry_pipeline.allium",
+        "line": 69
+      },
+      "message": "Field 'ProcessedTelemetry.batt_current' is declared but not referenced elsewhere.",
+      "severity": "info"
+    },
+    {
+      "code": "allium.field.unused",
+      "location": {
+        "col": 5,
+        "file": "docs/spec/telemetry_pipeline.allium",
+        "line": 70
+      },
+      "message": "Field 'ProcessedTelemetry.temp_obc' is declared but not referenced elsewhere.",
+      "severity": "info"
+    },
+    {
+      "code": "allium.field.unused",
+      "location": {
+        "col": 5,
+        "file": "docs/spec/telemetry_pipeline.allium",
+        "line": 71
+      },
+      "message": "Field 'ProcessedTelemetry.uptime' is declared but not referenced elsewhere.",
+      "severity": "info"
+    }
+  ],
+  "findings": [],
+  "spec_file": "docs/spec/telemetry_pipeline.allium"
+}
+{
+  "command": "check",
+  "diagnostics": [
+    {
+      "code": "allium.surface.unusedBinding",
+      "location": {
+        "col": 12,
+        "file": "docs/spec/edge_integration.allium",
+        "line": 26
+      },
+      "message": "Surface 'CloudIngress' binding 'station' is not used in the surface body.",
+      "severity": "warning"
+    }
+  ],
+  "findings": [],
+  "spec_file": "docs/spec/edge_integration.allium"
+}
+{
+  "command": "check",
+  "diagnostics": [],
+  "findings": [],
+  "spec_file": "docs/spec/dashboard_api.allium"
+}
+{
+  "command": "check",
+  "diagnostics": [
+    {
+      "code": "allium.field.unused",
+      "location": {
+        "col": 5,
+        "file": "docs/spec/edge_to_cloud_transport.allium",
+        "line": 14
+      },
+      "message": "Field 'EdgeStation.station_id' is declared but not referenced elsewhere.",
+      "severity": "info"
+    },
+    {
+      "code": "allium.field.unused",
+      "location": {
+        "col": 5,
+        "file": "docs/spec/edge_to_cloud_transport.allium",
+        "line": 28
+      },
+      "message": "Field 'Transmission.is_delivered' is declared but not referenced elsewhere.",
+      "severity": "info"
+    }
+  ],
+  "findings": [],
+  "spec_file": "docs/spec/edge_to_cloud_transport.allium"
+}
+{
+  "command": "check",
+  "diagnostics": [
+    {
+      "code": "allium.definition.unused",
+      "location": {
+        "col": 7,
+        "file": "docs/spec/decoder_interfaces.allium",
+        "line": 25
+      },
+      "message": "Value 'StageOutcome' is declared but not referenced elsewhere.",
+      "severity": "warning"
+    }
+  ],
+  "findings": [],
+  "spec_file": "docs/spec/decoder_interfaces.allium"
+}
+{
+  "command": "check",
+  "diagnostics": [
+    {
+      "code": "allium.surface.unusedBinding",
+      "location": {
+        "col": 12,
+        "file": "docs/spec/anomaly_detection.allium",
+        "line": 112
+      },
+      "message": "Surface 'CLI' binding 'operator' is not used in the surface body.",
+      "severity": "warning"
+    },
+    {
+      "code": "allium.status.noExit",
+      "location": {
+        "col": 13,
+        "file": "docs/spec/anomaly_detection.allium",
+        "line": 30
+      },
+      "message": "Status 'active' in entity 'AnomalyModelArtifact' has no observed transition to a different status.",
+      "severity": "warning"
+    },
+    {
+      "code": "allium.status.unreachableValue",
+      "location": {
+        "col": 22,
+        "file": "docs/spec/anomaly_detection.allium",
+        "line": 30
+      },
+      "message": "Status 'deprecated' in entity 'AnomalyModelArtifact' is never assigned by any rule ensures clause.",
+      "severity": "warning"
+    },
+    {
+      "code": "allium.status.noExit",
+      "location": {
+        "col": 22,
+        "file": "docs/spec/anomaly_detection.allium",
+        "line": 30
+      },
+      "message": "Status 'deprecated' in entity 'AnomalyModelArtifact' has no observed transition to a different status.",
+      "severity": "warning"
+    },
+    {
+      "code": "allium.field.unused",
+      "location": {
+        "col": 5,
+        "file": "docs/spec/anomaly_detection.allium",
+        "line": 29
+      },
+      "message": "Field 'AnomalyModelArtifact.version' is declared but not referenced elsewhere.",
+      "severity": "info"
+    },
+    {
+      "code": "allium.field.unused",
+      "location": {
+        "col": 5,
+        "file": "docs/spec/anomaly_detection.allium",
+        "line": 33
+      },
+      "message": "Field 'AnomalyModelArtifact.split' is declared but not referenced elsewhere.",
+      "severity": "info"
+    },
+    {
+      "code": "allium.field.unused",
+      "location": {
+        "col": 5,
+        "file": "docs/spec/anomaly_detection.allium",
+        "line": 34
+      },
+      "message": "Field 'AnomalyModelArtifact.train_row_count' is declared but not referenced elsewhere.",
+      "severity": "info"
+    },
+    {
+      "code": "allium.field.unused",
+      "location": {
+        "col": 5,
+        "file": "docs/spec/anomaly_detection.allium",
+        "line": 39
+      },
+      "message": "Field 'AnomalyModelArtifact.feature_names' is declared but not referenced elsewhere.",
+      "severity": "info"
+    },
+    {
+      "code": "allium.field.unused",
+      "location": {
+        "col": 5,
+        "file": "docs/spec/anomaly_detection.allium",
+        "line": 40
+      },
+      "message": "Field 'AnomalyModelArtifact.diagnosis_feature_names' is declared but not referenced elsewhere.",
+      "severity": "info"
+    },
+    {
+      "code": "allium.field.unused",
+      "location": {
+        "col": 5,
+        "file": "docs/spec/anomaly_detection.allium",
+        "line": 44
+      },
+      "message": "Field 'TelemetryInference.frame' is declared but not referenced elsewhere.",
+      "severity": "info"
+    },
+    {
+      "code": "allium.field.unused",
+      "location": {
+        "col": 5,
+        "file": "docs/spec/anomaly_detection.allium",
+        "line": 45
+      },
+      "message": "Field 'TelemetryInference.model' is declared but not referenced elsewhere.",
+      "severity": "info"
+    },
+    {
+      "code": "allium.field.unused",
+      "location": {
+        "col": 5,
+        "file": "docs/spec/anomaly_detection.allium",
+        "line": 47
+      },
+      "message": "Field 'TelemetryInference.anomaly_score' is declared but not referenced elsewhere.",
+      "severity": "info"
+    },
+    {
+      "code": "allium.field.unused",
+      "location": {
+        "col": 5,
+        "file": "docs/spec/anomaly_detection.allium",
+        "line": 50
+      },
+      "message": "Field 'TelemetryInference.is_anomaly' is declared but not referenced elsewhere.",
+      "severity": "info"
+    },
+    {
+      "code": "allium.field.unused",
+      "location": {
+        "col": 5,
+        "file": "docs/spec/anomaly_detection.allium",
+        "line": 57
+      },
+      "message": "Field 'BenchmarkReport.model' is declared but not referenced elsewhere.",
+      "severity": "info"
+    },
+    {
+      "code": "allium.field.unused",
+      "location": {
+        "col": 5,
+        "file": "docs/spec/anomaly_detection.allium",
+        "line": 58
+      },
+      "message": "Field 'BenchmarkReport.auroc' is declared but not referenced elsewhere.",
+      "severity": "info"
+    },
+    {
+      "code": "allium.field.unused",
+      "location": {
+        "col": 5,
+        "file": "docs/spec/anomaly_detection.allium",
+        "line": 59
+      },
+      "message": "Field 'BenchmarkReport.recall_at_5_fpr' is declared but not referenced elsewhere.",
+      "severity": "info"
+    },
+    {
+      "code": "allium.field.unused",
+      "location": {
+        "col": 5,
+        "file": "docs/spec/anomaly_detection.allium",
+        "line": 62
+      },
+      "message": "Field 'BenchmarkReport.diagnosis_accuracy' is declared but not referenced elsewhere.",
+      "severity": "info"
+    }
+  ],
+  "findings": [],
+  "spec_file": "docs/spec/anomaly_detection.allium"
+}

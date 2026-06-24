@@ -74,6 +74,29 @@ entity ProcessedTelemetry {
     is_complete: Boolean when status = valid
     is_irregular_cadence: Boolean when status = valid
     dropped_packet_suspect: Boolean when status = valid
+    
+    transitions status {
+        terminal: valid, invalid
+    }
+}
+
+surface PipelineData {
+    facing downstream: String
+    context result: ProcessedTelemetry
+    exposes:
+        result.raw_source.satellite.norad_id
+        result.raw_source.satellite.pass_gap
+        result.raw_source.satellite.cadence_tolerance_ratio
+        result.raw_source.satellite.cadence_min_tolerance
+        result.raw_source.satellite.rolling_window
+        result.raw_source.satellite.required_features
+        result.raw_source.observation_id
+        result.failed_stage
+        result.failure_code
+        result.batt_voltage
+        result.batt_current
+        result.temp_obc
+        result.uptime
 }
 
 rule ProcessFrame {

@@ -23,7 +23,7 @@ contract TelemetryStream {
 
 -- The ingress point exposed by the Cloud VPS (via MQTT)
 surface CloudIngress {
-    facing station: EdgeStation
+    facing _: EdgeStation
 
     contracts:
         demands TelemetryStream

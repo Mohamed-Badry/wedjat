@@ -4,6 +4,7 @@
 -- Scope: Backend API & Dashboard Contracts
 -- Includes:
 --   - REST API operations exposed to the frontend/dashboard
+--   - Duplex WebSocket (WSS) streaming for live telemetry & alerts
 --   - Value objects representing the JSON payloads
 -- Excludes:
 --   - FastAPI router mechanics and middleware
@@ -102,4 +103,20 @@ contract DashboardAPI {
         -- If upstream sources fail, the system gracefully degrades to the most recent cached elements rather than failing.
 
     get_ml_sensitivity: (norad_id: Integer) -> Any
+}
+
+contract DashboardWSS {
+    -- The Duplex WebSocket connection for the SvelteKit UI
+    
+    -- Client-to-Server
+    subscribe: (norad_id: Integer?) -> Boolean
+    unsubscribe: (norad_id: Integer?) -> Boolean
+    
+    -- Server-to-Client
+    push_telemetry: (frame: TelemetryView) -> Void
+    push_anomaly_alert: (alert: AnomalyView) -> Void
+    
+    @invariant LiveStreaming
+        -- Once subscribed, the backend pushes TelemetryView and AnomalyView
+        -- instantly as soon as inference completes.
 }

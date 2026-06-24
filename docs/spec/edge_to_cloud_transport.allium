@@ -95,3 +95,11 @@ surface CloudVPSBackend {
         -- Emitting CloudReceivedTelemetry instantly triggers the
         -- downstream ProcessFrame pipeline.
 }
+
+surface TransmissionData {
+    facing downstream: String
+    context result: Transmission
+    exposes:
+        result.station.station_id
+        result.is_delivered
+}

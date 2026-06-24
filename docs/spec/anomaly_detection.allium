@@ -29,6 +29,11 @@ entity AnomalyModelArtifact {
     version: String
     status: active | deprecated
     
+    transitions status {
+        active -> deprecated
+        terminal: deprecated
+    }
+    
     -- Training metrics
     split: MLDatasetSplit
     train_row_count: Integer
@@ -76,6 +81,12 @@ rule TrainAnomalyModel {
     )
 }
 
+rule RetireModelDirectly {
+    when: RetireModelRequested(model)
+    requires: model.status = active
+    ensures: model.status = deprecated
+}
+
 rule RunAnomalyInference {
     when: frame: telemetry/ProcessedTelemetry.created
     requires: frame.status = valid
@@ -109,9 +120,46 @@ rule GenerateBenchmarkFaults {
 external entity SystemOperator {}
 
 surface CLI {
-    facing operator: SystemOperator
+    facing _: SystemOperator
 
     provides:
         TrainModelRequested(satellite: telemetry/SatelliteProfile)
         BenchmarkRequested(model: AnomalyModelArtifact)
+        RetireModelRequested(model: AnomalyModelArtifact)
+}
+
+surface ModelData {
+    facing downstream: String
+    context result: AnomalyModelArtifact
+    exposes:
+        result.version
+        result.split.train_start
+        result.split.train_end
+        result.split.validation_start
+        result.split.validation_end
+        result.split.test_start
+        result.split.test_end
+        result.train_row_count
+        result.feature_names
+        result.diagnosis_feature_names
+}
+
+surface InferenceData {
+    facing downstream: String
+    context result: TelemetryInference
+    exposes:
+        result.frame
+        result.model
+        result.anomaly_score
+        result.is_anomaly
+}
+
+surface BenchmarkData {
+    facing downstream: String
+    context result: BenchmarkReport
+    exposes:
+        result.model
+        result.auroc
+        result.recall_at_5_fpr
+        result.diagnosis_accuracy
 }
