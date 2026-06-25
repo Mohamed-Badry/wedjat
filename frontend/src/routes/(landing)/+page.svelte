@@ -7,6 +7,8 @@
   import AnomalyTimelinePlot from "$lib/components/charts/AnomalyTimelinePlot.svelte";
   import AnomalyContributionChart from "$lib/components/charts/AnomalyContributionChart.svelte";
 
+  import DashboardShowcase from "$lib/components/DashboardShowcase.svelte";
+
   // --- Mock Data Simulator ---
   let mockFrames = $state(Array.from({ length: 60 }, (_, i) => {
     const score = Math.min(1.0, Math.max(0, 0.2 + Math.sin(i / 5) * 0.1 + (i > 45 ? 0.6 : 0) + (Math.random() * 0.05)));
@@ -306,8 +308,11 @@
     </div>
   </section>
 
+  <!-- 2.5 HORIZONTAL DASHBOARD SHOWCASE -->
+  <DashboardShowcase />
+
   <!-- 3. CTA SECTION (Edge to Edge Glass Parallax) -->
-  <section class="relative w-full min-h-screen flex items-center justify-center overflow-hidden bg-surface/10 mt-20 border-t border-border backdrop-blur-md">
+  <section class="relative w-full min-h-screen flex items-center justify-center overflow-hidden bg-surface/10 border-t border-border backdrop-blur-md">
     <!-- Subtle laser line at the top -->
     <div class="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-brand/40 to-transparent"></div>
 

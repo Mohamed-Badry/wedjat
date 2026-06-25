@@ -77,6 +77,11 @@ body {
   padding-bottom: env(safe-area-inset-bottom, 20px);
 }
 
+/* ── Hydration-free Light/Dark Mode Utilities ── */
+/* These classes ensure instant toggling without waiting for Svelte JS hydration */
+html:not(.light) .only-light { display: none !important; }
+html.light .only-dark { display: none !important; }
+
 /* ── SveltePlot theme bridge ──
    Deep integration with project design tokens. */
 :root {
