@@ -29,10 +29,11 @@
   });
 
   // Realistic 'Thermal Runaway' scenario matching ML-Report benchmarks
-  const mockExpected = { batt_voltage: 12.0, batt_current: 2.5, t_batt_a: 15.0, t_batt_b: 15.2, t_panel_z: -10.0 };
-  const mockActual = { batt_voltage: 11.9, batt_current: 2.8, t_batt_a: 38.5, t_batt_b: 41.2, t_panel_z: -9.5 };
-  const mockScaledExpected = { batt_voltage: 0.1, batt_current: -0.2, t_batt_a: 0.0, t_batt_b: 0.1, t_panel_z: -0.1 };
-  const mockScaledActual = { batt_voltage: -0.5, batt_current: 1.2, t_batt_a: 4.8, t_batt_b: 5.2, t_panel_z: 0.2 };
+  // Realistic 'Subtle Thermal Anomaly' scenario matching ML-Report features
+  const mockExpected = { batt_voltage: 7.8, temp_batt_b: 15.0, batt_current: 1.2, temp_batt_a: 15.1 };
+  const mockActual = { batt_voltage: 7.7, temp_batt_b: 14.8, batt_current: 1.3, temp_batt_a: 15.1 };
+  const mockScaledExpected = { batt_voltage: -0.95, temp_batt_b: 0.1, batt_current: -0.9, temp_batt_a: 0.1 };
+  const mockScaledActual = { batt_voltage: -1.1, temp_batt_b: 0.0, batt_current: -0.8, temp_batt_a: 0.1 };
 
   // Smooth orbital ground track crossing exactly over Cairo
   const previewTrack = [
@@ -310,12 +311,10 @@
     <!-- Subtle laser line at the top -->
     <div class="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-brand/40 to-transparent"></div>
 
-    <!-- Colorful floating stained glass blobs -->
-    <div class="absolute inset-0 z-0 overflow-hidden pointer-events-none">
-      <div class="absolute top-1/4 left-1/4 w-[40vw] aspect-square rounded-full bg-brand/15 blur-[120px]"></div>
-      <div class="absolute bottom-1/4 right-1/4 w-[50vw] aspect-square rounded-full bg-info/15 blur-[150px]"></div>
-      <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-3xl aspect-square rounded-full bg-brand/10 blur-[100px]"></div>
-    </div>
+    <!-- Minimal Premium Floor Reflection -->
+    <div class="absolute bottom-0 left-1/2 -translate-x-1/2 w-full max-w-3xl h-64 bg-gradient-to-t from-brand/10 to-transparent pointer-events-none opacity-50"></div>
+    <!-- Very tight, intense glow exclusively anchoring the button -->
+    <div class="absolute bottom-10 left-1/2 -translate-x-1/2 w-96 h-32 bg-brand/20 blur-[80px] pointer-events-none rounded-full"></div>
 
     <!-- Content centered -->
     <div class="relative z-10 flex flex-col items-center justify-center space-y-8 text-center px-4 w-full max-w-4xl">
