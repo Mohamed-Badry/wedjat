@@ -11,6 +11,7 @@
 
 services:
   broker:
+    profiles: ["dev", "cloud", "edge"]
     image: eclipse-mosquitto:2.1.2-alpine
     container_name: watchdog_broker
     ports:
@@ -27,6 +28,7 @@ services:
     restart: unless-stopped
 
   db:
+    profiles: ["dev", "cloud"]
     image: timescale/timescaledb:2.26.4-pg15
     container_name: watchdog_db
     ports:
@@ -47,6 +49,7 @@ services:
     restart: unless-stopped
 
   backend:
+    profiles: ["dev", "cloud"]
     build:
       context: .
       dockerfile: src/api/Dockerfile
@@ -86,6 +89,7 @@ services:
           path: pyproject.toml
 
   frontend:
+    profiles: ["dev"]
     build:
       context: ./frontend
       dockerfile: Dockerfile
@@ -118,7 +122,22 @@ services:
         - action: rebuild
           path: frontend/Dockerfile
 
+  frontend-prod:
+    profiles: ["cloud"]
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: watchdog_frontend_prod
+    ports:
+      - "5173:5173"
+    environment:
+      PUBLIC_API_URL: ${PUBLIC_API_URL:-http://localhost:8000}
+    depends_on:
+      - backend
+    restart: unless-stopped
+
   simulator:
+    profiles: ["dev", "edge"]
     build:
       context: .
       dockerfile: src/simulator/Dockerfile
@@ -151,6 +170,7 @@ services:
           path: src/simulator/Dockerfile
 
   scheduler:
+    profiles: ["dev", "cloud"]
     build:
       context: .
       dockerfile: src/scheduler/Dockerfile
