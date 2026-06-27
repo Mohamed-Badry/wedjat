@@ -31,6 +31,13 @@ process +args='':
 train +args='':
     pixi run python scripts/train_model.py {{args}}
 
+# Train the Orbit Decay Ensemble ML Models for a satellite
+# Usage:
+#   just train-decay --norad 43880
+#   just train-decay --norad 43880 --horizons 7,14,30
+train-decay +args='':
+    pixi run python scripts/train_decay_model.py {{args}}
+
 # Run offline synthetic-fault benchmark for a trained satellite artifact
 # Usage:
 #   just benchmark --norad 43880

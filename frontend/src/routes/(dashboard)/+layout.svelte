@@ -18,6 +18,7 @@
   const analysisLinks = [
     { href: "/dashboard/eda", label: "EDA Report", icon: BookOpen },
     { href: "/dashboard/ml-report", label: "Model Analysis", icon: BrainCircuit },
+    { href: "/dashboard/orbit-decay", label: "Orbit Decay AI", icon: Activity },
   ];
 
   let desktopSidebarOpen = $state(true);

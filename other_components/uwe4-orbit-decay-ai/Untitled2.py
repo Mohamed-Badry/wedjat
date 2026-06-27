@@ -65,7 +65,7 @@ PREDICTION_HORIZONS_DAYS = [7, 30]
 # -----------------------------
 # Project Folders
 # -----------------------------
-PROJECT_ROOT = "/content/uwe4_orbit_decay_project"
+PROJECT_ROOT = "."
 
 DATA_DIR = os.path.join(PROJECT_ROOT, "data")
 RAW_DIR = os.path.join(DATA_DIR, "raw")
