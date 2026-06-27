@@ -8,10 +8,19 @@ import urllib.request
 import numpy as np
 from sgp4.api import Satrec, jday
 import nrlmsise00
+import httpx
+import os
+import time
+
+# Resolve the root data/cache directory safely
+PROJECT_ROOT = Path(__file__).resolve().parents[3]
+CACHE_DIR = PROJECT_ROOT / "data" / "cache"
+CACHE_DIR.mkdir(parents=True, exist_ok=True)
 
 class SpaceWeatherObservation(BaseModel):
     date: datetime
     f107_obs: float
+    f107a_obs: float
     kp_max: float
     ap_avg: float
 
@@ -30,57 +39,136 @@ class OrbitDecayForecast(BaseModel):
     predicted_altitude_km: float
     model_version: str
 
+def download_with_cache(url: str, filename: str, ttl_seconds: int = 3600) -> Path:
+    """Helper method to fetch and cache files cleanly"""
+    cache_file = CACHE_DIR / filename
+    
+    needs_fetch = True
+    if cache_file.exists():
+        age = time.time() - cache_file.stat().st_mtime
+        if age < ttl_seconds:
+            needs_fetch = False
+            
+    if needs_fetch:
+        try:
+            with httpx.Client(timeout=5.0) as client:
+                response = client.get(url)
+                response.raise_for_status()
+                with open(cache_file, "wb") as f:
+                    f.write(response.content)
+        except Exception as e:
+            print(f"Failed to fetch {url} (falling back to cache if available): {e}")
+            
+    return cache_file
+
 def fetch_latest_space_weather() -> SpaceWeatherObservation:
-    """Fetch latest space weather from CelesTrak SW-All.csv"""
+    """Fetch latest space weather from CelesTrak SW-All.csv with persistent file caching"""
+    url = "https://celestrak.org/SpaceData/SW-All.csv"
+    cache_file = download_with_cache(url, "SW-All.csv")
+    
     try:
-        url = "https://celestrak.org/SpaceData/SW-All.csv"
-        df = pd.read_csv(url)
-        # Drop rows missing critical data and get the latest valid one
-        valid = df.dropna(subset=["AP_AVG", "F10.7_OBS"])
-        latest = valid.iloc[-1]
-        
-        def safe_float(val, default):
-            try:
-                if pd.isna(val):
+        if cache_file.exists():
+            df = pd.read_csv(cache_file)
+            valid = df.dropna(subset=["AP_AVG", "F10.7_OBS"])
+            latest = valid.iloc[-1]
+            
+            def safe_float(val, default):
+                try:
+                    if pd.isna(val): return default
+                    return float(val)
+                except:
                     return default
-                return float(val)
-            except:
-                return default
 
-        f107 = safe_float(latest.get("F10.7_OBS", None), -999.0)
-        ap_avg = safe_float(latest.get("AP_AVG", None), -999.0)
-        
-        kp_cols = [latest.get(f"KP{i}", -999.0) for i in range(1, 9)]
-        kp_cols = [safe_float(k, -999.0) for k in kp_cols if k != -999.0]
-        kp_max = max(kp_cols) if kp_cols else -999.0
-        
-        return SpaceWeatherObservation(
-            date=datetime.now(),
-            f107_obs=f107,
-            kp_max=kp_max,
-            ap_avg=ap_avg
-        )
+            f107 = safe_float(latest.get("F10.7_OBS", None), -999.0)
+            f107a = safe_float(latest.get("F10.7_81_OBS", latest.get("F10.7_CTR81_OBS", f107)), f107)
+            ap_avg = safe_float(latest.get("AP_AVG", None), -999.0)
+            kp_cols = [safe_float(latest.get(f"KP{i}", -999.0), -999.0) for i in range(1, 9)]
+            kp_cols = [k for k in kp_cols if k != -999.0]
+            kp_max = max(kp_cols) if kp_cols else -999.0
+            
+            return SpaceWeatherObservation(
+                date=datetime.now(), f107_obs=f107, f107a_obs=f107a, kp_max=kp_max, ap_avg=ap_avg
+            )
+            
+        # Offline Fallback
+        fallback_file = PROJECT_ROOT / "data" / "04_daily_orbit_space_weather_uwe4.csv"
+        if fallback_file.exists():
+            df = pd.read_csv(fallback_file)
+            valid = df.dropna(subset=["ap_avg", "f107_obs"])
+            latest = valid.iloc[-1]
+            
+            f107 = float(latest["f107_obs"]) if not pd.isna(latest["f107_obs"]) else -999.0
+            f107a = float(latest.get("f107_obs_rolling_81d", f107)) if not pd.isna(latest.get("f107_obs_rolling_81d", f107)) else f107
+            ap_avg = float(latest["ap_avg"]) if not pd.isna(latest["ap_avg"]) else -999.0
+            kp_max = float(latest["kp_max"]) if not pd.isna(latest["kp_max"]) else -999.0
+            
+            return SpaceWeatherObservation(
+                date=datetime.now(), f107_obs=f107, f107a_obs=f107a, kp_max=kp_max, ap_avg=ap_avg
+            )
+            
     except Exception as e:
-        print(f"Error fetching space weather: {e}")
-        return SpaceWeatherObservation(
-            date=datetime.now(),
-            f107_obs=-999.0,
-            kp_max=-999.0,
-            ap_avg=-999.0
-        )
+        print(f"Error parsing space weather: {e}")
+        
+    return SpaceWeatherObservation(
+        date=datetime.now(), f107_obs=-999.0, f107a_obs=-999.0, kp_max=-999.0, ap_avg=-999.0
+    )
 
-def get_satellite(norad_id: int) -> Optional[Satrec]:
+def get_satellite(norad_id: int) -> Optional['EarthSatellite']:
+    from skyfield.api import Loader
+    cache_dir = PROJECT_ROOT / "data" / "tle"
+    cache_dir.mkdir(parents=True, exist_ok=True)
+    custom_loader = Loader(str(cache_dir))
+    
+    # 1. Try to load from the centralized active TLE list first
+    active_filename = "celestrak_active.tle"
+    active_url = "https://celestrak.org/NORAD/elements/gp.php?GROUP=active&FORMAT=tle"
+    
+    reload = True
+    active_path = cache_dir / active_filename
+    if active_path.exists():
+        if custom_loader.days_old(active_filename) < 0.25:
+            reload = False
+            
     try:
-        url = f"https://celestrak.org/NORAD/elements/gp.php?CATNR={norad_id}&FORMAT=tle"
-        with urllib.request.urlopen(url, timeout=10) as response:
-            lines = response.read().decode('utf-8').strip().splitlines()
-        if len(lines) >= 3:
-            return Satrec.twoline2rv(lines[1], lines[2])
+        tle_file = custom_loader.tle_file(active_url, filename=active_filename, reload=reload)
     except Exception as e:
-        print(f"Failed to load TLE for {norad_id}: {e}")
+        print(f"Failed to fetch active TLEs: {e}")
+        tle_file = None
+        if active_path.exists():
+            print(f"Falling back to stale active TLE cache")
+            tle_file = custom_loader.tle_file(active_url, filename=active_filename, reload=False)
+            
+    if tle_file:
+        for sat in tle_file:
+            if sat.model.satnum == norad_id:
+                return sat
+        
+    # 2. If not found in active (or banned), try fetching the specific TLE
+    specific_filename = f"tle_{norad_id}.txt"
+    specific_url = f"https://celestrak.org/NORAD/elements/gp.php?CATNR={norad_id}&FORMAT=tle"
+    
+    reload = True
+    specific_path = cache_dir / specific_filename
+    if specific_path.exists():
+        if custom_loader.days_old(specific_filename) < 0.25:
+            reload = False
+            
+    try:
+        tle_file = custom_loader.tle_file(specific_url, filename=specific_filename, reload=reload)
+    except Exception as e:
+        print(f"Failed to fetch specific TLE for {norad_id}: {e}")
+        tle_file = None
+        if specific_path.exists():
+            print(f"Falling back to stale specific TLE cache")
+            tle_file = custom_loader.tle_file(specific_url, filename=specific_filename, reload=False)
+            
+    if tle_file:
+        return tle_file[0]
+        
     return None
 
 def compute_atmospheric_state(norad_id: int, weather: SpaceWeatherObservation) -> AtmosphericState:
+    from skyfield.api import load
     sat = get_satellite(norad_id)
     if not sat:
         return AtmosphericState(
@@ -91,16 +179,18 @@ def compute_atmospheric_state(norad_id: int, weather: SpaceWeatherObservation) -
             altitude_km=-999.0
         )
         
-    now = datetime.utcnow()
-    jd, fr = jday(now.year, now.month, now.day, now.hour, now.minute, now.second)
-    e, r, v = sat.sgp4(jd, fr)
+    ts = load.timescale()
+    t = ts.now()
     
-    if e != 0:
-        alt_km = -999.0
-    else:
-        alt_km = np.linalg.norm(r) - 6371.0
+    # Calculate exact geodetic coordinates (WGS84)
+    geocentric = sat.at(t)
+    subpoint = geocentric.subpoint()
+    lat = subpoint.latitude.degrees
+    lon = subpoint.longitude.degrees
+    alt_km = subpoint.elevation.km
         
     f107 = weather.f107_obs
+    f107a = weather.f107a_obs
     ap = weather.ap_avg
     
     if f107 == -999.0 or ap == -999.0:
@@ -109,7 +199,7 @@ def compute_atmospheric_state(norad_id: int, weather: SpaceWeatherObservation) -
     else:
         try:
             # msise_model(time, alt_km, lat, lon, f107A, f107, ap)
-            ds = nrlmsise00.msise_model(now, alt_km, 0.0, 0.0, f107, f107, ap)
+            ds = nrlmsise00.msise_model(t.utc_datetime(), alt_km, lat, lon, f107a, f107, ap)
             # Total mass density is ds[0][5] in g/cm3. 1 g/cm3 = 1000 kg/m3.
             density_kg_m3 = ds[0][5] * 1000.0
             exo_temp = ds[1][0]
@@ -120,7 +210,7 @@ def compute_atmospheric_state(norad_id: int, weather: SpaceWeatherObservation) -
     return AtmosphericState(
         exospheric_temp_k=exo_temp,
         density_kg_m3=density_kg_m3,
-        bstar=sat.bstar,
+        bstar=sat.model.bstar,
         drag_coeff=2.20,
         altitude_km=alt_km
     )

@@ -45,6 +45,10 @@ This repository hosts the **Project Watchdog** codebase, an end-to-end pipeline 
   <img src="frontend/static/screenshots/analytics-dark.png" width="49%" alt="Analytics Dashboard"/>
   <img src="frontend/static/screenshots/ml-dark.png" width="49%" alt="ML Inference Report"/>
 </p>
+<p align="center">
+  <img src="frontend/static/screenshots/orbit-decay-overview-dark.png" width="49%" alt="Orbit Decay Predictor"/>
+  <img src="frontend/static/screenshots/orbit-decay-diagnostics-dark.png" width="49%" alt="Orbit Decay Diagnostics"/>
+</p>
 </details>
 
 <details>
@@ -61,6 +65,10 @@ This repository hosts the **Project Watchdog** codebase, an end-to-end pipeline 
 <p align="center">
   <img src="frontend/static/screenshots/analytics-light.png" width="49%" alt="Analytics Dashboard"/>
   <img src="frontend/static/screenshots/ml-light.png" width="49%" alt="ML Inference Report"/>
+</p>
+<p align="center">
+  <img src="frontend/static/screenshots/orbit-decay-overview-light.png" width="49%" alt="Orbit Decay Predictor"/>
+  <img src="frontend/static/screenshots/orbit-decay-diagnostics-light.png" width="49%" alt="Orbit Decay Diagnostics"/>
 </p>
 </details>
 
