@@ -1,0 +1,48 @@
+{
+    "satellite": "UWE-4",
+    "norad_id": 43880,
+    "prediction_generated_at_utc": "2026-06-23T22:25:24.848986+00:00",
+    "latest_data_date": "2026-06-22 00:00:00+00:00",
+    "current_orbit_state": {
+        "altitude_mean_km": 427.2385,
+        "perigee_altitude_km": 424.1,
+        "apogee_altitude_km": 430.377,
+        "mean_motion_rev_day": 15.46410589,
+        "bstar": 0.00054968362,
+        "f107_obs": 121.5,
+        "kp_max": 2.0,
+        "ap_avg": 5.0,
+        "recent_7d_decay_m_day": 151.28571428570982,
+        "recent_30d_decay_m_day": 195.1166666666646
+    },
+    "predictions": {
+        "7d": {
+            "horizon_days": 7,
+            "model_version": "V1_direct_model",
+            "selected_model_name": "Ridge",
+            "predicted_decay_km": 1.2233851438474015,
+            "predicted_decay_m": 1223.3851438474014,
+            "predicted_decay_rate_m_day": 174.76930626391447,
+            "predicted_altitude_after_horizon_km": 426.0151148561526,
+            "test_MAE_m_day": 23.899962153669666,
+            "test_RMSE_m_day": 30.76383068403082,
+            "test_R2": 0.6645607726713225,
+            "baseline_MAE_m_day": 29.445906718851745,
+            "improvement_vs_baseline_pct": 18.834348074707027
+        },
+        "30d": {
+            "horizon_days": 30,
+            "model_version": "V1_direct_model",
+            "selected_model_name": "BayesianRidge",
+            "predicted_decay_km": 5.430396258958665,
+            "predicted_decay_m": 5430.396258958665,
+            "predicted_decay_rate_m_day": 181.0132086319555,
+            "predicted_altitude_after_horizon_km": 421.80810374104135,
+            "test_MAE_m_day": 20.085966752086215,
+            "test_RMSE_m_day": 25.073468389341688,
+            "test_R2": 0.6921290126272102,
+            "baseline_MAE_m_day": 22.266872146118722,
+            "improvement_vs_baseline_pct": 9.794394918698348
+        }
+    }
+}

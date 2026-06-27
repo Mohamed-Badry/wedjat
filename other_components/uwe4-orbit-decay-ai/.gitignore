@@ -1,0 +1,12 @@
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.ipynb_checkpoints/
+.env
+credentials.json
+secrets.json
+space_track_credentials.txt
+.DS_Store
+Thumbs.db
+*.log

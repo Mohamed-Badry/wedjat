@@ -1,0 +1,89 @@
+-- allium: 3
+-- ground_station.allium
+
+-- Scope: Real-time ground station operations for UWE-4
+-- Includes: TLE caching, Orbit Propagation, AI Orbit Correction, Conjunction Event generation
+-- Excludes:
+--   - Telemetry decoding (handled in telemetry_pipeline.allium)
+
+value Float {}
+
+config {
+    collision_radius_m: Float = 10.0
+    orbit_correction_max_delta_km: Float = 10.0
+}
+
+entity SatelliteState {
+    timestamp: Timestamp
+    norad_id: Integer
+    kind: RawSGP4 | AICorrected | Fallback
+}
+
+variant RawSGP4 : SatelliteState {
+    position_eci_km_x: Float
+    position_eci_km_y: Float
+    position_eci_km_z: Float
+    velocity_eci_km_s_x: Float
+    velocity_eci_km_s_y: Float
+    velocity_eci_km_s_z: Float
+}
+
+variant AICorrected : SatelliteState {
+    position_eci_km_x: Float
+    position_eci_km_y: Float
+    position_eci_km_z: Float
+    velocity_eci_km_s_x: Float
+    velocity_eci_km_s_y: Float
+    velocity_eci_km_s_z: Float
+    rtn_delta_km_r: Float
+    rtn_delta_km_t: Float
+    rtn_delta_km_n: Float
+}
+
+variant Fallback : SatelliteState {
+    reason: String
+}
+
+entity ConjunctionEvent {
+    tca_utc: Timestamp
+    primary_norad: Integer
+    secondary_norad: Integer
+    miss_distance_km: Float
+    foster_probability: Float
+}
+
+rule PropagateOrbit {
+    when: PropagateOrbit(norad_id, target_time)
+    ensures: RawSGP4.created(
+        timestamp: target_time,
+        norad_id: norad_id,
+        position_eci_km_x: 0.0,
+        position_eci_km_y: 0.0,
+        position_eci_km_z: 0.0,
+        velocity_eci_km_s_x: 0.0,
+        velocity_eci_km_s_y: 0.0,
+        velocity_eci_km_s_z: 0.0
+    )
+}
+
+rule EvaluateConjunctions {
+    when: EvaluateConjunctions(primary_norad, window)
+    ensures: ConjunctionEvent.created(
+        tca_utc: now,
+        primary_norad: primary_norad,
+        secondary_norad: 12345,
+        miss_distance_km: 0.0,
+        foster_probability: 0.0
+    )
+}
+
+rule AICorrectionLimits {
+    -- Ensures the AI doesn't hallucinate an unrealistic orbit position
+    when: state: AICorrected.created
+    ensures: state.rtn_delta_km_r < config.orbit_correction_max_delta_km
+    -- But what happens if it exceeds it? Do we fallback to raw_sgp4?
+}
+
+rule ConjunctionEscalation {
+    open question "What is the escalation path if a ConjunctionEvent has a collision probability > 10%?"
+}

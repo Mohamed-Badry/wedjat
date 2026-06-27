@@ -1,0 +1,76 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>UWE-4 Orbit Decay Dashboard</title>
+<style>
+body { font-family: Arial, sans-serif; background: #f5f7fb; padding: 24px; color: #111827; }
+.header { background: #111827; color: white; padding: 24px; border-radius: 14px; margin-bottom: 20px; }
+.grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 20px; }
+.card { background: white; padding: 18px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+.value { font-size: 26px; font-weight: bold; margin-top: 8px; }
+table { width: 100%; border-collapse: collapse; background: white; border-radius: 12px; overflow: hidden; }
+th, td { padding: 12px; border-bottom: 1px solid #e5e7eb; text-align: left; }
+th { background: #f3f4f6; }
+</style>
+</head>
+<body>
+<div class="header">
+<h1>UWE-4 AI Orbit Decay Prediction Dashboard</h1>
+<p>NORAD ID: 43880 | Latest data date: 2026-06-22 00:00:00+00:00</p>
+</div>
+
+<div class="grid">
+<div class="card"><h3>Current Mean Altitude</h3><div class="value">427.24 km</div></div>
+<div class="card"><h3>Perigee</h3><div class="value">424.10 km</div></div>
+<div class="card"><h3>Apogee</h3><div class="value">430.38 km</div></div>
+<div class="card"><h3>Recent 30d Decay</h3><div class="value">195.1 m/day</div></div>
+</div>
+
+<div class="grid">
+<div class="card"><h3>7-Day Predicted Decay</h3><div class="value">1.223 km</div></div>
+<div class="card"><h3>Altitude After 7 Days</h3><div class="value">426.02 km</div></div>
+<div class="card"><h3>30-Day Predicted Decay</h3><div class="value">5.430 km</div></div>
+<div class="card"><h3>Altitude After 30 Days</h3><div class="value">421.81 km</div></div>
+</div>
+
+<h2>Model Performance</h2>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th>horizon_days</th>
+      <th>selected_model</th>
+      <th>AI_MAE_m_day</th>
+      <th>AI_RMSE_m_day</th>
+      <th>AI_R2</th>
+      <th>best_baseline</th>
+      <th>baseline_MAE_m_day</th>
+      <th>improvement_%</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>7</td>
+      <td>Ridge</td>
+      <td>23.899962</td>
+      <td>30.763831</td>
+      <td>0.664561</td>
+      <td>baseline_recent_30d_rate</td>
+      <td>29.445907</td>
+      <td>18.834348</td>
+    </tr>
+    <tr>
+      <td>30</td>
+      <td>BayesianRidge</td>
+      <td>20.085967</td>
+      <td>25.073468</td>
+      <td>0.692129</td>
+      <td>baseline_recent_30d_rate</td>
+      <td>22.266872</td>
+      <td>9.794395</td>
+    </tr>
+  </tbody>
+</table>
+</body>
+</html>

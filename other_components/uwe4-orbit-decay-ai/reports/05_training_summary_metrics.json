@@ -1,0 +1,140 @@
+{
+    "7": {
+        "satellite": "UWE-4",
+        "norad_id": 43880,
+        "horizon_days": 7,
+        "target_col": "target_decay_next_7d_km",
+        "selected_model_name": "Ridge",
+        "selected_top3_names": [],
+        "selected_weights": [],
+        "test_metrics": {
+            "MAE_total_km": 0.16729973507568766,
+            "RMSE_total_km": 0.21534681478821574,
+            "R2": 0.6645607726713225,
+            "MAE_km_day": 0.023899962153669664,
+            "RMSE_km_day": 0.03076383068403082,
+            "MAE_m_day": 23.899962153669666,
+            "RMSE_m_day": 30.76383068403082
+        },
+        "test_baselines": {
+            "baseline_recent_7d_rate": {
+                "MAE_total_km": 0.24654657534246394,
+                "RMSE_total_km": 0.3151047771551484,
+                "R2": 0.28179748962404927,
+                "MAE_km_day": 0.035220939334637706,
+                "RMSE_km_day": 0.0450149681650212,
+                "MAE_m_day": 35.220939334637706,
+                "RMSE_m_day": 45.0149681650212
+            },
+            "baseline_recent_30d_rate": {
+                "MAE_total_km": 0.20612134703196222,
+                "RMSE_total_km": 0.26372637030593715,
+                "R2": 0.4969118831395045,
+                "MAE_km_day": 0.029445906718851746,
+                "RMSE_km_day": 0.03767519575799102,
+                "MAE_m_day": 29.445906718851745,
+                "RMSE_m_day": 37.67519575799102
+            },
+            "baseline_train_median_target": {
+                "MAE_total_km": 1.0972465753424283,
+                "RMSE_total_km": 1.158533289843549,
+                "R2": -8.708541226505575,
+                "MAE_km_day": 0.15674951076320404,
+                "RMSE_km_day": 0.16550475569193557,
+                "MAE_m_day": 156.74951076320403,
+                "RMSE_m_day": 165.50475569193557
+            }
+        },
+        "best_baseline_name": "baseline_recent_30d_rate",
+        "best_baseline_metrics": {
+            "MAE_total_km": 0.20612134703196222,
+            "RMSE_total_km": 0.26372637030593715,
+            "R2": 0.4969118831395045,
+            "MAE_km_day": 0.029445906718851746,
+            "RMSE_km_day": 0.03767519575799102,
+            "MAE_m_day": 29.445906718851745,
+            "RMSE_m_day": 37.67519575799102
+        },
+        "improvement_vs_best_baseline_pct": 18.834348074707027,
+        "train_rows": 1967,
+        "val_rows": 365,
+        "test_rows": 365,
+        "train_start": "2019-01-27 00:00:00+00:00",
+        "train_end": "2024-06-15 00:00:00+00:00",
+        "val_start": "2024-06-16 00:00:00+00:00",
+        "val_end": "2025-06-15 00:00:00+00:00",
+        "test_start": "2025-06-16 00:00:00+00:00",
+        "test_end": "2026-06-15 00:00:00+00:00",
+        "feature_count": 149,
+        "created_at_utc": "2026-06-23T21:27:55.800941+00:00"
+    },
+    "30": {
+        "satellite": "UWE-4",
+        "norad_id": 43880,
+        "horizon_days": 30,
+        "target_col": "target_decay_next_30d_km",
+        "selected_model_name": "BayesianRidge",
+        "selected_top3_names": [],
+        "selected_weights": [],
+        "test_metrics": {
+            "MAE_total_km": 0.6025790025625863,
+            "RMSE_total_km": 0.7522040516802506,
+            "R2": 0.6921290126272102,
+            "MAE_km_day": 0.020085966752086213,
+            "RMSE_km_day": 0.02507346838934169,
+            "MAE_m_day": 20.085966752086215,
+            "RMSE_m_day": 25.073468389341688
+        },
+        "test_baselines": {
+            "baseline_recent_7d_rate": {
+                "MAE_total_km": 0.8552863992172194,
+                "RMSE_total_km": 1.1087309377986918,
+                "R2": 0.33111761329021694,
+                "MAE_km_day": 0.02850954664057398,
+                "RMSE_km_day": 0.03695769792662306,
+                "MAE_m_day": 28.50954664057398,
+                "RMSE_m_day": 36.95769792662306
+            },
+            "baseline_recent_30d_rate": {
+                "MAE_total_km": 0.6680061643835616,
+                "RMSE_total_km": 0.8082367188531081,
+                "R2": 0.6445532222320289,
+                "MAE_km_day": 0.02226687214611872,
+                "RMSE_km_day": 0.02694122396177027,
+                "MAE_m_day": 22.266872146118722,
+                "RMSE_m_day": 26.94122396177027
+            },
+            "baseline_train_median_target": {
+                "MAE_total_km": 4.6090349315067805,
+                "RMSE_total_km": 4.804271152029763,
+                "R2": -11.558924498896001,
+                "MAE_km_day": 0.1536344977168927,
+                "RMSE_km_day": 0.16014237173432544,
+                "MAE_m_day": 153.6344977168927,
+                "RMSE_m_day": 160.14237173432545
+            }
+        },
+        "best_baseline_name": "baseline_recent_30d_rate",
+        "best_baseline_metrics": {
+            "MAE_total_km": 0.6680061643835616,
+            "RMSE_total_km": 0.8082367188531081,
+            "R2": 0.6445532222320289,
+            "MAE_km_day": 0.02226687214611872,
+            "RMSE_km_day": 0.02694122396177027,
+            "MAE_m_day": 22.266872146118722,
+            "RMSE_m_day": 26.94122396177027
+        },
+        "improvement_vs_best_baseline_pct": 9.794394918698348,
+        "train_rows": 1944,
+        "val_rows": 365,
+        "test_rows": 365,
+        "train_start": "2019-01-27 00:00:00+00:00",
+        "train_end": "2024-05-23 00:00:00+00:00",
+        "val_start": "2024-05-24 00:00:00+00:00",
+        "val_end": "2025-05-23 00:00:00+00:00",
+        "test_start": "2025-05-24 00:00:00+00:00",
+        "test_end": "2026-05-23 00:00:00+00:00",
+        "feature_count": 149,
+        "created_at_utc": "2026-06-23T21:27:55.808316+00:00"
+    }
+}
