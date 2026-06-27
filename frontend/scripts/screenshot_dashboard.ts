@@ -9,8 +9,8 @@ const pages = [
   { url: 'http://localhost:5173/dashboard/inspector', name: 'inspector' },
   { url: 'http://localhost:5173/dashboard/ml', name: 'ml' },
   { url: 'http://localhost:5173/dashboard/analytics', name: 'analytics' },
-  { url: 'http://localhost:5173/dashboard/eda', name: 'eda' },
-  { url: 'http://localhost:5173/dashboard/ml-report', name: 'ml-report' }
+  { url: 'http://localhost:5173/dashboard/orbit-decay', name: 'orbit-decay-overview' },
+  { url: 'http://localhost:5173/dashboard/orbit-decay', name: 'orbit-decay-diagnostics' }
 ];
 
 const screenshotsDir = '/home/crim/Projects/gr_sat/frontend/static/screenshots';
@@ -77,6 +77,15 @@ const screenshotsDir = '/home/crim/Projects/gr_sat/frontend/static/screenshots';
                 });
                 await new Promise(r => setTimeout(r, 4000));
             }
+
+            if (p.name === 'orbit-decay-diagnostics') {
+                console.log(`  [Orbit Decay] Switching to diagnostics tab...`);
+                await page.evaluate(() => {
+                    const btn = Array.from(document.querySelectorAll('button')).find(b => b.textContent && b.textContent.includes('Model Diagnostics'));
+                    if (btn) btn.click();
+                });
+                await new Promise(r => setTimeout(r, 1000));
+            };
             
             // Wait for entry animations
             await new Promise(r => setTimeout(r, 2000));

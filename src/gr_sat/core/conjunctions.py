@@ -41,6 +41,29 @@ def calc_foster_prob(miss_km: float, cov_r: float, cov_t: float, combined_radius
         prob = 0.0
     return min(1.0, max(0.0, prob))
 
+import urllib.request
+import time
+from functools import wraps
+
+def ttl_cache(ttl_seconds: int):
+    """Simple in-memory TTL cache decorator to prevent API rate limiting."""
+    def decorator(func):
+        cache = {}
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            key = str(args) + str(kwargs)
+            now = time.time()
+            if key in cache:
+                val, timestamp = cache[key]
+                if now - timestamp < ttl_seconds:
+                    return val
+            val = func(*args, **kwargs)
+            cache[key] = (val, now)
+            return val
+        return wrapper
+    return decorator
+
+@ttl_cache(ttl_seconds=3600)  # 1 hour cache
 def get_active_satellites() -> tuple[Optional[Satrec], List[Satrec], List[str]]:
     url = "https://celestrak.org/NORAD/elements/gp.php?GROUP=active&FORMAT=tle"
     # Wait, the original code used 'stations'. 'active' is much bigger (10k sats). Let's use 'active' for real conjunctions.

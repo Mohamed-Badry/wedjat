@@ -65,7 +65,7 @@ services:
       - ./src/api:/app/src/api
       - ./src/gr_sat:/app/src/gr_sat
       - ./models:/app/models:ro
-      - ./data:/app/data:ro
+      - ./data:/app/data
       - ./alembic.ini:/app/alembic.ini:ro
       - ./db/migrations:/app/db/migrations
       - ./scripts:/app/scripts:ro

@@ -105,17 +105,18 @@ def predict_passes(
             
     try:
         tle_file = custom_loader.tle_file(url, filename=filename, reload=reload)
-        by_id = {sat.model.satnum: sat for sat in tle_file}
     except Exception as e:
         import logging
-        logging.error(f"Failed to fetch updated TLEs: {e}")
-        try:
-            # Fallback to whatever is cached if the download failed (e.g. 403 Forbidden)
+        logging.error(f"Failed to fetch TLEs: {e}")
+        tle_file = None
+        if file_path.exists():
+            logging.info(f"Falling back to stale TLE cache in pass_predictor")
             tle_file = custom_loader.tle_file(url, filename=filename, reload=False)
-            by_id = {sat.model.satnum: sat for sat in tle_file}
-            logging.info("Successfully fell back to stale TLE cache.")
-        except Exception:
-            by_id = {}
+            
+    if tle_file:
+        by_id = {sat.model.satnum: sat for sat in tle_file}
+    else:
+        by_id = {}
 
     passes: list[dict[str, Any]] = []
     for sat_info in satellite_summaries:
