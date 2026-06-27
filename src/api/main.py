@@ -270,6 +270,24 @@ def create_app(repository: DashboardDataRepository | None = None) -> FastAPI:
         except KeyError as exc:
             raise HTTPException(status_code=404, detail=str(exc)) from exc
 
+    @app.get("/api/orbit/decay-prediction")
+    @limiter.limit("10/minute")
+    def orbit_decay_prediction(request: Request, norad_id: int = Query(default=43880)) -> dict:
+        try:
+            from gr_sat.core.orbit_decay import fetch_latest_space_weather, PredictOrbitDecay, compute_atmospheric_state
+            weather = fetch_latest_space_weather()
+            atm_state = compute_atmospheric_state(norad_id, weather)
+            forecasts = PredictOrbitDecay(satellite_id=norad_id, weather=weather, alt_km=atm_state.altitude_km)
+            
+            return {
+                "norad_id": norad_id,
+                "space_weather": weather.model_dump(mode="json"),
+                "atmospheric_state": atm_state.model_dump(mode="json"),
+                "forecasts": [f.model_dump(mode="json") for f in forecasts]
+            }
+        except Exception as exc:
+            raise HTTPException(status_code=500, detail=str(exc)) from exc
+
     @app.get("/api/ml/sensitivity")
     @limiter.limit("5/minute")
     def ml_sensitivity(request: Request, norad_id: int) -> dict:

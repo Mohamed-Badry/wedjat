@@ -75,6 +75,7 @@
 
   onMount(() => {
     connectWs();
+    fetchOrbitDecay();
   });
 
   onDestroy(() => {
@@ -90,6 +91,16 @@
     { label: 'Anomalies Detected', key: 'anomaly_count' as const, icon: AlertTriangle },
     { label: 'Total Passes',     key: 'pass_count' as const,      icon: Globe },
   ];
+
+  let decayData = $state<any>(null);
+  
+  async function fetchOrbitDecay() {
+    try {
+      decayData = await apiFetch<any>(`/api/orbit/decay-prediction?norad_id=43880`);
+    } catch (e: any) {
+      console.error("Failed to load prediction", e);
+    }
+  }
 </script>
 
 <svelte:head>
@@ -194,6 +205,10 @@
 
       <!-- Right Col (Throughput & Anomalies) -->
 <div class="flex flex-col gap-6 tall-xl:min-h-0">
+        
+        <!-- Orbit Decay AI Preview -->
+        {#if decayData && decayData.forecasts}
+          {@const drop7 = decayData.forecasts.find((f: any) => f.horizon === 'P7D' || f.horizon === '7 days, 0:00:00')?.predicted_decay_km || 0}
         <!-- Throughput Sparkline -->
         {#if summary.throughput_buckets && summary.throughput_buckets.length > 0}
           <div in:fly|global={{ y: 40, duration: 700, delay: 500, easing: backOut }} class="flex-none chart-card border border-border rounded-[1.25rem] bg-panel p-4 shadow-sm backdrop-blur hover:shadow-lg transition-shadow duration-300">
