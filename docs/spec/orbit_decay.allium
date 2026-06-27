@@ -1,0 +1,51 @@
+-- allium: 3
+-- orbit_decay.allium
+
+-- Scope: AI-based orbit decay forecasting for UWE-4
+-- Includes: Space weather fetching, 7-day and 30-day altitude decay predictions
+-- Excludes:
+--   - Historical training data aggregation (handled offline)
+-- Dependencies: Orbit states from ground_station.allium
+
+value Float {}
+
+config {
+    space_weather_source: String = "CelesTrak"
+}
+
+entity SpaceWeatherObservation {
+    date: Timestamp
+    f107_obs: Float
+    kp_max: Float
+    ap_avg: Float
+}
+
+entity OrbitDecayForecast {
+    date: Timestamp
+    satellite_id: Integer
+    horizon: Duration
+    predicted_decay_km: Float
+    predicted_altitude_km: Float
+    model_version: String
+}
+
+rule PredictOrbitDecay {
+    when: PredictOrbitDecay(satellite_id, weather)
+    ensures: OrbitDecayForecast.created(
+        date: now,
+        satellite_id: satellite_id,
+        horizon: 7.days,
+        predicted_decay_km: 1.0,
+        predicted_altitude_km: 500.0,
+        model_version: "1.0"
+    )
+}
+
+rule SpaceWeatherUnavailable {
+    -- What happens if CelesTrak is down? Do we use yesterday's weather or fail the prediction?
+    open question "If space weather fetch fails, do we interpolate from yesterday or abort the daily forecast?"
+}
+
+rule ModelRetraining {
+    open question "How frequently should the orbit decay AI model be retrained on new telemetry? Is this automated?"
+}

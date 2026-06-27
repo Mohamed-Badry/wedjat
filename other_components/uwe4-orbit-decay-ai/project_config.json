@@ -1,0 +1,15 @@
+{
+    "satellite_name": "UWE-4",
+    "norad_id": 43880,
+    "mass_kg": 1.1,
+    "area_m2": 0.01,
+    "drag_coefficient": 2.2,
+    "ballistic_coefficient": 50.0,
+    "prediction_horizons_days": [
+        7,
+        30
+    ],
+    "earth_radius_km": 6378.137,
+    "earth_mu_km3_s2": 398600.4418,
+    "created_at_utc": "2026-06-23T20:45:17.313129+00:00"
+}
