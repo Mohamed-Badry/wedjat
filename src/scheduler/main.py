@@ -1,6 +1,6 @@
 import os
 import time
-import requests
+import httpx
 import schedule
 from loguru import logger
 import subprocess
@@ -30,9 +30,10 @@ def run_train_models():
     
     # We query the API for active satellites so we can retrain all known ones.
     try:
-        response = requests.get(f"{API_URL}/api/satellites", headers={"X-API-Key": API_KEY}, timeout=10)
-        response.raise_for_status()
-        satellites = response.json().get("satellites", [])
+        with httpx.Client(timeout=10.0) as client:
+            response = client.get(f"{API_URL}/api/satellites", headers={"X-API-Key": API_KEY})
+            response.raise_for_status()
+            satellites = response.json().get("satellites", [])
     except Exception as e:
         logger.error(f"Failed to fetch satellite list from API: {e}")
         return
@@ -59,12 +60,9 @@ def run_train_models():
 def reload_api_models():
     logger.info("Notifying API to reload model cache...")
     try:
-        response = requests.post(
-            f"{API_URL}/api/admin/reload_models", 
-            headers={"X-API-Key": API_KEY},
-            timeout=10
-        )
-        response.raise_for_status()
+        with httpx.Client(timeout=10.0) as client:
+            response = client.post(f"{API_URL}/api/admin/reload_models", headers={"X-API-Key": API_KEY})
+            response.raise_for_status()
         logger.info("API model cache reloaded successfully.")
     except Exception as e:
         logger.error(f"Failed to reload API model cache: {e}")
