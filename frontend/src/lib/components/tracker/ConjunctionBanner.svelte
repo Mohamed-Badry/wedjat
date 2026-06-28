@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { ShieldAlert, AlertTriangle, Info, Clock } from "lucide-svelte";
+  import { ShieldAlert, AlertTriangle, Info, Clock, X } from "lucide-svelte";
   import type { ConjunctionEvent } from "$lib/types/api";
   import { onDestroy } from "svelte";
 
@@ -35,7 +35,8 @@
       : null
   );
 
-  let showBanner = $derived(primaryEvent !== null && primaryEvent.risk_level !== "NOMINAL");
+  let dismissed = $state(false);
+  let showBanner = $derived(primaryEvent !== null && primaryEvent.risk_level !== "NOMINAL" && !dismissed);
 
   function formatCountdown(tcaStr: string, current: Date) {
     const target = new Date(tcaStr).getTime();
@@ -58,7 +59,16 @@
 </script>
 
 {#if showBanner && primaryEvent}
-  <div class="mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 rounded-xl border {riskColors} p-4 animate-in fade-in slide-in-from-top-4 duration-500">
+  <div class="mb-6 lg:mb-0 lg:absolute lg:top-4 lg:right-6 lg:z-40 w-full lg:max-w-md flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 rounded-xl border {riskColors} p-4 shadow-sm lg:shadow-xl lg:backdrop-blur-md animate-in fade-in slide-in-from-top-4 duration-500 relative pr-10">
+    <!-- Dismiss button -->
+    <button 
+      onclick={() => dismissed = true} 
+      class="absolute top-3 right-3 text-ink-3 hover:text-ink transition-colors p-1 rounded-lg hover:bg-white/10" 
+      aria-label="Dismiss alert"
+    >
+      <X class="size-4" />
+    </button>
+
     <div class="flex items-start sm:items-center gap-3">
       {#if primaryEvent.risk_level === "CRITICAL"}
         <ShieldAlert class="size-6 shrink-0 animate-pulse" />
