@@ -121,19 +121,19 @@
     const rand = () => { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; };
     
     // If we have an obvious failure value, just return an empty string to draw nothing
-    if (startAlt < 0 || drop < 0) return "0,200 800,200";
+    if (startAlt < 0 || drop === undefined || drop === null || isNaN(drop)) return "";
     
     for (let i = 0; i <= days; i += 0.5) { // Sub-day steps for more data points
       const x = (i / 30) * width;
       
-      // Base exponential decay with slight drag variations
+      // Base exponential decay with slight drag variations (can be negative if drop is negative)
       let baseDrop = drop * Math.pow(i / days, 1.6);
       
-      // Add high-frequency atmospheric density noise (J72 model simulation)
-      const noise = (rand() - 0.5) * (i / days) * (drop * 0.1);
+      // Add high-frequency atmospheric density noise (J72 model simulation) using absolute drop magnitude
+      const noise = (rand() - 0.5) * (i / days) * (Math.abs(drop) * 0.1);
       
-      // Confidence interval spread (widens quadratically over time)
-      const ci = type === 'mean' ? 0 : (type === 'upper' ? -1 : 1) * Math.pow(i / days, 2) * (drop * 0.4);
+      // Confidence interval spread (widens quadratically over time) using absolute drop magnitude
+      const ci = type === 'mean' ? 0 : (type === 'upper' ? -1 : 1) * Math.pow(i / days, 2) * (Math.abs(drop) * 0.4);
       
       const alt = startAlt - baseDrop + noise + ci;
       
@@ -310,7 +310,7 @@
               <!-- SVG Technical Chart -->
               <svg class="absolute inset-0 w-full h-full pl-[40px] pr-4 pt-4 pb-10" viewBox="0 0 800 400" preserveAspectRatio="none">
                 
-                {#if startAlt > 0 && drop30 > 0}
+                {#if startAlt > 0 && drop30 !== null && drop30 !== undefined}
                   <!-- 30-Day Confidence Interval (Shaded) -->
                   <path d="M 0,{400 - ((startAlt - yMin)/yRange)*400} {generateTechnicalData(30, drop30, startAlt, 'upper', yMin, yMax)} L 800,{400 - (((startAlt - drop30 - 1.2) - yMin)/yRange)*400} L 800,{400 - (((startAlt - drop30 + 1.2) - yMin)/yRange)*400} {generateTechnicalData(30, drop30, startAlt, 'lower', yMin, yMax).split(' ').reverse().join(' ')} Z" fill="var(--color-brand)" class="opacity-10 dark:opacity-20" />
                   
