@@ -11,7 +11,7 @@ from skyfield.api import Topos, EarthSatellite, load
 from typing import Optional, List, Dict
 
 from gr_sat.core.config import GS_LATITUDE, GS_LONGITUDE, GS_ELEVATION, GS_NAME
-from gr_sat.core.orbit_decay import get_satellite  # Re-use our centralized loader
+from gr_sat.core.orbit_decay import get_satellite, ttl_cache  # Re-use our centralized loader
 
 # --- Pydantic Models ---
 
@@ -233,6 +233,7 @@ class HorizonPoint:
         self.label = label
         self.minutes = minutes
 
+@ttl_cache(ttl_seconds=5)
 def compute_tracker_snapshot(norad_id: int) -> TrackerSnapshot:
     sat = get_satellite(norad_id)
     if not sat:

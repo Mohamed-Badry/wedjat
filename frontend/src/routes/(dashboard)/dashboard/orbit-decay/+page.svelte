@@ -1,3 +1,27 @@
+<script module lang="ts">
+  const DECAY_CACHE_TTL_MS = 10 * 60 * 1000;
+  const decayResponseCache = new Map<string, { data: any; updatedAt: number; expiresAt: number }>();
+
+  function readDecayCache(noradId: string) {
+    const cached = decayResponseCache.get(noradId);
+    if (!cached || cached.expiresAt < Date.now()) {
+      if (cached) decayResponseCache.delete(noradId);
+      return null;
+    }
+    return cached;
+  }
+
+  function writeDecayCache(noradId: string, data: any) {
+    const updatedAt = Date.now();
+    decayResponseCache.set(noradId, {
+      data,
+      updatedAt,
+      expiresAt: updatedAt + DECAY_CACHE_TTL_MS
+    });
+    return updatedAt;
+  }
+</script>
+
 <script lang="ts">
   import { untrack } from "svelte";
   import { fade, fly } from "svelte/transition";
@@ -10,18 +34,36 @@
 
   let decayData = $state<any>(null);
   let decayLoading = $state<boolean>(false);
+  let decayRefreshing = $state<boolean>(false);
   let decayError = $state<string | null>(null);
+  let decayLastUpdated = $state<Date | null>(null);
 
-  async function fetchOrbitDecay() {
+  async function fetchOrbitDecay(force = false) {
     if (!noradId || noradId === "all") return;
-    decayLoading = true;
+    const requestNorad = noradId;
+    const cached = !force ? readDecayCache(requestNorad) : null;
+    if (cached) {
+      decayData = cached.data;
+      decayLastUpdated = new Date(cached.updatedAt);
+      decayError = null;
+      decayLoading = false;
+      return;
+    }
+
+    const blockingLoad = !decayData;
+    decayLoading = blockingLoad;
+    decayRefreshing = !blockingLoad;
     decayError = null;
     try {
-      decayData = await apiFetch<any>(`/api/orbit/decay-prediction?norad_id=${noradId}`);
+      const data = await apiFetch<any>(`/api/orbit/decay-prediction?norad_id=${requestNorad}`);
+      if (requestNorad !== noradId) return;
+      decayData = data;
+      decayLastUpdated = new Date(writeDecayCache(requestNorad, data));
     } catch (e: any) {
       decayError = e.message || "Failed to load prediction";
     } finally {
       decayLoading = false;
+      decayRefreshing = false;
     }
   }
 
@@ -62,6 +104,11 @@
       points.push(`${x},${y}`);
     }
     return points.join(" ");
+  }
+
+  function deterministicJitter(seed: number, amplitude: number) {
+    const value = Math.sin(seed * 12.9898) * 43758.5453;
+    return (value - Math.floor(value) - 0.5) * amplitude;
   }
 
   // Generate grid lines
@@ -113,6 +160,17 @@
           Model Diagnostics
         </button>
       </div>
+
+      {#if decayLastUpdated || decayRefreshing}
+        <div class="hidden xl:flex items-center gap-2 border-l border-border/60 pl-3 text-[10px] font-bold uppercase tracking-wider text-ink-3">
+          {#if decayRefreshing}
+            <span class="h-1.5 w-1.5 rounded-full bg-brand animate-pulse"></span>
+            Refreshing
+          {:else if decayLastUpdated}
+            Updated {decayLastUpdated.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
+          {/if}
+        </div>
+      {/if}
     </div>
   </header>
 
@@ -231,18 +289,18 @@
                   <!-- Scatter Points (Simulated Telemetry/Inference checkpoints) -->
                   {#each [0, 2, 4, 6, 7] as tick}
                     {@const x = (tick / 30) * 800}
-                    {@const alt = startAlt - (drop7 * Math.pow(tick / 7, 1.6)) + (Math.random() - 0.5) * 0.2}
+                    {@const alt = startAlt - (drop7 * Math.pow(tick / 7, 1.6)) + deterministicJitter(tick + 7, 0.2)}
                     {@const y = 400 - ((alt - yMin) / yRange) * 400}
                     {#if y >= 0 && y <= 400}
-                      <circle cx={x} cy={y} r="3" fill="#panel" stroke="#10b981" stroke-width="2" class="opacity-90" />
+                      <circle cx={x} cy={y} r="3" fill="var(--color-panel)" stroke="#10b981" stroke-width="2" class="opacity-90" />
                     {/if}
                   {/each}
                   {#each [10, 15, 20, 25, 30] as tick}
                     {@const x = (tick / 30) * 800}
-                    {@const alt = startAlt - (drop30 * Math.pow(tick / 30, 1.6)) + (Math.random() - 0.5) * 0.4}
+                    {@const alt = startAlt - (drop30 * Math.pow(tick / 30, 1.6)) + deterministicJitter(tick + 30, 0.4)}
                     {@const y = 400 - ((alt - yMin) / yRange) * 400}
                     {#if y >= 0 && y <= 400}
-                      <circle cx={x} cy={y} r="3" fill="#panel" stroke="var(--color-brand)" stroke-width="2" class="opacity-90" />
+                      <circle cx={x} cy={y} r="3" fill="var(--color-panel)" stroke="var(--color-brand)" stroke-width="2" class="opacity-90" />
                       <!-- Error bars for checkpoints -->
                       <line x1={x} y1={y - 15} x2={x} y2={y + 15} stroke="var(--color-brand)" stroke-width="1" class="opacity-40" />
                       <line x1={x-3} y1={y - 15} x2={x+3} y2={y - 15} stroke="var(--color-brand)" stroke-width="1" class="opacity-40" />
@@ -290,16 +348,24 @@
               <div class="grid grid-cols-2 gap-3">
                 <div class="bg-surface border border-border/50 rounded-xl p-4 flex flex-col justify-between hover:border-emerald-500/30 transition-colors">
                   <span class="text-[9px] font-bold uppercase tracking-wider text-ink-3 mb-1">7-Day Drop</span>
-                  <div class="flex items-center gap-1.5 text-emerald-500">
-                    <ArrowDown class="size-4 stroke-[3]" />
-                    <span class="text-xl font-black">{drop7.toFixed(2)} <span class="text-[10px] font-bold opacity-70">km</span></span>
+                  <div class="flex items-center gap-1.5 {drop7 >= 0 ? 'text-emerald-500' : 'text-emerald-600 dark:text-emerald-400'}">
+                    {#if drop7 >= 0}
+                      <ArrowDown class="size-4 stroke-[3]" />
+                    {:else}
+                      <ArrowDown class="size-4 stroke-[3] rotate-180" />
+                    {/if}
+                    <span class="text-xl font-black">{Math.abs(drop7).toFixed(2)} <span class="text-[10px] font-bold opacity-70">km</span></span>
                   </div>
                 </div>
                 <div class="bg-surface border border-border/50 rounded-xl p-4 flex flex-col justify-between hover:border-brand/30 transition-colors">
                   <span class="text-[9px] font-bold uppercase tracking-wider text-ink-3 mb-1">30-Day Drop</span>
-                  <div class="flex items-center gap-1.5 text-brand">
-                    <ArrowDown class="size-4 stroke-[3]" />
-                    <span class="text-xl font-black">{drop30.toFixed(2)} <span class="text-[10px] font-bold opacity-70">km</span></span>
+                  <div class="flex items-center gap-1.5 {drop30 >= 0 ? 'text-brand' : 'text-emerald-600 dark:text-emerald-400'}">
+                    {#if drop30 >= 0}
+                      <ArrowDown class="size-4 stroke-[3]" />
+                    {:else}
+                      <ArrowDown class="size-4 stroke-[3] rotate-180" />
+                    {/if}
+                    <span class="text-xl font-black">{Math.abs(drop30).toFixed(2)} <span class="text-[10px] font-bold opacity-70">km</span></span>
                   </div>
                 </div>
               </div>
@@ -425,9 +491,17 @@
                 </div>
                 
                 <div class="flex justify-between items-center relative z-10 mb-2">
-                  <span class="text-[10px] font-bold uppercase tracking-widest text-ink-2 flex items-center gap-1.5"><ArrowDown class="size-3 text-critical"/> Total Altitude Decay</span>
-                  <div class="flex items-baseline gap-1 text-critical">
-                    <span class="font-mono text-4xl font-black tracking-tighter">-{forecast.predicted_decay_km.toFixed(3)}</span>
+                  <span class="text-[10px] font-bold uppercase tracking-widest text-ink-2 flex items-center gap-1.5">
+                    {#if forecast.predicted_decay_km >= 0}
+                      <ArrowDown class="size-3 text-critical"/> Total Altitude Decay
+                    {:else}
+                      <ArrowDown class="size-3 text-emerald-500 rotate-180"/> Total Altitude Decay
+                    {/if}
+                  </span>
+                  <div class="flex items-baseline gap-1 {forecast.predicted_decay_km >= 0 ? 'text-critical' : 'text-emerald-600 dark:text-emerald-400'}">
+                    <span class="font-mono text-4xl font-black tracking-tighter">
+                      {forecast.predicted_decay_km >= 0 ? '-' : '+'}{Math.abs(forecast.predicted_decay_km).toFixed(3)}
+                    </span>
                     <span class="text-xs font-bold uppercase tracking-wider">km</span>
                   </div>
                 </div>
