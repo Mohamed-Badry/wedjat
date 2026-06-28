@@ -27,6 +27,8 @@
   import { untrack, onDestroy } from "svelte";
   import { fade } from "svelte/transition";
   import { apiFetch } from "$lib/api";
+  import { page } from "$app/stores";
+  import { goto } from "$app/navigation";
   import Select from "$lib/components/ui/Select.svelte";
   import { 
     Crosshair, AlertTriangle, Map as MapIcon, 
@@ -44,6 +46,42 @@
 
   let noradId = $state<string>("43880");
   let activeTab = $state<"mission" | "orbital" | "forecast" | "conjunctions">("mission");
+
+  // Sync state from URL parameters on initialization
+  $effect.pre(() => {
+    const tabParam = $page.url.searchParams.get("tab");
+    if (tabParam && ["mission", "orbital", "forecast", "conjunctions"].includes(tabParam)) {
+      activeTab = tabParam as any;
+    }
+    const noradParam = $page.url.searchParams.get("norad_id");
+    if (noradParam) {
+      noradId = noradParam;
+    }
+  });
+
+  // Sync state changes back to URL search parameters reactively
+  $effect(() => {
+    const currentId = noradId;
+    const currentTab = activeTab;
+    
+    if (typeof window !== "undefined") {
+      const url = new URL(window.location.href);
+      let changed = false;
+      
+      if (url.searchParams.get("tab") !== currentTab) {
+        url.searchParams.set("tab", currentTab);
+        changed = true;
+      }
+      if (url.searchParams.get("norad_id") !== currentId) {
+        url.searchParams.set("norad_id", currentId);
+        changed = true;
+      }
+      
+      if (changed) {
+        goto(url.toString(), { keepFocus: true, noScroll: true, replaceState: true });
+      }
+    }
+  });
 
   let snapshotData = $state<TrackerSnapshot | null>(null);
   let conjunctionData = $state<ConjunctionEvent[]>([]);
