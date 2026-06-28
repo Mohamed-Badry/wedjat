@@ -206,7 +206,7 @@ def process_packet(raw_bytes):
 
 *   **Language:** Python 3.11.
 
-*   **Data Engineering:** `requests`, `loguru`, `rich` (Robust CLI pipelines).
+*   **Data Engineering:** `httpx`, `loguru`, `rich` (Robust CLI pipelines).
 
 *   **ML Core:** `scikit-learn`, `pytorch`, `pandas`.
 

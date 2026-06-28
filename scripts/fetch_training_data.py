@@ -3,7 +3,7 @@ import json
 import time
 import argparse
 import sys
-import requests
+import httpx
 from pathlib import Path
 from datetime import datetime, timedelta, timezone
 from dotenv import load_dotenv
@@ -67,9 +67,8 @@ class SatNOGSDownloader:
             logger.critical("SATNOGS_API_TOKEN not found in .env file.")
             sys.exit(1)
 
-        self.session = requests.Session()
-        self.session.headers.update(
-            {
+        self.session = httpx.Client(
+            headers={
                 "Authorization": f"Token {self.token}",
                 "Accept": "application/json",
             }
