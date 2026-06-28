@@ -1,3 +1,20 @@
+# ⚠️ LEGACY ARCHIVE: UWE-4 Orbit Decay AI Prototype
+
+> [!WARNING]
+> **This directory contains legacy prototype code and is NOT production-ready.**
+> The code and notebooks here represent early experimental scripts developed separately to sweep models. They contain suboptimal engineering practices and hardcoded paths. 
+
+## Status & Migration
+* **Do Not Deploy:** This directory is preserved strictly for historical reference.
+* **Production Core:** The robust orbit decay pipeline (incorporating NRLMSISE-00 atmospheric density and Skyfield propagation) has been cleanly integrated into the primary project space:
+  - Core Module: [src/gr_sat/core/orbit_decay.py](file:///home/crim/Projects/gr_sat/src/gr_sat/core/orbit_decay.py)
+  - Backend API: [src/api/dashboard_data.py](file:///home/crim/Projects/gr_sat/src/api/dashboard_data.py)
+  - Frontend Panel: [frontend/src/routes/(dashboard)/dashboard/orbit-decay/](file:///home/crim/Projects/gr_sat/frontend/src/routes/(dashboard)/dashboard/orbit-decay/)
+
+---
+
+# Original Prototype README Below
+
 # UWE-4 AI Orbit Decay Prediction
 
 This project predicts the orbit decay of the UWE-4 CubeSat using historical TLE/GP data, space weather data, and machine learning.
