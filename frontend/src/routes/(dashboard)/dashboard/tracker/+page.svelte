@@ -189,7 +189,7 @@
   </header>
 
   <!-- MAIN CONTENT -->
-  <div class="flex lg:min-h-0 lg:flex-1 flex-col lg:overflow-hidden overflow-y-auto overflow-x-hidden pb-safe">
+  <div class="flex lg:min-h-0 lg:flex-1 flex-col lg:overflow-hidden overflow-y-auto overflow-x-hidden pb-safe relative">
     {#if noradId === "all"}
       <div class="flex h-full items-center justify-center p-12 text-center text-sm text-ink-3">
         Please select a specific satellite to track.
@@ -374,7 +374,7 @@
                       <th class="px-6 py-2.5 font-medium">UTC Time</th>
                       <th class="px-6 py-2.5 font-medium text-right">Altitude</th>
                       <th class="px-6 py-2.5 font-medium text-right">Velocity</th>
-                      <th class="px-6 py-2.5 font-medium text-right">ν</th>
+                      <th class="px-6 py-2.5 font-medium text-right">Anomaly (<span class="normal-case">ν</span>)</th>
                     </tr>
                   </thead>
                   <tbody class="divide-y divide-border/50">
@@ -404,8 +404,8 @@
                     marginLeft: 45,
                     marginBottom: 20,
                     marginTop: 15,
-                    y: { grid: true, label: null },
-                    x: { type: "point", label: null, domain: snapshotData.forecast.map((d: any) => d.label) },
+                    y: { grid: true, label: "Altitude (km)" },
+                    x: { type: "point", label: "Horizon", domain: snapshotData.forecast.map((d: any) => d.label) },
                     marks: [
                       // @ts-ignore
                       Plot.line(snapshotData.forecast, { x: "label", y: "altitude_km", stroke: "var(--color-brand)", strokeWidth: 2 }),
@@ -430,11 +430,11 @@
                 <ResponsivePlot 
                   height={200}
                   options={{
-                    marginLeft: 30,
-                    marginBottom: 20,
+                    marginLeft: 45,
+                    marginBottom: 35,
                     marginTop: 10,
-                    y: { grid: true, label: null, domain: [-90, 90] },
-                    x: { label: null, domain: [-40, 80] },
+                    y: { grid: true, label: "Elevation (°)", domain: [-90, 90] },
+                    x: { label: "Time to TCA (min)", domain: [-40, 80] },
                     marks: [
                       // @ts-ignore
                       Plot.ruleY([0], { stroke: "var(--color-critical)", strokeWidth: 1, strokeDasharray: "4 4" }),
@@ -459,11 +459,11 @@
                   <ResponsivePlot 
                     height={200}
                     options={{
-                      marginLeft: 30,
-                      marginBottom: 20,
+                      marginLeft: 45,
+                      marginBottom: 35,
                       marginTop: 10,
-                      y: { grid: true, label: null, domain: [0, 90] },
-                      x: { grid: true, label: null, domain: [0, 360], tickFormat: (d: any) => `${d}°` },
+                      y: { grid: true, label: "Elevation (°)", domain: [0, 90] },
+                      x: { grid: true, label: "Azimuth (°)", domain: [0, 360], tickFormat: (d: any) => `${d}°` },
                       marks: [
                         // @ts-ignore
                         Plot.line(
