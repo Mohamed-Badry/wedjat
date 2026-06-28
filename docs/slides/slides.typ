@@ -532,6 +532,41 @@ We have deployed the real-time watchdog as a 5-container microservice stack:
     #image("../architecture_diagrams/architecture_v2_edge_deployment.png", width: 100%)
   ]
 )
+== Real-Time Mission Tracker
+
+#grid(
+  columns: (1.1fr, 1.3fr),
+  gutter: 1em,
+  [
+    *Universal Tracking View:*
+    - *Mission Control:* Live ground station status, active orbital coordinates, and battery charge trends.
+    - *Orbital COE:* Classical Orbital Elements ($a$, $e$, $i$, $Omega$, $omega$, $nu$) calculated using `skyfield` and `SGP4` propagation.
+    - *State Vectors:* Live Cartesian positions and velocities (ECI coordinates).
+  ],
+  align(center + horizon)[
+    #image("../../frontend/static/screenshots/tracker-mission-dark.png", width: 100%)
+    #v(-0.3em)
+    #text(size: 11pt, fill: luma(120))[Mission Control Panel (Dark Mode)]
+  ]
+)
+
+== Orbit Forecast & Conjunction Risk
+
+#grid(
+  columns: (1.1fr, 1.3fr),
+  gutter: 1em,
+  [
+    *Safety & Conjunction Analysis:*
+    - *Orbit Forecast:* Displays the VAE-predicted altitude drop over a 7-day future window.
+    - *Conjunction Detection:* Runs real-time spatial proximity queries.
+    - *Collision Probability:* Computes the mathematically exact collision risk utilizing the *Foster (1992)* probability formula on covariance matrices.
+  ],
+  align(center + horizon)[
+    #image("../../frontend/static/screenshots/tracker-conjunctions-dark.png", width: 100%)
+    #v(-0.3em)
+    #text(size: 11pt, fill: luma(120))[Conjunction Threat Assessment (Dark Mode)]
+  ]
+)
 
 == Conclusion: Current State
 

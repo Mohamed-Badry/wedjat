@@ -38,6 +38,14 @@ This repository hosts the **Project Watchdog** codebase, an end-to-end pipeline 
   <img src="frontend/static/screenshots/live-dark.png" width="49%" alt="Live Watcher Feed"/>
 </p>
 <p align="center">
+  <img src="frontend/static/screenshots/tracker-mission-dark.png" width="49%" alt="Tracker - Mission Control"/>
+  <img src="frontend/static/screenshots/tracker-orbital-dark.png" width="49%" alt="Tracker - Orbital COE"/>
+</p>
+<p align="center">
+  <img src="frontend/static/screenshots/tracker-forecast-dark.png" width="49%" alt="Tracker - Orbit Forecast"/>
+  <img src="frontend/static/screenshots/tracker-conjunctions-dark.png" width="49%" alt="Tracker - Conjunctions"/>
+</p>
+<p align="center">
   <img src="frontend/static/screenshots/ops-dark.png" width="49%" alt="Satellite Operations"/>
   <img src="frontend/static/screenshots/inspector-dark.png" width="49%" alt="Ground-Truth Inspector"/>
 </p>
@@ -57,6 +65,14 @@ This repository hosts the **Project Watchdog** codebase, an end-to-end pipeline 
 <p align="center">
   <img src="frontend/static/screenshots/home-light.png" width="49%" alt="Home Dashboard"/>
   <img src="frontend/static/screenshots/live-light.png" width="49%" alt="Live Watcher Feed"/>
+</p>
+<p align="center">
+  <img src="frontend/static/screenshots/tracker-mission-light.png" width="49%" alt="Tracker - Mission Control"/>
+  <img src="frontend/static/screenshots/tracker-orbital-light.png" width="49%" alt="Tracker - Orbital COE"/>
+</p>
+<p align="center">
+  <img src="frontend/static/screenshots/tracker-forecast-light.png" width="49%" alt="Tracker - Orbit Forecast"/>
+  <img src="frontend/static/screenshots/tracker-conjunctions-light.png" width="49%" alt="Tracker - Conjunctions"/>
 </p>
 <p align="center">
   <img src="frontend/static/screenshots/ops-light.png" width="49%" alt="Satellite Operations"/>

@@ -5,6 +5,10 @@ import path from 'path';
 const pages = [
   { url: 'http://localhost:5173/dashboard', name: 'home' },
   { url: 'http://localhost:5173/dashboard/operations', name: 'ops' },
+  { url: 'http://localhost:5173/dashboard/tracker', name: 'tracker-mission' },
+  { url: 'http://localhost:5173/dashboard/tracker', name: 'tracker-orbital' },
+  { url: 'http://localhost:5173/dashboard/tracker', name: 'tracker-forecast' },
+  { url: 'http://localhost:5173/dashboard/tracker', name: 'tracker-conjunctions' },
   { url: 'http://localhost:5173/dashboard/live', name: 'live' },
   { url: 'http://localhost:5173/dashboard/inspector', name: 'inspector' },
   { url: 'http://localhost:5173/dashboard/ml', name: 'ml' },
@@ -64,6 +68,44 @@ const screenshotsDir = '/home/crim/Projects/gr_sat/frontend/static/screenshots';
                     if (btn) btn.click();
                 });
                 await new Promise(r => setTimeout(r, 4000));
+            };
+
+            if (p.name === 'orbit-decay-diagnostics') {
+                console.log(`  [Orbit Decay] Switching to diagnostics tab...`);
+                await page.evaluate(() => {
+                    const btn = Array.from(document.querySelectorAll('button')).find(b => b.textContent && b.textContent.includes('Model Diagnostics'));
+                    if (btn) btn.click();
+                });
+                await new Promise(r => setTimeout(r, 1000));
+            };
+
+            if (p.name === 'orbit-decay-diagnostics') {
+                console.log(`  [Orbit Decay] Switching to diagnostics tab...`);
+                await page.evaluate(() => {
+                    const btn = Array.from(document.querySelectorAll('button')).find(b => b.textContent && b.textContent.includes('Model Diagnostics'));
+                    if (btn) btn.click();
+                });
+                await new Promise(r => setTimeout(r, 1000));
+            };
+            }
+
+            
+            if (p.name.startsWith('tracker-')) {
+                const tabId = p.name.split('-')[1]; // 'mission', 'orbital', 'forecast', 'conjunctions'
+                console.log(`  [Tracker] Switching to ${tabId} tab...`);
+                await page.evaluate((targetTab) => {
+                    const buttons = Array.from(document.querySelectorAll('button'));
+                    const tabLabels: Record<string, string> = {
+                        mission: "Mission Control",
+                        orbital: "Orbital (COE)",
+                        forecast: "Forecast",
+                        conjunctions: "Conjunctions"
+                    };
+                    const targetLabel = tabLabels[targetTab];
+                    const btn = buttons.find(b => b.textContent && b.textContent.includes(targetLabel));
+                    if (btn) btn.click();
+                }, tabId);
+                await new Promise(r => setTimeout(r, 2000));
             }
 
             if (p.name === 'live') {
@@ -77,15 +119,6 @@ const screenshotsDir = '/home/crim/Projects/gr_sat/frontend/static/screenshots';
                 });
                 await new Promise(r => setTimeout(r, 4000));
             }
-
-            if (p.name === 'orbit-decay-diagnostics') {
-                console.log(`  [Orbit Decay] Switching to diagnostics tab...`);
-                await page.evaluate(() => {
-                    const btn = Array.from(document.querySelectorAll('button')).find(b => b.textContent && b.textContent.includes('Model Diagnostics'));
-                    if (btn) btn.click();
-                });
-                await new Promise(r => setTimeout(r, 1000));
-            };
             
             // Wait for entry animations
             await new Promise(r => setTimeout(r, 2000));
