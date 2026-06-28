@@ -4,7 +4,7 @@ import os
 from typing import Literal
 
 from loguru import logger
-from fastapi import FastAPI, HTTPException, Query, WebSocket, WebSocketDisconnect, Depends, Request
+from fastapi import FastAPI, HTTPException, Query, WebSocket, WebSocketDisconnect, Depends, Request, Response
 from fastapi.concurrency import run_in_threadpool
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
@@ -272,11 +272,16 @@ def create_app(repository: DashboardDataRepository | None = None) -> FastAPI:
 
     @app.get("/api/tracker/state")
     @limiter.limit("30/minute")
-    def tracker_state(request: Request, norad_id: int = Query(default=43880)) -> dict:
+    def tracker_state(
+        request: Request,
+        response: Response,
+        norad_id: int = Query(default=43880),
+    ) -> dict:
         """Returns the full TrackerSnapshot: live state, forecast, profiles, ground track."""
         from gr_sat.core.orbit_tracker import compute_tracker_snapshot
         try:
             snapshot = compute_tracker_snapshot(norad_id)
+            response.headers["Cache-Control"] = "private, max-age=5"
             return snapshot.model_dump(mode="json")
         except ValueError as exc:
             raise HTTPException(status_code=404, detail=str(exc)) from exc
@@ -285,12 +290,14 @@ def create_app(repository: DashboardDataRepository | None = None) -> FastAPI:
     @limiter.limit("5/minute")
     def tracker_conjunctions(
         request: Request,
+        response: Response,
         norad_id: int = Query(default=43880),
         lookahead_hours: int = Query(default=24, ge=1, le=168),
     ) -> dict:
         """Returns upcoming conjunction events with Foster collision probabilities."""
         from gr_sat.core.conjunctions import find_conjunctions
-        events = find_conjunctions(lookahead_hours=lookahead_hours)
+        events = find_conjunctions(lookahead_hours=lookahead_hours, norad_id=norad_id)
+        response.headers["Cache-Control"] = "private, max-age=300"
         return {
             "norad_id": norad_id,
             "lookahead_hours": lookahead_hours,
@@ -314,12 +321,17 @@ def create_app(repository: DashboardDataRepository | None = None) -> FastAPI:
 
     @app.get("/api/orbit/decay-prediction")
     @limiter.limit("10/minute")
-    def orbit_decay_prediction(request: Request, norad_id: int = Query(default=43880)) -> dict:
+    def orbit_decay_prediction(
+        request: Request,
+        response: Response,
+        norad_id: int = Query(default=43880),
+    ) -> dict:
         try:
             from gr_sat.core.orbit_decay import fetch_latest_space_weather, PredictOrbitDecay, compute_atmospheric_state
             weather = fetch_latest_space_weather()
             atm_state = compute_atmospheric_state(norad_id, weather)
             forecasts = PredictOrbitDecay(satellite_id=norad_id, weather=weather, alt_km=atm_state.altitude_km)
+            response.headers["Cache-Control"] = "private, max-age=600"
             
             return {
                 "norad_id": norad_id,

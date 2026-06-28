@@ -1,3 +1,28 @@
+<script module lang="ts">
+  const TRACKER_CACHE_TTL_MS = 5 * 1000; // 5 seconds cache matches backend snapshot TTL
+  const trackerCache = new Map<string, { snapshot: any; conjunctions: any; updatedAt: number; expiresAt: number }>();
+
+  function readTrackerCache(noradId: string) {
+    const cached = trackerCache.get(noradId);
+    if (!cached || cached.expiresAt < Date.now()) {
+      if (cached) trackerCache.delete(noradId);
+      return null;
+    }
+    return cached;
+  }
+
+  function writeTrackerCache(noradId: string, snapshot: any, conjunctions: any) {
+    const updatedAt = Date.now();
+    trackerCache.set(noradId, {
+      snapshot,
+      conjunctions,
+      updatedAt,
+      expiresAt: updatedAt + TRACKER_CACHE_TTL_MS
+    });
+    return updatedAt;
+  }
+</script>
+
 <script lang="ts">
   import { untrack, onDestroy } from "svelte";
   import { fade } from "svelte/transition";
@@ -28,7 +53,16 @@
   // Fetch logic
   async function fetchTrackerData(isSilentRefresh = false) {
     if (!noradId || noradId === "all") return;
+    
     if (!isSilentRefresh) {
+      const cached = readTrackerCache(noradId);
+      if (cached) {
+        snapshotData = cached.snapshot;
+        conjunctionData = cached.conjunctions;
+        snapshotError = null;
+        snapshotLoading = false;
+        return;
+      }
       snapshotLoading = true;
       snapshotError = null;
     }
@@ -40,6 +74,7 @@
       ]);
       snapshotData = snap;
       conjunctionData = conj.events;
+      writeTrackerCache(noradId, snap, conj.events);
     } catch (e: any) {
       if (!isSilentRefresh) {
         snapshotError = e.message || "Failed to load tracker data";
@@ -325,13 +360,13 @@
         <div in:fade={{duration: 200}} class="flex flex-col gap-4">
           
           <!-- Top row: Table (left) + Altitude chart (right) -->
-          <div class="grid grid-cols-1 lg:grid-cols-5 gap-4">
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
             <!-- Compact forecast table -->
-            <div class="lg:col-span-3 chart-card overflow-hidden flex flex-col h-[210px]">
+            <div class="lg:col-span-7 chart-card overflow-hidden flex flex-col h-[290px]">
               <div class="px-3 py-2 border-b border-border/50 bg-surface/50">
                 <span class="chart-card-title text-xs">7-Point Trajectory Forecast</span>
               </div>
-              <div class="overflow-y-auto flex-1">
+              <div class="overflow-x-auto flex-1">
                 <table class="w-full text-left text-xs whitespace-nowrap">
                   <thead class="bg-surface/30 border-b border-border text-[10px] uppercase tracking-widest text-ink-3 sticky top-0 backdrop-blur z-10">
                     <tr>
@@ -358,13 +393,13 @@
             </div>
 
             <!-- Altitude forecast chart -->
-            <div class="lg:col-span-2 chart-card flex flex-col h-[210px]">
+            <div class="lg:col-span-5 chart-card flex flex-col h-[290px]">
               <div class="px-3 py-2 border-b border-border/50 bg-surface/50">
                 <span class="chart-card-title text-xs flex items-center gap-2"><LineChart class="size-3.5" /> Altitude Profile</span>
               </div>
               <div class="p-2 flex-1 min-h-0">
                 <ResponsivePlot 
-                  height={150}
+                  height={230}
                   options={{
                     marginLeft: 45,
                     marginBottom: 20,
@@ -387,13 +422,13 @@
           
           <!-- Bottom row: Elevation profile + Sky track (if visible pass) -->
           <div class="grid grid-cols-1 {snapshotData.azimuth_profile.some((_, i) => snapshotData!.elevation_profile[i] > 0) ? 'lg:grid-cols-2' : ''} gap-4">
-            <div class="chart-card flex flex-col h-[180px]">
+            <div class="chart-card flex flex-col h-[250px]">
               <div class="px-3 py-2 border-b border-border/50 bg-surface/50">
                 <span class="chart-card-title text-xs flex items-center gap-2"><Target class="size-3.5" /> GS Elevation Profile</span>
               </div>
               <div class="p-2 flex-1 min-h-0">
                 <ResponsivePlot 
-                  height={130}
+                  height={190}
                   options={{
                     marginLeft: 30,
                     marginBottom: 20,
@@ -416,13 +451,13 @@
             </div>
 
             {#if snapshotData.azimuth_profile.some((_, i) => snapshotData!.elevation_profile[i] > 0)}
-              <div class="chart-card flex flex-col h-[180px]">
+              <div class="chart-card flex flex-col h-[250px]">
                 <div class="px-3 py-2 border-b border-border/50 bg-surface/50">
                   <span class="chart-card-title text-xs flex items-center gap-2"><Activity class="size-3.5" /> Sky Track (Visible Pass)</span>
                 </div>
                 <div class="p-2 flex-1 min-h-0">
                   <ResponsivePlot 
-                    height={130}
+                    height={190}
                     options={{
                       marginLeft: 30,
                       marginBottom: 20,

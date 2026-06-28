@@ -1,9 +1,13 @@
 from datetime import datetime, timedelta
+from functools import lru_cache, wraps
 import joblib
+import json
 import pandas as pd
 from pydantic import BaseModel
 from pathlib import Path
-from typing import List, Optional
+from threading import Lock
+from types import SimpleNamespace
+from typing import Callable, List, Optional, TypeVar
 import urllib.request
 import numpy as np
 from sgp4.api import Satrec, jday
@@ -17,10 +21,44 @@ PROJECT_ROOT = Path(__file__).resolve().parents[3]
 CACHE_DIR = PROJECT_ROOT / "data" / "cache"
 CACHE_DIR.mkdir(parents=True, exist_ok=True)
 
+config = SimpleNamespace(space_weather_source="CelesTrak")
+
+T = TypeVar("T")
+
+
+def ttl_cache(ttl_seconds: int) -> Callable[[Callable[..., T]], Callable[..., T]]:
+    """Small process-local TTL cache for expensive-but-not-live orbital inputs."""
+    def decorator(func: Callable[..., T]) -> Callable[..., T]:
+        cache: dict[tuple[object, ...], tuple[T, float]] = {}
+        lock = Lock()
+
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            key = args + tuple(sorted(kwargs.items()))
+            now = time.time()
+            with lock:
+                cached = cache.get(key)
+                if cached and now - cached[1] < ttl_seconds:
+                    return cached[0]
+
+            value = func(*args, **kwargs)
+            with lock:
+                cache[key] = (value, now)
+            return value
+
+        def cache_clear() -> None:
+            with lock:
+                cache.clear()
+
+        wrapper.cache_clear = cache_clear  # type: ignore[attr-defined]
+        return wrapper
+
+    return decorator
+
 class SpaceWeatherObservation(BaseModel):
     date: datetime
     f107_obs: float
-    f107a_obs: float
+    f107a_obs: float = -999.0
     kp_max: float
     ap_avg: float
 
@@ -42,25 +80,36 @@ class OrbitDecayForecast(BaseModel):
 def download_with_cache(url: str, filename: str, ttl_seconds: int = 3600) -> Path:
     """Helper method to fetch and cache files cleanly"""
     cache_file = CACHE_DIR / filename
+    failure_file = CACHE_DIR / f"{filename}.failed"
+    retry_after_seconds = int(os.getenv("CELESTRAK_RETRY_AFTER_SECONDS", "900"))
+    timeout_seconds = float(os.getenv("CELESTRAK_HTTP_TIMEOUT_SECONDS", "1.5"))
     
     needs_fetch = True
     if cache_file.exists():
         age = time.time() - cache_file.stat().st_mtime
         if age < ttl_seconds:
             needs_fetch = False
+
+    if needs_fetch and failure_file.exists():
+        failure_age = time.time() - failure_file.stat().st_mtime
+        if failure_age < retry_after_seconds:
+            needs_fetch = False
             
     if needs_fetch:
         try:
-            with httpx.Client(timeout=5.0) as client:
+            with httpx.Client(timeout=timeout_seconds) as client:
                 response = client.get(url)
                 response.raise_for_status()
                 with open(cache_file, "wb") as f:
                     f.write(response.content)
+            failure_file.unlink(missing_ok=True)
         except Exception as e:
+            failure_file.touch()
             print(f"Failed to fetch {url} (falling back to cache if available): {e}")
             
     return cache_file
 
+@ttl_cache(ttl_seconds=600)
 def fetch_latest_space_weather() -> SpaceWeatherObservation:
     """Fetch latest space weather from CelesTrak SW-All.csv with persistent file caching"""
     url = "https://celestrak.org/SpaceData/SW-All.csv"
@@ -113,11 +162,13 @@ def fetch_latest_space_weather() -> SpaceWeatherObservation:
         date=datetime.now(), f107_obs=-999.0, f107a_obs=-999.0, kp_max=-999.0, ap_avg=-999.0
     )
 
+@ttl_cache(ttl_seconds=3600)
 def get_satellite(norad_id: int) -> Optional['EarthSatellite']:
     from skyfield.api import Loader
     cache_dir = PROJECT_ROOT / "data" / "tle"
     cache_dir.mkdir(parents=True, exist_ok=True)
     custom_loader = Loader(str(cache_dir))
+    max_cache_age_days = float(os.getenv("TLE_CACHE_MAX_AGE_DAYS", "1.0"))
     
     # 1. Try to load from the centralized active TLE list first
     active_filename = "celestrak_active.tle"
@@ -126,7 +177,7 @@ def get_satellite(norad_id: int) -> Optional['EarthSatellite']:
     reload = True
     active_path = cache_dir / active_filename
     if active_path.exists():
-        if custom_loader.days_old(active_filename) < 0.25:
+        if custom_loader.days_old(active_filename) < max_cache_age_days:
             reload = False
             
     try:
@@ -150,7 +201,7 @@ def get_satellite(norad_id: int) -> Optional['EarthSatellite']:
     reload = True
     specific_path = cache_dir / specific_filename
     if specific_path.exists():
-        if custom_loader.days_old(specific_filename) < 0.25:
+        if custom_loader.days_old(specific_filename) < max_cache_age_days:
             reload = False
             
     try:
@@ -215,42 +266,68 @@ def compute_atmospheric_state(norad_id: int, weather: SpaceWeatherObservation) -
         altitude_km=alt_km
     )
 
+@lru_cache(maxsize=4)
+def _load_decay_model_assets(days: int):
+    models_dir = PROJECT_ROOT / "models"
+    model_path = models_dir / f"uwe4_production_model_{days}d.pkl"
+    feature_path = models_dir / f"uwe4_production_features_{days}d.json"
+    if not model_path.exists() or not feature_path.exists():
+        raise FileNotFoundError(f"Missing production orbit-decay artifacts for {days}d horizon")
+
+    with open(feature_path, "r") as f:
+        feature_cols = json.load(f)
+    model = joblib.load(model_path)
+    return model, tuple(feature_cols)
+
+
+@ttl_cache(ttl_seconds=3600)
+def _latest_training_row() -> pd.DataFrame:
+    dataset_path = PROJECT_ROOT / "data" / "04_daily_orbit_space_weather_uwe4.csv"
+    df = pd.read_csv(dataset_path)
+    return df.tail(1).copy()
+
+
+def _apply_live_features(
+    latest_row: pd.DataFrame,
+    weather: SpaceWeatherObservation,
+    alt_km: float,
+) -> pd.DataFrame:
+    row = latest_row.copy()
+    if alt_km > 0 and "altitude_mean_km" in row.columns:
+        row.loc[:, "altitude_mean_km"] = alt_km
+    if weather.f107_obs != -999.0 and "f107_obs" in row.columns:
+        row.loc[:, "f107_obs"] = weather.f107_obs
+    if weather.kp_max != -999.0 and "kp_max" in row.columns:
+        row.loc[:, "kp_max"] = weather.kp_max
+    if weather.ap_avg != -999.0 and "ap_avg" in row.columns:
+        row.loc[:, "ap_avg"] = weather.ap_avg
+    if "high_solar_flux_flag" in row.columns and weather.f107_obs != -999.0:
+        row.loc[:, "high_solar_flux_flag"] = int(weather.f107_obs >= 150.0)
+    if "geomagnetic_active_flag" in row.columns and weather.kp_max != -999.0:
+        row.loc[:, "geomagnetic_active_flag"] = int(weather.kp_max >= 5.0)
+    return row
+
+
 def PredictOrbitDecay(satellite_id: int, weather: SpaceWeatherObservation, alt_km: float = 500.0) -> List[OrbitDecayForecast]:
     """
     Predict orbit decay using the pre-trained ML models over 7-day and 30-day horizons.
     """
-    import json
     forecasts = []
-    models_dir = Path("models")
-    data_dir = Path("data")
     
     # Load dataset for feature extraction
     try:
-        dataset_path = data_dir / "04_daily_orbit_space_weather_uwe4.csv"
-        df = pd.read_csv(dataset_path)
-        latest_row = df.tail(1).copy()
+        latest_row = _apply_live_features(_latest_training_row(), weather, alt_km)
     except Exception as e:
         print(f"Failed to load ML dataset: {e}")
         latest_row = None
     
     for days in [7, 30]:
-        model_path = models_dir / f"uwe4_production_model_{days}d.pkl"
-        feature_path = models_dir / f"uwe4_production_features_{days}d.json"
-        
         predicted_decay_km = -999.0  # Obvious failure value instead of fallback
         
-        if model_path.exists() and feature_path.exists() and latest_row is not None:
+        if latest_row is not None:
             try:
-                # Load features list
-                with open(feature_path, "r") as f:
-                    feature_cols = json.load(f)
-                
-                # Load model
-                model = joblib.load(model_path)
-                
-                # Extract features for latest day
-                X_latest = latest_row[feature_cols]
-                
+                model, feature_cols = _load_decay_model_assets(days)
+                X_latest = latest_row[list(feature_cols)]
                 # Predict
                 predicted_decay_km = float(model.predict(X_latest)[0])
             except Exception as e:

@@ -80,7 +80,7 @@ def ttl_cache(ttl_seconds: int):
     return decorator
 
 @ttl_cache(ttl_seconds=3600)  # 1 hour cache
-def get_active_satellites() -> tuple[Optional[Satrec], List[Satrec], List[str]]:
+def get_active_satellites(primary_norad: int = PRIMARY_NORAD) -> tuple[Optional[Satrec], List[Satrec], List[str]]:
     from skyfield.api import Loader
     from gr_sat.core.config import PROJECT_ROOT
     
@@ -97,7 +97,7 @@ def get_active_satellites() -> tuple[Optional[Satrec], List[Satrec], List[str]]:
     
     for sat in sats_skyfield:
         if not hasattr(sat, 'model'): continue
-        if sat.model.satnum == PRIMARY_NORAD:
+        if sat.model.satnum == primary_norad:
             my_sat = sat.model
         else:
             sats.append(sat.model)
@@ -122,8 +122,13 @@ def compute_orbital_elements(sat: Satrec):
     apogee = a * (1 + e) - 6371.0
     return perigee, apogee
 
-def find_conjunctions(lookahead_hours: int = 24, min_dist_threshold_km: float = 50.0) -> List[ConjunctionEvent]:
-    my_sat, other_sats, names = get_active_satellites()
+@ttl_cache(ttl_seconds=300)
+def find_conjunctions(
+    lookahead_hours: int = 24,
+    min_dist_threshold_km: float = 50.0,
+    norad_id: int = PRIMARY_NORAD,
+) -> List[ConjunctionEvent]:
+    my_sat, other_sats, names = get_active_satellites(norad_id)
     if not my_sat:
         return []
 
@@ -214,7 +219,7 @@ def find_conjunctions(lookahead_hours: int = 24, min_dist_threshold_km: float = 
                     prob = calc_foster_prob(fine_min_dist, cov_r, cov_t)
                     
                     events.append(ConjunctionEvent(
-                        primary_norad=PRIMARY_NORAD,
+                        primary_norad=norad_id,
                         secondary_norad=filtered_sats[i].satnum,
                         secondary_name=filtered_names[i],
                         tca=exact_tca,
