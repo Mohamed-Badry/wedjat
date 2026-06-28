@@ -189,7 +189,7 @@
   </header>
 
   <!-- MAIN CONTENT -->
-  <div class="flex lg:min-h-0 lg:flex-1 flex-col overflow-y-auto overflow-x-hidden pb-safe">
+  <div class="flex lg:min-h-0 lg:flex-1 flex-col lg:overflow-hidden overflow-y-auto overflow-x-hidden pb-safe">
     {#if noradId === "all"}
       <div class="flex h-full items-center justify-center p-12 text-center text-sm text-ink-3">
         Please select a specific satellite to track.
@@ -254,10 +254,10 @@
       <!-- ═══════════════════════════════════════════════════════ -->
       {:else if activeTab === "orbital"}
         {@const coe = snapshotData.state.coe}
-        <div in:fade={{duration: 200}} class="flex flex-col gap-4">
+        <div in:fade={{duration: 200}} class="flex flex-col gap-4 flex-1 min-h-0 lg:h-full">
           
           <!-- Primary COE row -->
-          <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
+          <div class="grid grid-cols-2 md:grid-cols-5 gap-3 flex-none">
             {#each [
               { label: "Semi-Major Axis (a)", value: fmt(coe.semi_major_axis_km, 2), unit: "km" },
               { label: "Eccentricity (e)", value: fmt(coe.eccentricity, 6), unit: "" },
@@ -273,9 +273,9 @@
           </div>
 
           <!-- Middle row: 3 equal-width columns -->
-          <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:flex-1 lg:min-h-[300px]">
             <!-- Derived Parameters -->
-            <div class="chart-card flex flex-col bg-surface/50">
+            <div class="chart-card flex flex-col bg-surface/50 h-full">
               <div class="px-4 py-2.5 border-b border-border/50 bg-surface/30">
                 <span class="chart-card-title text-xs flex items-center gap-2"><Orbit class="size-4" /> Derived Parameters</span>
               </div>
@@ -297,7 +297,7 @@
             </div>
 
             <!-- ECI State Vectors -->
-            <div class="chart-card flex flex-col bg-surface/50">
+            <div class="chart-card flex flex-col bg-surface/50 h-full">
               <div class="px-4 py-2.5 border-b border-border/50 bg-surface/30">
                 <span class="chart-card-title text-xs flex items-center gap-2"><Target class="size-4" /> ECI State Vectors</span>
               </div>
@@ -320,7 +320,7 @@
             </div>
 
             <!-- Phase Radar -->
-            <div class="chart-card flex flex-col bg-surface/50">
+            <div class="chart-card flex flex-col bg-surface/50 h-full">
               <div class="px-4 py-2.5 border-b border-border/50 bg-surface/30">
                 <span class="chart-card-title text-xs flex items-center gap-2"><Orbit class="size-4" /> Phase Radar</span>
               </div>
@@ -331,7 +331,7 @@
           </div>
 
           <!-- Diagnostics footer — compact inline bar -->
-          <div class="chart-card p-4 bg-surface/30 flex flex-wrap items-center gap-x-8 gap-y-2 text-xs font-mono">
+          <div class="chart-card p-4 bg-surface/30 flex flex-wrap items-center gap-x-8 gap-y-2 text-xs font-mono flex-none">
             <div class="flex items-center gap-2">
               <Network class="size-3.5 text-ink-3" />
               <span class="text-ink-3 uppercase font-bold tracking-wider">TLE</span>
@@ -357,34 +357,34 @@
       <!-- TAB 3: FORECAST (merged Dynamics + Forecast)           -->
       <!-- ═══════════════════════════════════════════════════════ -->
       {:else if activeTab === "forecast"}
-        <div in:fade={{duration: 200}} class="flex flex-col gap-4">
+        <div in:fade={{duration: 200}} class="flex flex-col gap-4 flex-1 min-h-0 lg:h-full">
           
           <!-- Top row: Table (left) + Altitude chart (right) -->
-          <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:h-[320px] lg:min-h-[320px] flex-none">
             <!-- Compact forecast table -->
-            <div class="lg:col-span-7 chart-card overflow-hidden flex flex-col h-[290px]">
-              <div class="px-3 py-2 border-b border-border/50 bg-surface/50">
+            <div class="lg:col-span-7 chart-card !p-0 overflow-hidden flex flex-col h-full">
+              <div class="px-6 py-3.5 border-b border-border/50 bg-surface/50">
                 <span class="chart-card-title text-xs">7-Point Trajectory Forecast</span>
               </div>
-              <div class="overflow-x-auto flex-1">
+              <div class="overflow-x-auto overflow-y-hidden flex-1">
                 <table class="w-full text-left text-xs whitespace-nowrap">
                   <thead class="bg-surface/30 border-b border-border text-[10px] uppercase tracking-widest text-ink-3 sticky top-0 backdrop-blur z-10">
                     <tr>
-                      <th class="px-3 py-2 font-medium">Horizon</th>
-                      <th class="px-3 py-2 font-medium">UTC Time</th>
-                      <th class="px-3 py-2 font-medium text-right">Altitude</th>
-                      <th class="px-3 py-2 font-medium text-right">Velocity</th>
-                      <th class="px-3 py-2 font-medium text-right">ν</th>
+                      <th class="px-6 py-2.5 font-medium">Horizon</th>
+                      <th class="px-6 py-2.5 font-medium">UTC Time</th>
+                      <th class="px-6 py-2.5 font-medium text-right">Altitude</th>
+                      <th class="px-6 py-2.5 font-medium text-right">Velocity</th>
+                      <th class="px-6 py-2.5 font-medium text-right">ν</th>
                     </tr>
                   </thead>
                   <tbody class="divide-y divide-border/50">
                     {#each snapshotData.forecast as fp}
                       <tr class="hover:bg-surface/30 transition-colors">
-                        <td class="px-3 py-1.5 font-bold text-brand">{fp.label}</td>
-                        <td class="px-3 py-1.5 font-mono text-ink-2">{new Date(fp.timestamp_utc).toISOString().replace('T', ' ').substring(0, 19)}</td>
-                        <td class="px-3 py-1.5 text-right font-mono font-bold">{fp.altitude_km.toFixed(2)} <span class="text-ink-3">km</span></td>
-                        <td class="px-3 py-1.5 text-right font-mono">{fp.velocity_km_s.toFixed(4)} <span class="text-ink-3">km/s</span></td>
-                        <td class="px-3 py-1.5 text-right font-mono">{fp.true_anomaly_deg.toFixed(1)}°</td>
+                        <td class="px-6 py-2 font-bold text-brand">{fp.label}</td>
+                        <td class="px-6 py-2 font-mono text-ink-2">{new Date(fp.timestamp_utc).toISOString().replace('T', ' ').substring(0, 19)}</td>
+                        <td class="px-6 py-2 text-right font-mono font-bold">{fp.altitude_km.toFixed(2)} <span class="text-ink-3">km</span></td>
+                        <td class="px-6 py-2 text-right font-mono">{fp.velocity_km_s.toFixed(4)} <span class="text-ink-3">km/s</span></td>
+                        <td class="px-6 py-2 text-right font-mono">{fp.true_anomaly_deg.toFixed(1)}°</td>
                       </tr>
                     {/each}
                   </tbody>
@@ -393,13 +393,13 @@
             </div>
 
             <!-- Altitude forecast chart -->
-            <div class="lg:col-span-5 chart-card flex flex-col h-[290px]">
-              <div class="px-3 py-2 border-b border-border/50 bg-surface/50">
+            <div class="lg:col-span-5 chart-card flex flex-col h-full">
+              <div class="px-4 py-3 border-b border-border/50 bg-surface/50">
                 <span class="chart-card-title text-xs flex items-center gap-2"><LineChart class="size-3.5" /> Altitude Profile</span>
               </div>
-              <div class="p-2 flex-1 min-h-0">
+              <div class="p-2 flex-1 min-h-0 flex items-center justify-center">
                 <ResponsivePlot 
-                  height={230}
+                  height={240}
                   options={{
                     marginLeft: 45,
                     marginBottom: 20,
@@ -420,15 +420,15 @@
             </div>
           </div>
           
-          <!-- Bottom row: Elevation profile + Sky track (if visible pass) -->
-          <div class="grid grid-cols-1 {snapshotData.azimuth_profile.some((_, i) => snapshotData!.elevation_profile[i] > 0) ? 'lg:grid-cols-2' : ''} gap-4">
-            <div class="chart-card flex flex-col h-[250px]">
-              <div class="px-3 py-2 border-b border-border/50 bg-surface/50">
+          <!-- Bottom row: Elevation profile + Sky track / GS Status -->
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:flex-1 lg:min-h-[270px]">
+            <div class="chart-card flex flex-col h-full">
+              <div class="px-4 py-3 border-b border-border/50 bg-surface/50">
                 <span class="chart-card-title text-xs flex items-center gap-2"><Target class="size-3.5" /> GS Elevation Profile</span>
               </div>
-              <div class="p-2 flex-1 min-h-0">
+              <div class="p-2 flex-1 min-h-0 flex items-center justify-center">
                 <ResponsivePlot 
-                  height={190}
+                  height={200}
                   options={{
                     marginLeft: 30,
                     marginBottom: 20,
@@ -451,13 +451,13 @@
             </div>
 
             {#if snapshotData.azimuth_profile.some((_, i) => snapshotData!.elevation_profile[i] > 0)}
-              <div class="chart-card flex flex-col h-[250px]">
-                <div class="px-3 py-2 border-b border-border/50 bg-surface/50">
+              <div class="chart-card flex flex-col h-full">
+                <div class="px-4 py-3 border-b border-border/50 bg-surface/50">
                   <span class="chart-card-title text-xs flex items-center gap-2"><Activity class="size-3.5" /> Sky Track (Visible Pass)</span>
                 </div>
-                <div class="p-2 flex-1 min-h-0">
+                <div class="p-2 flex-1 min-h-0 flex items-center justify-center">
                   <ResponsivePlot 
-                    height={190}
+                    height={200}
                     options={{
                       marginLeft: 30,
                       marginBottom: 20,
@@ -478,6 +478,46 @@
                       ]
                     }} 
                   />
+                </div>
+              </div>
+            {:else}
+              <div class="chart-card flex flex-col h-full bg-surface/30 justify-between">
+                <div class="px-4 py-3 border-b border-border/50 bg-surface/50">
+                  <span class="chart-card-title text-xs flex items-center gap-2"><Network class="size-3.5" /> GS Acquisition Link</span>
+                </div>
+                <div class="p-6 flex-1 flex flex-col justify-between text-xs">
+                  <!-- Ground Station Info & Status -->
+                  <div class="flex justify-between items-start">
+                    <div class="space-y-1">
+                      <div class="text-sm font-bold text-ink">{snapshotData.ground_station.name}</div>
+                      <div class="text-[10px] font-mono text-ink-3">
+                        {snapshotData.ground_station.lat.toFixed(4)}°N · {snapshotData.ground_station.lon.toFixed(4)}°E · {snapshotData.ground_station.alt_km.toFixed(0)}m
+                      </div>
+                    </div>
+                    <span class="flex items-center gap-1.5 px-2.5 py-1 bg-amber-500/10 text-amber-500 text-[9px] font-bold rounded-full uppercase tracking-wider border border-amber-500/20">
+                      <span class="relative flex h-1.5 w-1.5"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span><span class="relative inline-flex rounded-full h-1.5 w-1.5 bg-amber-500"></span></span>
+                      Awaiting Pass
+                    </span>
+                  </div>
+
+                  <div class="grid grid-cols-3 gap-2 border-t border-b border-border/30 py-4 my-2 font-mono text-center">
+                    <div>
+                      <div class="text-[9px] font-bold uppercase tracking-wider text-ink-3 mb-0.5">GS Elevation</div>
+                      <div class="text-sm font-bold text-ink">{snapshotData.state.ground_station.elevation_deg.toFixed(1)}°</div>
+                    </div>
+                    <div>
+                      <div class="text-[9px] font-bold uppercase tracking-wider text-ink-3 mb-0.5">Range</div>
+                      <div class="text-sm font-bold text-ink">{snapshotData.state.ground_station.range_km.toFixed(0)} km</div>
+                    </div>
+                    <div>
+                      <div class="text-[9px] font-bold uppercase tracking-wider text-ink-3 mb-0.5">Doppler Shift</div>
+                      <div class="text-sm font-bold text-brand">{snapshotData.state.ground_station.doppler_khz.toFixed(2)} kHz</div>
+                    </div>
+                  </div>
+
+                  <div class="text-ink-3 text-[10px] leading-relaxed">
+                    The satellite is currently below the local horizon. The next telemetry acquisition window will open when the elevation angle rises above 0.0° relative to the station horizon mask.
+                  </div>
                 </div>
               </div>
             {/if}
