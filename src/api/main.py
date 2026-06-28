@@ -270,6 +270,48 @@ def create_app(repository: DashboardDataRepository | None = None) -> FastAPI:
         except KeyError as exc:
             raise HTTPException(status_code=404, detail=str(exc)) from exc
 
+    @app.get("/api/tracker/state")
+    @limiter.limit("30/minute")
+    def tracker_state(request: Request, norad_id: int = Query(default=43880)) -> dict:
+        """Returns the full TrackerSnapshot: live state, forecast, profiles, ground track."""
+        from gr_sat.core.orbit_tracker import compute_tracker_snapshot
+        try:
+            snapshot = compute_tracker_snapshot(norad_id)
+            return snapshot.model_dump(mode="json")
+        except ValueError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+    @app.get("/api/tracker/conjunctions")
+    @limiter.limit("5/minute")
+    def tracker_conjunctions(
+        request: Request,
+        norad_id: int = Query(default=43880),
+        lookahead_hours: int = Query(default=24, ge=1, le=168),
+    ) -> dict:
+        """Returns upcoming conjunction events with Foster collision probabilities."""
+        from gr_sat.core.conjunctions import find_conjunctions
+        events = find_conjunctions(lookahead_hours=lookahead_hours)
+        return {
+            "norad_id": norad_id,
+            "lookahead_hours": lookahead_hours,
+            "events": [e.model_dump(mode="json") for e in events],
+        }
+
+    @app.get("/api/tracker/tle")
+    @limiter.limit("10/minute")
+    def tracker_tle(request: Request, norad_id: int = Query(default=43880)) -> dict:
+        """Returns the current TLE lines, source, and age for display."""
+        from gr_sat.core.orbit_decay import get_satellite
+        sat = get_satellite(norad_id)
+        if not sat:
+            raise HTTPException(status_code=503, detail="No TLE available")
+        return {
+            "line0": sat.name,
+            "line1": sat.model.line1 if hasattr(sat.model, 'line1') else None,
+            "line2": sat.model.line2 if hasattr(sat.model, 'line2') else None,
+            "epoch": sat.epoch.utc_iso() if hasattr(sat, 'epoch') else None,
+        }
+
     @app.get("/api/orbit/decay-prediction")
     @limiter.limit("10/minute")
     def orbit_decay_prediction(request: Request, norad_id: int = Query(default=43880)) -> dict:

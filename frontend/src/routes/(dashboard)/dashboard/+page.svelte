@@ -1,12 +1,12 @@
 <script lang="ts">
   import type { PageData } from './$types';
   import { onMount, onDestroy } from 'svelte';
-  import { getApiUrl } from '$lib/api';
+  import { getApiUrl, apiFetch } from '$lib/api';
   import { fly, fade } from 'svelte/transition';
   import { backOut } from 'svelte/easing';
   import type { DashboardSummary } from '$lib/types/api';
   import SparklinePlot from '$lib/components/charts/SparklinePlot.svelte';
-  import { Satellite, Radio, AlertTriangle, Globe } from 'lucide-svelte';
+  import { Satellite, Radio, AlertTriangle, Globe, Activity } from 'lucide-svelte';
 
   let { data }: { data: PageData } = $props();
 

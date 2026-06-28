@@ -126,3 +126,74 @@ export interface StationLocation {
   lon: number;
   elevationM: number;
 }
+
+// ── Tracker ─────────────────────────────────────────────────────────────────
+
+export interface OrbitalElements {
+  semi_major_axis_km: number;
+  eccentricity: number;
+  inclination_deg: number;
+  raan_deg: number;
+  arg_perigee_deg: number;
+  mean_anomaly_deg: number;
+  true_anomaly_deg: number;
+  period_min: number;
+  mean_motion_rev_day: number;
+  apogee_km: number;
+  perigee_km: number;
+  angular_velocity_deg_min: number;
+  time_since_perigee_min: number;
+  time_to_perigee_min: number;
+  radial_distance_km: number;
+  bstar: string;
+}
+
+export interface GroundStationView {
+  azimuth_deg: number;
+  elevation_deg: number;
+  range_km: number;
+  doppler_khz: number;
+}
+
+export interface SatelliteState {
+  timestamp_utc: string;
+  altitude_km: number;
+  velocity_km_s: number;
+  latitude_deg: number;
+  longitude_deg: number;
+  pos_eci: { x: number; y: number; z: number };
+  vel_eci: { x: number; y: number; z: number };
+  coe: OrbitalElements;
+  ground_station: GroundStationView;
+}
+
+export interface ConjunctionEvent {
+  primary_norad: number;
+  secondary_norad: number;
+  secondary_name: string;
+  tca: string;
+  miss_distance_km: number;
+  relative_velocity_km_s: number;
+  probability: number;
+  risk_level: string;
+}
+
+export interface ForecastPoint {
+  label: string;
+  minutes: number;
+  timestamp_utc: string;
+  altitude_km: number;
+  velocity_km_s: number;
+  true_anomaly_deg: number;
+}
+
+export interface TrackerSnapshot {
+  state: SatelliteState;
+  forecast: ForecastPoint[];
+  elevation_profile: number[];
+  azimuth_profile: number[];
+  ground_track: { lat: number; lon: number; alt_km: number; t_offset_min: number }[];
+  ground_station: { lat: number; lon: number; alt_km: number; name: string };
+  tle_source: string;
+  tle_age_hr: number | null;
+}

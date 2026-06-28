@@ -18,25 +18,41 @@ class ConjunctionEvent(BaseModel):
     miss_distance_km: float
     relative_velocity_km_s: float
     probability: float
+    risk_level: str
 
-def calc_foster_prob(miss_km: float, cov_r: float, cov_t: float, combined_radius_m: float = 10.0) -> float:
+def get_risk_level(prob: float, dist: float) -> str:
+    if prob > 1e-4 and dist < 1.0:
+        return "CRITICAL"
+    elif prob > 1e-5 and dist < 5.0:
+        return "HIGH"
+    elif prob > 1e-6 and dist < 20.0:
+        return "WARNING"
+    return "NOMINAL"
+
+def calc_foster_prob(miss_km: float, sigma_r_km: float, sigma_t_km: float, combined_radius_km: float = 0.015) -> float:
     """
-    Exact mathematical implementation of the Foster 1992 collision probability formula,
-    replacing the absurd Random Forest ML approximation.
-    """
-    d_m = miss_km * 1000.0
-    if d_m > 10 * max(cov_r, cov_t):
-        return 0.0
-    r_c_sq = combined_radius_m ** 2
-    sigma_xy = cov_r * cov_t
-    sigma_sq = (cov_r**2 + cov_t**2) / 2.0
+    Foster 1992 collision probability formula.
+    All inputs in km for consistency with the rest of the pipeline.
     
-    if sigma_xy == 0 or sigma_sq == 0:
+    combined_radius_km: sum of hard-body radii of both objects (default 15m = cubesat + debris).
+    sigma_r_km: radial position uncertainty (cross-track, ~0.1-1 km for SGP4).
+    sigma_t_km: along-track position uncertainty (~1-10 km for SGP4).
+    """
+    d = miss_km
+    # Early-out: if miss distance is far beyond the covariance envelope, probability is negligible
+    if d > 8 * max(sigma_r_km, sigma_t_km):
+        return 0.0
+    
+    r_c_sq = combined_radius_km ** 2
+    sigma_prod = sigma_r_km * sigma_t_km
+    sigma_sq = (sigma_r_km**2 + sigma_t_km**2) / 2.0
+    
+    if sigma_prod == 0 or sigma_sq == 0:
         return 0.0
         
-    exponent2 = -(d_m**2) / (2.0 * sigma_sq)
+    exponent = -(d**2) / (2.0 * sigma_sq)
     try:
-        prob = (r_c_sq / (2.0 * math.sqrt(sigma_xy))) * math.exp(exponent2)
+        prob = (r_c_sq / (2.0 * math.sqrt(sigma_prod))) * math.exp(exponent)
     except OverflowError:
         prob = 0.0
     return min(1.0, max(0.0, prob))
@@ -65,33 +81,27 @@ def ttl_cache(ttl_seconds: int):
 
 @ttl_cache(ttl_seconds=3600)  # 1 hour cache
 def get_active_satellites() -> tuple[Optional[Satrec], List[Satrec], List[str]]:
+    from skyfield.api import Loader
+    from gr_sat.core.config import PROJECT_ROOT
+    
+    cache_dir = PROJECT_ROOT / "data" / "tle"
+    cache_dir.mkdir(parents=True, exist_ok=True)
+    custom_loader = Loader(str(cache_dir))
+    
     url = "https://celestrak.org/NORAD/elements/gp.php?GROUP=active&FORMAT=tle"
-    # Wait, the original code used 'stations'. 'active' is much bigger (10k sats). Let's use 'active' for real conjunctions.
-    with urllib.request.urlopen(url, timeout=20) as response:
-        resp_text = response.read().decode('utf-8')
-    lines = resp_text.strip().splitlines()
+    sats_skyfield = custom_loader.tle_file(url, filename="celestrak_active.tle")
+    
     sats = []
     names = []
     my_sat = None
     
-    i = 0
-    while i < len(lines):
-        name = lines[i].strip()
-        if i+2 < len(lines) and lines[i+1].startswith("1 ") and lines[i+2].startswith("2 "):
-            l1 = lines[i+1].strip()
-            l2 = lines[i+2].strip()
-            try:
-                sat = Satrec.twoline2rv(l1, l2)
-                if sat.satnum == PRIMARY_NORAD:
-                    my_sat = sat
-                else:
-                    sats.append(sat)
-                    names.append(name)
-            except:
-                pass
-            i += 3
+    for sat in sats_skyfield:
+        if not hasattr(sat, 'model'): continue
+        if sat.model.satnum == PRIMARY_NORAD:
+            my_sat = sat.model
         else:
-            i += 1
+            sats.append(sat.model)
+            names.append(sat.name)
             
     return my_sat, sats, names
 
@@ -197,10 +207,10 @@ def find_conjunctions(lookahead_hours: int = 24, min_dist_threshold_km: float = 
                     rel_vel = np.linalg.norm(np.array(v1) - np.array(v2))
                     
                     # Compute realistic collision probability
-                    # Heuristic covariance based on time since TLE epoch and atmospheric drag uncertainty
-                    # For a real system we would use full covariance matrices, but we approximate:
-                    cov_r = 100.0  # 100m radial error
-                    cov_t = 1000.0 # 1km along-track error
+                    # SGP4-propagated TLE covariance estimates (km)
+                    # Radial ~0.5 km, Along-track ~5 km (grows with propagation time)
+                    cov_r = 0.5   # km radial
+                    cov_t = 5.0   # km along-track
                     prob = calc_foster_prob(fine_min_dist, cov_r, cov_t)
                     
                     events.append(ConjunctionEvent(
@@ -210,7 +220,8 @@ def find_conjunctions(lookahead_hours: int = 24, min_dist_threshold_km: float = 
                         tca=exact_tca,
                         miss_distance_km=fine_min_dist,
                         relative_velocity_km_s=rel_vel,
-                        probability=prob
+                        probability=prob,
+                        risk_level=get_risk_level(prob, fine_min_dist)
                     ))
                     
     # Sort by TCA

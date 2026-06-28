@@ -67,8 +67,16 @@
           trackLayer = null;
         }
         if (track && track.length > 0) {
-          const latlngs = track.map((p: TrackPoint) => L!.latLng(p.lat, p.lon));
-          trackLayer = L!.polyline(latlngs, { color: '#8b5cf6', weight: 3, dashArray: '5, 5' }).addTo(map!);
+          const segments: any[][] = [[]];
+          let lastLon: number | null = null;
+          track.forEach((p: TrackPoint) => {
+            if (lastLon !== null && Math.abs(p.lon - lastLon) > 180) {
+              segments.push([]);
+            }
+            segments[segments.length - 1].push(L!.latLng(p.lat, p.lon));
+            lastLon = p.lon;
+          });
+          trackLayer = L!.polyline(segments, { color: '#8b5cf6', weight: 3, dashArray: '5, 5' }).addTo(map!);
         }
       });
     }
