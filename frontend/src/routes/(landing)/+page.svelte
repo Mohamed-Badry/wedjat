@@ -297,6 +297,112 @@
           </div>
         </div>
 
+        <!-- Step 4 -->
+        <div class="story-step min-h-[90vh] lg:h-[150vh] relative pr-0 lg:pr-8 flex flex-col justify-center lg:block">
+          <div class="relative lg:sticky top-auto lg:top-[35%] w-full">
+            <div class="story-content w-full flex flex-col justify-center">
+              <div class="space-y-4">
+                <div class="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-critical">
+                  <ShieldAlert class="size-5 animate-pulse" /> Phase 4: Security & Astrodynamics
+                </div>
+                <h2 class="text-4xl lg:text-5xl font-black tracking-tight text-ink leading-tight">
+                  State Vector Tracking <br/><span class="text-ink-2 font-medium">& Conjunction Risk</span>
+                </h2>
+                <p class="text-lg text-ink-3 leading-relaxed">
+                  Real-time classical orbital elements (COE) and Cartesian state vector monitoring. Watchdog propagates orbits dynamically via SGP4, tracking satellite coordinate trends and calculating collision probabilities with the mathematically rigorous **Foster (1992)** covariance model.
+                </p>
+              </div>
+
+              <!-- Mobile Visual -->
+              <div class="lg:hidden mt-10 w-full rounded-2xl border border-critical/20 bg-critical/5 p-4 shadow-[0_0_40px_rgba(239,68,68,0.1)]">
+                <div class="flex items-center justify-between mb-4 border-b border-border/50 pb-3">
+                  <p class="chart-card-title !mb-0 flex items-center gap-2 text-critical">
+                    <ShieldAlert class="size-4 animate-pulse" /> Conjunction Risk Assessment
+                  </p>
+                  <span class="text-[9px] font-bold text-critical uppercase tracking-widest bg-critical/10 px-2.5 py-1 rounded-full">Threat Alert</span>
+                </div>
+                <div class="space-y-4">
+                  <div class="flex justify-between items-center bg-black/20 p-3 rounded-lg border border-border/50">
+                    <div>
+                      <p class="text-[10px] text-ink-3 uppercase font-bold tracking-wider">Secondary Object</p>
+                      <p class="text-sm font-bold text-ink font-mono mt-0.5">NEMO-HD (46277)</p>
+                    </div>
+                    <div class="text-right">
+                      <p class="text-[10px] text-ink-3 uppercase font-bold tracking-wider">Miss Distance</p>
+                      <p class="text-sm font-bold text-ink-2 font-mono mt-0.5">10.07 km</p>
+                    </div>
+                  </div>
+                  <div class="grid grid-cols-2 gap-4">
+                    <div class="bg-black/10 p-3 rounded-lg border border-border/50">
+                      <p class="text-[9px] text-ink-3 uppercase font-bold tracking-wider">Time to TCA</p>
+                      <p class="text-sm font-mono font-bold text-brand mt-0.5">T-23:28:47</p>
+                    </div>
+                    <div class="bg-black/10 p-3 rounded-lg border border-border/50">
+                      <p class="text-[9px] text-ink-3 uppercase font-bold tracking-wider">Collision Prob (Foster)</p>
+                      <p class="text-sm font-mono font-bold text-critical mt-0.5">1.29e-6</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 5 -->
+        <div class="story-step min-h-[90vh] lg:h-[150vh] relative pr-0 lg:pr-8 flex flex-col justify-center lg:block">
+          <div class="relative lg:sticky top-auto lg:top-[35%] w-full">
+            <div class="story-content w-full flex flex-col justify-center">
+              <div class="space-y-4">
+                <div class="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-info">
+                  <Activity class="size-5" /> Phase 5: Space Physics & Prognostics
+                </div>
+                <h2 class="text-4xl lg:text-5xl font-black tracking-tight text-ink leading-tight">
+                  Exospheric Density <br/><span class="text-ink-2 font-medium">& Decay Forecasting</span>
+                </h2>
+                <p class="text-lg text-ink-3 leading-relaxed">
+                  Long-term decay prognostics under real solar weather. Watchdog models localized atmospheric drag using the **NRLMSISE-00** model, using geomagnetic indicators (F10.7, Kp) to drive machine learning ensembles forecasting 7-day and 30-day semi-major axis decay.
+                </p>
+              </div>
+
+              <!-- Mobile Visual -->
+              <div class="lg:hidden mt-10 w-full rounded-2xl border border-info/20 bg-info/5 p-4 shadow-[0_0_40px_rgba(56,189,248,0.1)]">
+                <div class="flex items-center justify-between mb-4 border-b border-border/50 pb-3">
+                  <p class="chart-card-title !mb-0 flex items-center gap-2 text-info">
+                    <Activity class="size-4" /> Physics-Based Decay Forecast
+                  </p>
+                  <span class="text-[9px] font-bold text-info uppercase tracking-widest bg-info/10 px-2.5 py-1 rounded-full">NRLMSISE-00</span>
+                </div>
+                <div class="space-y-4">
+                  <div class="grid grid-cols-3 gap-3">
+                    <div class="bg-black/10 p-2.5 rounded-lg border border-border/50 text-center">
+                      <p class="text-[8px] text-ink-3 uppercase font-bold">Solar Flux (F10.7)</p>
+                      <p class="text-xs font-mono font-bold text-ink mt-0.5">116.8 sfu</p>
+                    </div>
+                    <div class="bg-black/10 p-2.5 rounded-lg border border-border/50 text-center">
+                      <p class="text-[8px] text-ink-3 uppercase font-bold">Geomagnetic (Kp)</p>
+                      <p class="text-xs font-mono font-bold text-ink mt-0.5">1.7 idx</p>
+                    </div>
+                    <div class="bg-black/10 p-2.5 rounded-lg border border-border/50 text-center">
+                      <p class="text-[8px] text-ink-3 uppercase font-bold">Exo Temp (T_inf)</p>
+                      <p class="text-xs font-mono font-bold text-ink mt-0.5">842.7 K</p>
+                    </div>
+                  </div>
+                  <div class="bg-black/20 p-3 rounded-lg border border-border/50">
+                    <div class="flex justify-between items-center mb-1">
+                      <span class="text-[10px] text-ink-2 font-bold">Predicted Orbit Drop</span>
+                      <span class="text-[10px] text-brand font-bold">7-Day Ensemble</span>
+                    </div>
+                    <div class="flex items-baseline gap-1.5">
+                      <span class="text-xl font-black text-brand font-mono">0.09</span>
+                      <span class="text-xs text-ink-3 uppercase">km</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
       </div>
 
       <!-- RIGHT COLUMN: The Sticky Visuals -->
@@ -351,6 +457,78 @@
                     scaledActual={mockScaledActual} 
                     scaledExpected={mockScaledExpected} 
                   />
+                </div>
+              </div>
+            </div>
+
+            <!-- Visual 4: Astrodynamics & Conjunctions -->
+            <div class="story-visual absolute inset-0 w-full h-full flex flex-col justify-center">
+              <div class="chart-card w-full shadow-[0_0_50px_rgba(239,68,68,0.15)] border-critical/20 bg-critical/5">
+                <div class="flex items-center justify-between mb-4 border-b border-border/50 pb-3">
+                  <p class="chart-card-title !mb-0 flex items-center gap-2 text-critical">
+                    <ShieldAlert class="size-4 animate-pulse" /> Conjunction Risk Assessment
+                  </p>
+                  <span class="text-[9px] font-bold text-critical uppercase tracking-widest bg-critical/10 px-2.5 py-1 rounded-full">Threat Alert</span>
+                </div>
+                <div class="space-y-4">
+                  <div class="flex justify-between items-center bg-black/20 p-3 rounded-lg border border-border/50">
+                    <div>
+                      <p class="text-[10px] text-ink-3 uppercase font-bold tracking-wider">Secondary Object</p>
+                      <p class="text-sm font-bold text-ink font-mono mt-0.5">NEMO-HD (46277)</p>
+                    </div>
+                    <div class="text-right">
+                      <p class="text-[10px] text-ink-3 uppercase font-bold tracking-wider">Miss Distance</p>
+                      <p class="text-sm font-bold text-ink-2 font-mono mt-0.5">10.07 km</p>
+                    </div>
+                  </div>
+                  <div class="grid grid-cols-2 gap-4">
+                    <div class="bg-black/10 p-3 rounded-lg border border-border/50">
+                      <p class="text-[9px] text-ink-3 uppercase font-bold tracking-wider">Time to TCA</p>
+                      <p class="text-sm font-mono font-bold text-brand mt-0.5">T-23:28:47</p>
+                    </div>
+                    <div class="bg-black/10 p-3 rounded-lg border border-border/50">
+                      <p class="text-[9px] text-ink-3 uppercase font-bold tracking-wider">Collision Prob (Foster)</p>
+                      <p class="text-sm font-mono font-bold text-critical mt-0.5">1.29e-6</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Visual 5: Physics Decay Forecast -->
+            <div class="story-visual absolute inset-0 w-full h-full flex flex-col justify-center">
+              <div class="chart-card w-full shadow-[0_0_50px_rgba(56,189,248,0.15)] border-info/20 bg-info/5">
+                <div class="flex items-center justify-between mb-4 border-b border-border/50 pb-3">
+                  <p class="chart-card-title !mb-0 flex items-center gap-2 text-info">
+                    <Activity class="size-4" /> Physics-Based Decay Forecast
+                  </p>
+                  <span class="text-[9px] font-bold text-info uppercase tracking-widest bg-info/10 px-2.5 py-1 rounded-full">NRLMSISE-00</span>
+                </div>
+                <div class="space-y-4">
+                  <div class="grid grid-cols-3 gap-3">
+                    <div class="bg-black/10 p-2.5 rounded-lg border border-border/50 text-center">
+                      <p class="text-[8px] text-ink-3 uppercase font-bold">Solar Flux (F10.7)</p>
+                      <p class="text-xs font-mono font-bold text-ink mt-0.5">116.8 sfu</p>
+                    </div>
+                    <div class="bg-black/10 p-2.5 rounded-lg border border-border/50 text-center">
+                      <p class="text-[8px] text-ink-3 uppercase font-bold">Geomagnetic (Kp)</p>
+                      <p class="text-xs font-mono font-bold text-ink mt-0.5">1.7 idx</p>
+                    </div>
+                    <div class="bg-black/10 p-2.5 rounded-lg border border-border/50 text-center">
+                      <p class="text-[8px] text-ink-3 uppercase font-bold">Exo Temp (T_inf)</p>
+                      <p class="text-xs font-mono font-bold text-ink mt-0.5">842.7 K</p>
+                    </div>
+                  </div>
+                  <div class="bg-black/20 p-3 rounded-lg border border-border/50">
+                    <div class="flex justify-between items-center mb-1">
+                      <span class="text-[10px] text-ink-2 font-bold">Predicted Orbit Drop</span>
+                      <span class="text-[10px] text-brand font-bold">7-Day Ensemble</span>
+                    </div>
+                    <div class="flex items-baseline gap-1.5">
+                      <span class="text-xl font-black text-brand font-mono">0.09</span>
+                      <span class="text-xs text-ink-3 uppercase">km</span>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
