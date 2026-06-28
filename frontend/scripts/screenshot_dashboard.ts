@@ -14,7 +14,9 @@ const pages = [
   { url: 'http://localhost:5173/dashboard/ml', name: 'ml' },
   { url: 'http://localhost:5173/dashboard/analytics', name: 'analytics' },
   { url: 'http://localhost:5173/dashboard/orbit-decay', name: 'orbit-decay-overview' },
-  { url: 'http://localhost:5173/dashboard/orbit-decay', name: 'orbit-decay-diagnostics' }
+  { url: 'http://localhost:5173/dashboard/orbit-decay', name: 'orbit-decay-diagnostics' },
+  { url: 'http://localhost:5173/dashboard/eda', name: 'eda' },
+  { url: 'http://localhost:5173/dashboard/ml-report', name: 'ml-report' }
 ];
 
 const screenshotsDir = '/home/crim/Projects/gr_sat/frontend/static/screenshots';
@@ -61,15 +63,6 @@ const screenshotsDir = '/home/crim/Projects/gr_sat/frontend/static/screenshots';
                 await new Promise(r => setTimeout(r, 4000));
             }
             
-            if (p.name === 'eda') {
-                console.log(`  [EDA Page] Fetching telemetry data...`);
-                await page.evaluate(() => {
-                    const btn = Array.from(document.querySelectorAll('button')).find(b => b.textContent && b.textContent.includes('Fetch Data'));
-                    if (btn) btn.click();
-                });
-                await new Promise(r => setTimeout(r, 4000));
-            };
-
             if (p.name === 'orbit-decay-diagnostics') {
                 console.log(`  [Orbit Decay] Switching to diagnostics tab...`);
                 await page.evaluate(() => {
@@ -89,6 +82,16 @@ const screenshotsDir = '/home/crim/Projects/gr_sat/frontend/static/screenshots';
             };
             }
 
+            }
+
+            if (p.name === 'eda') {
+                console.log(`  [EDA Page] Fetching telemetry data...`);
+                await page.evaluate(() => {
+                    const btn = Array.from(document.querySelectorAll('button')).find(b => b.textContent && b.textContent.includes('Fetch Data'));
+                    if (btn) btn.click();
+                });
+                await new Promise(r => setTimeout(r, 4000));
+            }
             
             if (p.name.startsWith('tracker-')) {
                 const tabId = p.name.split('-')[1]; // 'mission', 'orbital', 'forecast', 'conjunctions'
