@@ -5,26 +5,30 @@ import path from 'path';
 const pages = [
   { url: 'http://localhost:5173/dashboard', name: 'home' },
   { url: 'http://localhost:5173/dashboard/operations', name: 'ops' },
-  { url: 'http://localhost:5173/dashboard/tracker', name: 'tracker-mission' },
-  { url: 'http://localhost:5173/dashboard/tracker', name: 'tracker-orbital' },
-  { url: 'http://localhost:5173/dashboard/tracker', name: 'tracker-forecast' },
-  { url: 'http://localhost:5173/dashboard/tracker', name: 'tracker-conjunctions' },
+  { url: 'http://localhost:5173/dashboard/tracker?tab=mission', name: 'tracker-mission' },
+  { url: 'http://localhost:5173/dashboard/tracker?tab=orbital', name: 'tracker-orbital' },
+  { url: 'http://localhost:5173/dashboard/tracker?tab=forecast', name: 'tracker-forecast' },
+  { url: 'http://localhost:5173/dashboard/tracker?tab=conjunctions', name: 'tracker-conjunctions' },
   { url: 'http://localhost:5173/dashboard/live', name: 'live' },
   { url: 'http://localhost:5173/dashboard/inspector', name: 'inspector' },
   { url: 'http://localhost:5173/dashboard/ml', name: 'ml' },
   { url: 'http://localhost:5173/dashboard/analytics', name: 'analytics' },
-  { url: 'http://localhost:5173/dashboard/orbit-decay', name: 'orbit-decay-overview' },
-  { url: 'http://localhost:5173/dashboard/orbit-decay', name: 'orbit-decay-diagnostics' },
+  { url: 'http://localhost:5173/dashboard/orbit-decay?tab=overview', name: 'orbit-decay-overview' },
+  { url: 'http://localhost:5173/dashboard/orbit-decay?tab=diagnostics', name: 'orbit-decay-diagnostics' },
   { url: 'http://localhost:5173/dashboard/eda', name: 'eda' },
   { url: 'http://localhost:5173/dashboard/ml-report', name: 'ml-report' }
 ];
 
-const screenshotsDir = '/home/crim/Projects/gr_sat/frontend/static/screenshots';
+const finalDir = '/home/crim/Projects/gr_sat/frontend/static/screenshots';
+const screenshotsDir = '/tmp/gr_sat_screenshots';
 
 (async () => {
     try {
         if (!fs.existsSync(screenshotsDir)){
             fs.mkdirSync(screenshotsDir, { recursive: true });
+        }
+        if (!fs.existsSync(finalDir)){
+            fs.mkdirSync(finalDir, { recursive: true });
         }
 
         const browser = await puppeteer.launch({
@@ -33,6 +37,18 @@ const screenshotsDir = '/home/crim/Projects/gr_sat/frontend/static/screenshots';
         });
         const page = await browser.newPage();
         await page.setViewport({ width: 1920, height: 1080 });
+        
+        // Debug logging from inside the browser
+        page.on('console', msg => {
+            console.log(`[Browser ${msg.type().toUpperCase()}] ${msg.text()}`);
+        });
+        page.on('pageerror', err => {
+            console.error(`[Browser JS Error] ${err.message}`);
+            console.error(err.stack);
+        });
+        page.on('requestfailed', req => {
+            console.error(`[Browser Network Fail] ${req.failure()?.errorText} at ${req.url()}`);
+        });
         
         // Ensure starting state is clean
         await page.goto('http://localhost:5173/dashboard', { waitUntil: 'networkidle0' });
@@ -44,6 +60,9 @@ const screenshotsDir = '/home/crim/Projects/gr_sat/frontend/static/screenshots';
             // Navigate to page (should be dark mode based on localstorage)
             await page.goto(p.url, { waitUntil: 'networkidle0' });
             
+            // Wait for SvelteKit hydration and rendering to settle
+            await new Promise(r => setTimeout(r, 2500));
+            
             // Force dark mode just in case (no reload)
             await page.evaluate(() => {
                 if (document.documentElement.classList.contains('light')) {
@@ -54,34 +73,29 @@ const screenshotsDir = '/home/crim/Projects/gr_sat/frontend/static/screenshots';
             
             // Special handling for ops page to populate the pass data
             if (p.name === 'ops') {
-                console.log(`  [Ops Page] Activating pass predictions...`);
+                console.log(`  [Ops Page] Setting lookahead to 48h and calculating...`);
+                
+                // Select 48h
+                await page.evaluate(() => {
+                    const buttons = Array.from(document.querySelectorAll('button'));
+                    const triggerBtn = buttons.find(b => b.textContent && b.textContent.trim() === 'Next 24 Hours');
+                    if (triggerBtn) triggerBtn.click();
+                });
+                await new Promise(r => setTimeout(r, 500));
+                await page.evaluate(() => {
+                    const buttons = Array.from(document.querySelectorAll('button'));
+                    const optionBtn = buttons.find(b => b.textContent && b.textContent.trim() === 'Next 48 Hours');
+                    if (optionBtn) optionBtn.click();
+                });
+                await new Promise(r => setTimeout(r, 500));
+
+                // Click Calculate
                 await page.evaluate(() => {
                     const calcBtn = Array.from(document.querySelectorAll('button')).find(b => b.textContent && b.textContent.includes('Calculate'));
                     if (calcBtn) calcBtn.click();
                 });
                 // Wait for the API to return and the map to update
-                await new Promise(r => setTimeout(r, 4000));
-            }
-            
-            if (p.name === 'orbit-decay-diagnostics') {
-                console.log(`  [Orbit Decay] Switching to diagnostics tab...`);
-                await page.evaluate(() => {
-                    const btn = Array.from(document.querySelectorAll('button')).find(b => b.textContent && b.textContent.includes('Model Diagnostics'));
-                    if (btn) btn.click();
-                });
-                await new Promise(r => setTimeout(r, 1000));
-            };
-
-            if (p.name === 'orbit-decay-diagnostics') {
-                console.log(`  [Orbit Decay] Switching to diagnostics tab...`);
-                await page.evaluate(() => {
-                    const btn = Array.from(document.querySelectorAll('button')).find(b => b.textContent && b.textContent.includes('Model Diagnostics'));
-                    if (btn) btn.click();
-                });
-                await new Promise(r => setTimeout(r, 1000));
-            };
-            }
-
+                await new Promise(r => setTimeout(r, 8000));
             }
 
             if (p.name === 'eda') {
@@ -90,35 +104,21 @@ const screenshotsDir = '/home/crim/Projects/gr_sat/frontend/static/screenshots';
                     const btn = Array.from(document.querySelectorAll('button')).find(b => b.textContent && b.textContent.includes('Fetch Data'));
                     if (btn) btn.click();
                 });
-                await new Promise(r => setTimeout(r, 4000));
-            }
-            
-            if (p.name.startsWith('tracker-')) {
-                const tabId = p.name.split('-')[1]; // 'mission', 'orbital', 'forecast', 'conjunctions'
-                console.log(`  [Tracker] Switching to ${tabId} tab...`);
-                await page.evaluate((targetTab) => {
-                    const buttons = Array.from(document.querySelectorAll('button'));
-                    const tabLabels: Record<string, string> = {
-                        mission: "Mission Control",
-                        orbital: "Orbital (COE)",
-                        forecast: "Forecast",
-                        conjunctions: "Conjunctions"
-                    };
-                    const targetLabel = tabLabels[targetTab];
-                    const btn = buttons.find(b => b.textContent && b.textContent.includes(targetLabel));
-                    if (btn) btn.click();
-                }, tabId);
-                await new Promise(r => setTimeout(r, 2000));
+                await new Promise(r => setTimeout(r, 5000));
             }
 
             if (p.name === 'live') {
                 console.log(`  [Live Page] Setting limit to 1000...`);
                 await page.evaluate(() => {
-                    const select = document.getElementById('live-feed-size') as HTMLSelectElement;
-                    if (select) {
-                        select.value = '1000';
-                        select.dispatchEvent(new Event('change', { bubbles: true }));
-                    }
+                    const buttons = Array.from(document.querySelectorAll('button'));
+                    const triggerBtn = buttons.find(b => b.textContent && b.textContent.trim() === '100');
+                    if (triggerBtn) triggerBtn.click();
+                });
+                await new Promise(r => setTimeout(r, 500));
+                await page.evaluate(() => {
+                    const buttons = Array.from(document.querySelectorAll('button'));
+                    const optionBtn = buttons.find(b => b.textContent && b.textContent.trim() === '1000');
+                    if (optionBtn) optionBtn.click();
                 });
                 await new Promise(r => setTimeout(r, 4000));
             }
@@ -177,6 +177,10 @@ const screenshotsDir = '/home/crim/Projects/gr_sat/frontend/static/screenshots';
         }
         
         await browser.close();
+        
+        console.log("\nCopying screenshots to static directory...");
+        fs.cpSync(screenshotsDir, finalDir, { recursive: true });
+        
         console.log("\nAll screenshots completed successfully!");
     } catch (e) {
         console.error("Error running script:", e);
