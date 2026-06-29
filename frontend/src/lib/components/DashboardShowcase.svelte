@@ -4,7 +4,7 @@
   import { ScrollTrigger } from "gsap/dist/ScrollTrigger";
   import { themeState } from "$lib/theme.svelte";
   import { 
-    LayoutDashboard, Satellite, Crosshair, Cpu, 
+    LayoutDashboard, Satellite, Crosshair, Cpu,
     Radio, Search, LineChart, Activity, BookOpen, BrainCircuit,
     ArrowRight
   } from "lucide-svelte";
@@ -27,7 +27,51 @@
       icon: Satellite,
       imageLight: "/screenshots/ops-light.png",
       imageDark: "/screenshots/ops-dark.png",
-      badge: "Navigation"
+      badge: "Navigation",
+      subImageLight: "/screenshots/tracker-conjunctions-light.png",
+      subImageDark: "/screenshots/tracker-conjunctions-dark.png"
+    },
+    {
+      category: "operations",
+      title: "Satellite Orbit Tracker",
+      description: "Real-time orbital tracking using Two-Line Element (TLE) propagation. Track orbital elements, sub-satellite points, and future conjunction risks.",
+      icon: Crosshair,
+      imageLight: "/screenshots/tracker-mission-light.png",
+      imageDark: "/screenshots/tracker-mission-dark.png",
+      badge: "TLE Propagation"
+    },
+    {
+      category: "operations",
+      title: "Orbit Decay AI Predictor",
+      description: "Predict satellite orbital lifespan and decay rates. Combines physical atmospheric density models with neural network adjustments for high-accuracy forecasts.",
+      icon: Cpu,
+      imageLight: "/screenshots/orbit-decay-overview-light.png",
+      imageDark: "/screenshots/orbit-decay-overview-dark.png",
+      badge: "Decay Simulation",
+      subImageLight: "/screenshots/orbit-decay-diagnostics-light.png",
+      subImageDark: "/screenshots/orbit-decay-diagnostics-dark.png",
+    },
+    {
+      category: "operations",
+      title: "Satellite Orbit Tracker",
+      description: "Real-time orbital tracking using Two-Line Element (TLE) propagation. Track orbital elements, sub-satellite points, and future conjunction risks.",
+      icon: Crosshair,
+      imageLight: "/screenshots/tracker-mission-light.png",
+      imageDark: "/screenshots/tracker-mission-dark.png",
+      badge: "TLE Propagation",
+      subImageLight: "/screenshots/tracker-conjunctions-light.png",
+      subImageDark: "/screenshots/tracker-conjunctions-dark.png"
+    },
+    {
+      category: "operations",
+      title: "Orbit Decay AI Predictor",
+      description: "Predict satellite orbital lifespan and decay rates. Combines physical atmospheric density models with neural network adjustments for high-accuracy forecasts.",
+      icon: Cpu,
+      imageLight: "/screenshots/orbit-decay-overview-light.png",
+      imageDark: "/screenshots/orbit-decay-overview-dark.png",
+      badge: "Decay Simulation",
+      subImageLight: "/screenshots/orbit-decay-diagnostics-light.png",
+      subImageDark: "/screenshots/orbit-decay-diagnostics-dark.png"
     },
 
     // telemetry
