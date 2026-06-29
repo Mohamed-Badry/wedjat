@@ -61,3 +61,15 @@ CREATE INDEX IF NOT EXISTS idx_telem_norad_ts
 CREATE INDEX IF NOT EXISTS idx_telem_anomaly
     ON telemetry_frames (norad_id, is_anomaly, timestamp DESC)
     WHERE is_anomaly = TRUE;
+
+-- ╔══════════════════════════════════════════════════════════════════╗
+-- ║  Table 3: alembic_version — stamp schema version               ║
+-- ╚══════════════════════════════════════════════════════════════════╝
+CREATE TABLE IF NOT EXISTS alembic_version (
+    version_num VARCHAR(32) NOT NULL,
+    CONSTRAINT alembic_version_pkc PRIMARY KEY (version_num)
+);
+
+INSERT INTO alembic_version (version_num) 
+VALUES ('da10ec576e56')
+ON CONFLICT DO NOTHING;

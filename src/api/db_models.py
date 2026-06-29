@@ -1,5 +1,5 @@
 from typing import Optional, Any
-from sqlmodel import Field, SQLModel, Column
+from sqlmodel import Field, SQLModel, Column, DateTime
 from sqlalchemy import Integer, Identity
 from sqlalchemy.dialects.postgresql import JSONB
 from datetime import datetime
@@ -21,7 +21,7 @@ class RawFrame(SQLModel, table=True):
     id: Optional[int] = Field(
         default=None, sa_column=Column(Integer, Identity(always=True), primary_key=True)
     )
-    timestamp: datetime = Field(primary_key=True)
+    timestamp: datetime = Field(sa_column=Column(DateTime(timezone=True), primary_key=True))
     norad_id: int
     station_id: Optional[str] = None
     raw_frame: str
@@ -33,7 +33,7 @@ class TelemetryRow(SQLModel, table=True):
     id: Optional[int] = Field(
         default=None, sa_column=Column(Integer, Identity(always=True), primary_key=True)
     )
-    timestamp: datetime = Field(primary_key=True)
+    timestamp: datetime = Field(sa_column=Column(DateTime(timezone=True), primary_key=True))
     norad_id: int
     raw_frame_id: Optional[int] = None
     features: Any = Field(default=dict, sa_column=Column(JSONB))

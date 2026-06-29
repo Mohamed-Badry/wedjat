@@ -116,18 +116,28 @@ def seed_satellite(norad_id: int):
                             else:
                                 features[k] = str(val)
 
-                    missing_str = r_row.get("missing_raw_fields", "[]")
-                    try:
+                    req_keys = ["batt_voltage", "batt_current", "temp_obc", "temp_batt_a", "temp_panel_z"]
+                    
+                    if "frame_is_complete" in r_row and pd.notna(r_row["frame_is_complete"]):
+                        frame_is_complete = bool(r_row["frame_is_complete"])
+                    else:
+                        frame_is_complete = all(k in features and features[k] is not None for k in req_keys)
+
+                    if "missing_raw_fields" in r_row and pd.notna(r_row["missing_raw_fields"]):
+                        missing_raw_fields = str(r_row["missing_raw_fields"])
+                        try:
+                            import json
+                            missing = json.loads(missing_raw_fields) if isinstance(missing_raw_fields, str) else []
+                        except Exception:
+                            missing = []
+                    else:
+                        missing = [f"missing_{k}" for k in req_keys if k not in features or features[k] is None]
                         import json
-                        missing = json.loads(missing_str) if isinstance(missing_str, str) else []
-                    except Exception:
-                        missing = []
+                        missing_raw_fields = json.dumps(missing)
 
                     anomaly_score = float(r_row["anomaly_score"]) if pd.notna(r_row["anomaly_score"]) else None
                     is_anomaly = bool(r_row["is_anomaly"]) if pd.notna(r_row["is_anomaly"]) else False
 
-                    frame_is_complete = bool(r_row["frame_is_complete"]) if "frame_is_complete" in r_row and pd.notna(r_row["frame_is_complete"]) else True
-                    missing_raw_fields = str(r_row["missing_raw_fields"]) if "missing_raw_fields" in r_row and pd.notna(r_row["missing_raw_fields"]) else "[]"
                     dropped_packet_suspect = bool(r_row["dropped_packet_suspect"]) if "dropped_packet_suspect" in r_row and pd.notna(r_row["dropped_packet_suspect"]) else False
                     sampling_irregular = bool(r_row["sampling_irregular"]) if "sampling_irregular" in r_row and pd.notna(r_row["sampling_irregular"]) else False
                     pass_id = int(r_row["pass_id"]) if "pass_id" in r_row and pd.notna(r_row["pass_id"]) else None
@@ -169,18 +179,28 @@ def seed_satellite(norad_id: int):
                         else:
                             features[k] = str(val)
 
-                missing_str = r_row.get("missing_raw_fields", "[]")
-                try:
+                req_keys = ["batt_voltage", "batt_current", "temp_obc", "temp_batt_a", "temp_panel_z"]
+                
+                if "frame_is_complete" in r_row and pd.notna(r_row["frame_is_complete"]):
+                    frame_is_complete = bool(r_row["frame_is_complete"])
+                else:
+                    frame_is_complete = all(k in features and features[k] is not None for k in req_keys)
+
+                if "missing_raw_fields" in r_row and pd.notna(r_row["missing_raw_fields"]):
+                    missing_raw_fields = str(r_row["missing_raw_fields"])
+                    try:
+                        import json
+                        missing = json.loads(missing_raw_fields) if isinstance(missing_raw_fields, str) else []
+                    except Exception:
+                        missing = []
+                else:
+                    missing = [f"missing_{k}" for k in req_keys if k not in features or features[k] is None]
                     import json
-                    missing = json.loads(missing_str) if isinstance(missing_str, str) else []
-                except Exception:
-                    missing = []
+                    missing_raw_fields = json.dumps(missing)
 
                 anomaly_score = float(r_row["anomaly_score"]) if pd.notna(r_row["anomaly_score"]) else None
                 is_anomaly = bool(r_row["is_anomaly"]) if pd.notna(r_row["is_anomaly"]) else False
 
-                frame_is_complete = bool(r_row["frame_is_complete"]) if "frame_is_complete" in r_row and pd.notna(r_row["frame_is_complete"]) else True
-                missing_raw_fields = str(r_row["missing_raw_fields"]) if "missing_raw_fields" in r_row and pd.notna(r_row["missing_raw_fields"]) else "[]"
                 dropped_packet_suspect = bool(r_row["dropped_packet_suspect"]) if "dropped_packet_suspect" in r_row and pd.notna(r_row["dropped_packet_suspect"]) else False
                 sampling_irregular = bool(r_row["sampling_irregular"]) if "sampling_irregular" in r_row and pd.notna(r_row["sampling_irregular"]) else False
                 pass_id = int(r_row["pass_id"]) if "pass_id" in r_row and pd.notna(r_row["pass_id"]) else None
