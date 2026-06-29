@@ -32,14 +32,21 @@ CREATE INDEX IF NOT EXISTS idx_raw_norad_ts
 -- new satellite profiles with different golden-feature sets are added.
 
 CREATE TABLE IF NOT EXISTS telemetry_frames (
-    id              BIGSERIAL,
-    timestamp       TIMESTAMPTZ         NOT NULL,
-    norad_id        INTEGER             NOT NULL,
-    raw_frame_id    BIGINT,
-    features        JSONB,
-    anomaly_score   DOUBLE PRECISION,
-    is_anomaly      BOOLEAN             DEFAULT FALSE,
-    missing_fields  JSONB,
+    id                      BIGSERIAL,
+    timestamp               TIMESTAMPTZ         NOT NULL,
+    norad_id                INTEGER             NOT NULL,
+    raw_frame_id            BIGINT,
+    features                JSONB,
+    anomaly_score           DOUBLE PRECISION,
+    is_anomaly              BOOLEAN             DEFAULT FALSE,
+    missing_fields          JSONB,
+    frame_is_complete       BOOLEAN             DEFAULT TRUE,
+    missing_raw_fields      TEXT,
+    dropped_packet_suspect  BOOLEAN             DEFAULT FALSE,
+    sampling_irregular      BOOLEAN             DEFAULT FALSE,
+    pass_id                 INTEGER,
+    pass_duration_sec       DOUBLE PRECISION,
+    pass_frame_count        INTEGER,
     PRIMARY KEY (id, timestamp)
 );
 

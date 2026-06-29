@@ -76,6 +76,8 @@ class FrameStore:
             df = dfs[0]
             df = df.drop_duplicates(subset=["timestamp"], keep="last")
 
+
+
             # Apply anomaly scores if a scoring service is wired in
             if self._scoring is not None:
                 df = self._scoring.ensure_scores(sat_id, df)
@@ -176,8 +178,15 @@ class FrameStore:
                             "raw_frame": rf.raw_frame,
                             "snr": rf.snr,
                             "anomaly_score": tf.anomaly_score,
-                            "is_anomaly": tf.is_anomaly,
+                            "is_anomaly": tf.is_anomaly or False,
                             "missing_fields": tf.missing_fields,
+                            "missing_raw_fields": tf.missing_raw_fields,
+                            "frame_is_complete": tf.frame_is_complete,
+                            "dropped_packet_suspect": tf.dropped_packet_suspect,
+                            "sampling_irregular": tf.sampling_irregular,
+                            "pass_id": tf.pass_id,
+                            "pass_duration_sec": tf.pass_duration_sec,
+                            "pass_frame_count": tf.pass_frame_count,
                         }
                         if isinstance(tf.features, dict):
                             row.update(tf.features)

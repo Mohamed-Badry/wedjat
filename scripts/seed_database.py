@@ -126,6 +126,14 @@ def seed_satellite(norad_id: int):
                     anomaly_score = float(r_row["anomaly_score"]) if pd.notna(r_row["anomaly_score"]) else None
                     is_anomaly = bool(r_row["is_anomaly"]) if pd.notna(r_row["is_anomaly"]) else False
 
+                    frame_is_complete = bool(r_row["frame_is_complete"]) if "frame_is_complete" in r_row and pd.notna(r_row["frame_is_complete"]) else True
+                    missing_raw_fields = str(r_row["missing_raw_fields"]) if "missing_raw_fields" in r_row and pd.notna(r_row["missing_raw_fields"]) else "[]"
+                    dropped_packet_suspect = bool(r_row["dropped_packet_suspect"]) if "dropped_packet_suspect" in r_row and pd.notna(r_row["dropped_packet_suspect"]) else False
+                    sampling_irregular = bool(r_row["sampling_irregular"]) if "sampling_irregular" in r_row and pd.notna(r_row["sampling_irregular"]) else False
+                    pass_id = int(r_row["pass_id"]) if "pass_id" in r_row and pd.notna(r_row["pass_id"]) else None
+                    pass_duration_sec = float(r_row["pass_duration_sec"]) if "pass_duration_sec" in r_row and pd.notna(r_row["pass_duration_sec"]) else None
+                    pass_frame_count = int(r_row["pass_frame_count"]) if "pass_frame_count" in r_row and pd.notna(r_row["pass_frame_count"]) else None
+
                     telem_record = TelemetryRow(
                         timestamp=r_rec.timestamp,
                         norad_id=norad_id,
@@ -133,7 +141,14 @@ def seed_satellite(norad_id: int):
                         features=features,
                         anomaly_score=anomaly_score,
                         is_anomaly=is_anomaly,
-                        missing_fields=missing
+                        missing_fields=missing,
+                        frame_is_complete=frame_is_complete,
+                        missing_raw_fields=missing_raw_fields,
+                        dropped_packet_suspect=dropped_packet_suspect,
+                        sampling_irregular=sampling_irregular,
+                        pass_id=pass_id,
+                        pass_duration_sec=pass_duration_sec,
+                        pass_frame_count=pass_frame_count
                     )
                     session.add(telem_record)
                 session.commit()
@@ -164,6 +179,14 @@ def seed_satellite(norad_id: int):
                 anomaly_score = float(r_row["anomaly_score"]) if pd.notna(r_row["anomaly_score"]) else None
                 is_anomaly = bool(r_row["is_anomaly"]) if pd.notna(r_row["is_anomaly"]) else False
 
+                frame_is_complete = bool(r_row["frame_is_complete"]) if "frame_is_complete" in r_row and pd.notna(r_row["frame_is_complete"]) else True
+                missing_raw_fields = str(r_row["missing_raw_fields"]) if "missing_raw_fields" in r_row and pd.notna(r_row["missing_raw_fields"]) else "[]"
+                dropped_packet_suspect = bool(r_row["dropped_packet_suspect"]) if "dropped_packet_suspect" in r_row and pd.notna(r_row["dropped_packet_suspect"]) else False
+                sampling_irregular = bool(r_row["sampling_irregular"]) if "sampling_irregular" in r_row and pd.notna(r_row["sampling_irregular"]) else False
+                pass_id = int(r_row["pass_id"]) if "pass_id" in r_row and pd.notna(r_row["pass_id"]) else None
+                pass_duration_sec = float(r_row["pass_duration_sec"]) if "pass_duration_sec" in r_row and pd.notna(r_row["pass_duration_sec"]) else None
+                pass_frame_count = int(r_row["pass_frame_count"]) if "pass_frame_count" in r_row and pd.notna(r_row["pass_frame_count"]) else None
+
                 telem_record = TelemetryRow(
                     timestamp=r_rec.timestamp,
                     norad_id=norad_id,
@@ -171,7 +194,14 @@ def seed_satellite(norad_id: int):
                     features=features,
                     anomaly_score=anomaly_score,
                     is_anomaly=is_anomaly,
-                    missing_fields=missing
+                    missing_fields=missing,
+                    frame_is_complete=frame_is_complete,
+                    missing_raw_fields=missing_raw_fields,
+                    dropped_packet_suspect=dropped_packet_suspect,
+                    sampling_irregular=sampling_irregular,
+                    pass_id=pass_id,
+                    pass_duration_sec=pass_duration_sec,
+                    pass_frame_count=pass_frame_count
                 )
                 session.add(telem_record)
             session.commit()

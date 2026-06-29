@@ -40,3 +40,10 @@ class TelemetryRow(SQLModel, table=True):
     anomaly_score: Optional[float] = None
     is_anomaly: Optional[bool] = Field(default=False)
     missing_fields: Any = Field(default=list, sa_column=Column(JSONB))
+    frame_is_complete: bool = Field(default=True)
+    missing_raw_fields: Optional[str] = None
+    dropped_packet_suspect: bool = Field(default=False)
+    sampling_irregular: bool = Field(default=False)
+    pass_id: Optional[int] = None
+    pass_duration_sec: Optional[float] = None
+    pass_frame_count: Optional[int] = None

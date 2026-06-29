@@ -133,6 +133,13 @@ def on_message(client, userdata, msg):
                     anomaly_score=None,
                     is_anomaly=False,
                     missing_fields=missing,
+                    frame_is_complete=len(missing) == 0,
+                    missing_raw_fields=json.dumps(missing),
+                    dropped_packet_suspect=False,
+                    sampling_irregular=False,
+                    pass_id=None,
+                    pass_duration_sec=None,
+                    pass_frame_count=None,
                 )
                 session.add(telem_record)
                 
