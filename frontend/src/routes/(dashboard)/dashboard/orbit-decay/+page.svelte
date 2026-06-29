@@ -23,6 +23,7 @@
 </script>
 
 <script lang="ts">
+  import { uiState } from "$lib/stores/ui-state.svelte";
   import { untrack } from "svelte";
   import { fade, fly } from "svelte/transition";
   import { apiFetch } from "$lib/api";
@@ -31,25 +32,22 @@
   import Select from "$lib/components/ui/Select.svelte";
   import { Activity, AlertTriangle, ArrowDown, ChevronRight, Info, Layers, LineChart, Cpu, Database, Network, Wind, ShieldAlert } from "lucide-svelte";
 
-  let noradId = $state<string>("43880");
-  let activeTab = $state<"overview" | "diagnostics">("overview");
-
   // Sync state from URL parameters on initialization
   $effect.pre(() => {
     const tabParam = $page.url.searchParams.get("tab");
     if (tabParam && ["overview", "diagnostics"].includes(tabParam)) {
-      activeTab = tabParam as any;
+      uiState.orbitDecay.activeTab = tabParam as any;
     }
     const noradParam = $page.url.searchParams.get("norad_id");
     if (noradParam) {
-      noradId = noradParam;
+      uiState.orbitDecay.noradId = noradParam;
     }
   });
 
   // Sync state changes back to URL search parameters reactively
   $effect(() => {
-    const currentId = noradId;
-    const currentTab = activeTab;
+    const currentId = uiState.orbitDecay.noradId;
+    const currentTab = uiState.orbitDecay.activeTab;
     
     if (typeof window !== "undefined") {
       const url = new URL(window.location.href);
@@ -77,8 +75,8 @@
   let decayLastUpdated = $state<Date | null>(null);
 
   async function fetchOrbitDecay(force = false) {
-    if (!noradId || noradId === "all") return;
-    const requestNorad = noradId;
+    if (!uiState.orbitDecay.noradId || uiState.orbitDecay.noradId === "all") return;
+    const requestNorad = uiState.orbitDecay.noradId;
     const cached = !force ? readDecayCache(requestNorad) : null;
     if (cached) {
       decayData = cached.data;
@@ -94,7 +92,7 @@
     decayError = null;
     try {
       const data = await apiFetch<any>(`/api/orbit/decay-prediction?norad_id=${requestNorad}`);
-      if (requestNorad !== noradId) return;
+      if (requestNorad !== uiState.orbitDecay.noradId) return;
       decayData = data;
       decayLastUpdated = new Date(writeDecayCache(requestNorad, data));
     } catch (e: any) {
@@ -106,7 +104,7 @@
   }
 
   $effect(() => {
-    noradId;
+    uiState.orbitDecay.noradId;
     untrack(() => fetchOrbitDecay());
   });
 
@@ -175,29 +173,14 @@
         <label for="decay-sat-select" class="text-[10px] font-bold uppercase tracking-wider text-ink-3">Target</label>
         <Select
           id="decay-sat-select"
-          bind:value={noradId}
+          bind:value={uiState.orbitDecay.noradId}
           options={[{ value: '43880', label: 'UWE-4 (43880)' }]}
           class="rounded-lg border-transparent bg-transparent pl-2 pr-8 py-1.5 min-w-[140px] outline-none hover:bg-surface focus:bg-surface transition-colors"
           labelClass="text-sm text-brand font-bold"
         />
       </div>
 
-      <div class="h-6 w-px bg-border/60 mx-1"></div>
-
-      <div class="flex items-center gap-1">
-        <button
-          onclick={() => activeTab = "overview"}
-          class="px-4 py-2 text-xs font-bold rounded-lg transition-all duration-300 {activeTab === 'overview' ? 'bg-panel text-brand shadow-[0_2px_10px_rgba(139,92,246,0.15)] ring-1 ring-border' : 'text-ink-3 hover:text-ink hover:bg-surface/50'}"
-        >
-          Forecast Overview
-        </button>
-        <button
-          onclick={() => activeTab = "diagnostics"}
-          class="px-4 py-2 text-xs font-bold rounded-lg transition-all duration-300 {activeTab === 'diagnostics' ? 'bg-panel text-brand shadow-[0_2px_10px_rgba(139,92,246,0.15)] ring-1 ring-border' : 'text-ink-3 hover:text-ink hover:bg-surface/50'}"
-        >
-          Model Diagnostics
-        </button>
-      </div>
+      <div class="h-6 w-px bg-border/60"></div>
 
       {#if decayLastUpdated || decayRefreshing}
         <div class="hidden xl:flex items-center gap-2 border-l border-border/60 pl-3 text-[10px] font-bold uppercase tracking-wider text-ink-3">
@@ -209,12 +192,34 @@
           {/if}
         </div>
       {/if}
+      <button 
+        onclick={() => fetchOrbitDecay(true)}
+        class="p-2 rounded-lg bg-surface/50 hover:bg-surface text-ink-3 hover:text-brand ring-1 ring-border transition-all mr-2"
+        title="Refresh Orbit Decay Data"
+      >
+        <Activity class="w-4 h-4 {decayRefreshing || decayLoading ? 'animate-spin' : ''}" />
+      </button>
+
+      <div class="flex items-center gap-1 bg-surface p-1 rounded-xl">
+        <button
+          onclick={() => uiState.orbitDecay.activeTab = "overview"}
+          class="px-4 py-2 text-xs font-bold rounded-lg transition-all duration-300 {uiState.orbitDecay.activeTab === 'overview' ? 'bg-panel text-brand shadow-[0_2px_10px_rgba(139,92,246,0.15)] ring-1 ring-border' : 'text-ink-3 hover:text-ink hover:bg-surface/50'}"
+        >
+          Forecast Overview
+        </button>
+        <button
+          onclick={() => uiState.orbitDecay.activeTab = "diagnostics"}
+          class="px-4 py-2 text-xs font-bold rounded-lg transition-all duration-300 {uiState.orbitDecay.activeTab === 'diagnostics' ? 'bg-panel text-brand shadow-[0_2px_10px_rgba(139,92,246,0.15)] ring-1 ring-border' : 'text-ink-3 hover:text-ink hover:bg-surface/50'}"
+        >
+          Model Diagnostics
+        </button>
+      </div>
     </div>
   </header>
 
   <!-- MAIN CONTENT -->
-  <div class="flex lg:min-h-0 lg:flex-1 flex-col overflow-y-auto overflow-x-hidden">
-    {#if noradId === "all"}
+  <div class="flex flex-1 flex-col relative w-full h-full pb-8 lg:pb-0">
+    {#if uiState.orbitDecay.noradId === "all"}
       <div class="flex h-full items-center justify-center p-12 text-center text-sm text-ink-3">
         Please select a specific satellite to view its orbit decay prediction.
       </div>
@@ -234,8 +239,8 @@
         </div>
       </div>
     {:else if decayData}
-      
-      {#if activeTab === "overview"}
+      <div class="flex-1 min-h-0 w-full overflow-hidden {decayLoading ? 'opacity-50 pointer-events-none transition-opacity' : ''}">
+      {#if uiState.orbitDecay.activeTab === "overview"}
         {@const startAlt = decayData.atmospheric_state.altitude_km}
         {@const drop7 = decayData.forecasts.find((f: any) => f.horizon === 'P7D' || f.horizon === '7 days, 0:00:00')?.predicted_decay_km || 0.7}
         {@const drop30 = decayData.forecasts.find((f: any) => f.horizon === 'P30D' || f.horizon === '30 days, 0:00:00')?.predicted_decay_km || 3.0}
@@ -589,6 +594,7 @@
           {/each}
         </div>
       {/if}
+    </div>
     {/if}
   </div>
 </section>
