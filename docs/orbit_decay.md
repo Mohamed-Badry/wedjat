@@ -22,9 +22,10 @@ To accurately predict orbital decay, we:
 ## Deployment & Productionization
 The research notebooks were migrated into a modular, production-ready pipeline:
 - **FastAPI Endpoint (`/api/orbit/decay-prediction`)**: Serves live inferences using pre-trained `.pkl` models.
-- **Robust Centralized File Caching**: To prevent CelesTrak from IP banning our server, all outgoing requests are cached persistently to disk (e.g. `data/tle/celestrak_active.tle` and `data/cache/SW-All.csv`). We use `skyfield.api.Loader` to unify TLE parsing.
-- **Offline Fallbacks**: If CelesTrak goes offline or times out on a cache reload, the system gracefully falls back to the stale cached file without crashing. If no cache exists, it defaults to a local offline dataset (`data/04_daily_orbit_space_weather_uwe4.csv`) to ensure the dashboard remains 100% operational.
-- **Frontend Dashboard**: A Svelte 5 frontend component plots the live historical altitude alongside the AI ensemble predictions and 95% Confidence Intervals, featuring dynamic fallback states and automatic hot-reloading.
+- **Read-Through Database Caching Layer**: To prevent CelesTrak from IP-banning our server and to support isolated Edge Ground Stations, all TLE and NOAA Space Weather queries are routed through a SQLModel database cache (`tle_records` and `space_weather` tables). Stale records (older than 12 hours) are automatically re-fetched in the background.
+- **In-Memory Streaming (Docker Read-Only Safe)**: To guarantee deployment compatibility with read-only Docker containers, the backend completely bypasses local disk writing. It streams raw Celestrak text and the NOAA `SW-All.csv` file directly into memory using `httpx` and `io.StringIO` before parsing and committing the records to the Postgres database cache.
+- **Offline Fallbacks**: If external APIs go offline or time out, the system gracefully falls back to the database cache. If the database cache is empty, it falls back to a pre-packaged offline dataset (`data/04_daily_orbit_space_weather_uwe4.csv`) to ensure the dashboard remains 100% operational.
+- **Frontend Dashboard (Svelte 5 & Persistent State)**: A Svelte 5 frontend component plots the live historical altitude alongside the AI ensemble predictions. It integrates with the global `uiState` store to persist the selected satellite and active tabs across page routes, and features a manual header Refresh button alongside a "Last Updated" timestamp indicating cache freshness.
 
 ## Results
 The trained models for UWE-4 successfully generalized the drag coefficients:

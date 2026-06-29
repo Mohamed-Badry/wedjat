@@ -89,8 +89,8 @@ These are target metrics for the planned online runtime, not a statement of curr
     3. **Cloud (VPS):** A 4GB RAM VPS runs the heavy backend.
     4. **Broker (Mosquitto):** Receives telemetry from the Edge Agent via authenticated (username/password) and TLS-secured MQTT.
     5. **AI Backend (FastAPI):** Subscribes to the broker, normalizes to SI units, and runs the pre-trained PyTorch VAE model on normalized feature vectors.
-    6. **Persistence:** Scores and payload data are persisted to TimescaleDB.
-    7. **Dashboard (SvelteKit):** Provides real-time component health tracking to public web users via WebSockets.
+    6. **Persistence:** Scores and payload data are persisted to TimescaleDB. In addition, a SQLModel-based **Read-Through Database Cache** stores Space-Track TLE data and NOAA Space Weather indices, rendering the FastAPI backend independent of external API rate limits or network drops.
+    7. **Dashboard (SvelteKit):** Provides real-time component health tracking to public web users via WebSockets, persistent UI state across page transitions using global Svelte stores, and manual refresh controls.
     8. **SatNOGS Sync:** An automated worker synchronizes the latest telemetry from the global SatNOGS database to augment our local station's data.
 
 ### C. Domain Modeling (Allium)
