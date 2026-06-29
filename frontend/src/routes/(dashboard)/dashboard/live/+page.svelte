@@ -13,11 +13,20 @@
   let satellites = $derived(data.satellites || []);
   let error = $derived(data.error);
 
-  let noradId = $state<string>("43880");
-  let limit = $state<number>(25);
-  let isLive = $state<boolean>(true);
+  import { uiState } from '$lib/stores/ui-state.svelte';
 
-  let frames = $state<TelemetryFrame[]>([]);
+  let noradId = $state<string>(uiState.live.noradId);
+  let limit = $state<number>(uiState.live.limit);
+  let isLive = $state<boolean>(uiState.live.isLive);
+
+  let frames = $state<TelemetryFrame[]>(uiState.live.frames);
+
+  $effect(() => {
+    uiState.live.noradId = noradId;
+    uiState.live.limit = limit;
+    uiState.live.isLive = isLive;
+    uiState.live.frames = frames;
+  });
   let loading = $state(false);
   let selectedTimestamp = $state<string | null>(null);
 

@@ -23,10 +23,13 @@
   let analytics = $derived(data.analytics);
   let satellites = $derived(data.satellites || []);
 
+  import { uiState } from '$lib/stores/ui-state.svelte';
+
   // State Management for active Tab (Preserved through query parameter or URL)
-  let activeTab = $state<'throughput' | 'quality' | 'health'>('throughput');
+  let activeTab = $state<'throughput' | 'quality' | 'health'>(uiState.analytics.activeTab);
   
   $effect(() => {
+    uiState.analytics.activeTab = activeTab;
     const tabParam = $page.url.searchParams.get('tab');
     if (tabParam === 'throughput' || tabParam === 'quality' || tabParam === 'health') {
       activeTab = tabParam;

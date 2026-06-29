@@ -11,11 +11,19 @@
   let satellites = $derived(data.satellites || []);
   let error = $derived(data.error);
 
-  let noradId = $state<string>('43880');
-  let dataLimit = $state<number>(50);
+  import { uiState } from '$lib/stores/ui-state.svelte';
+
+  let noradId = $state<string>(uiState.inspector.noradId);
+  let dataLimit = $state<number>(uiState.inspector.dataLimit);
   let loading = $state(false);
 
-  let telemetryFrames = $state<TelemetryFrame[]>([]);
+  let telemetryFrames = $state<TelemetryFrame[]>(uiState.inspector.telemetryFrames);
+
+  $effect(() => {
+    uiState.inspector.noradId = noradId;
+    uiState.inspector.dataLimit = dataLimit;
+    uiState.inspector.telemetryFrames = telemetryFrames;
+  });
   let selectedFrameId = $state<string | null>(null);
 
   let selectedFrame = $derived(

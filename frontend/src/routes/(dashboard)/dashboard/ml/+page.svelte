@@ -14,11 +14,19 @@
   let satellites = $derived(data.satellites || []);
   let error = $derived(data.error);
 
-  let noradId = $state<string>('43880');
-  let dataLimit = $state<number>(50);
+  import { uiState } from '$lib/stores/ui-state.svelte';
+
+  let noradId = $state<string>(uiState.ml.noradId);
+  let dataLimit = $state<number>(uiState.ml.dataLimit);
   let loading = $state(false);
 
-  let anomalies = $state<AnomalyRecord[]>([]);
+  let anomalies = $state<AnomalyRecord[]>(uiState.ml.anomalies);
+
+  $effect(() => {
+    uiState.ml.noradId = noradId;
+    uiState.ml.dataLimit = dataLimit;
+    uiState.ml.anomalies = anomalies;
+  });
   let selectedAnomalyId = $state<string | null>(null);
 
   let selectedAnomaly = $derived(

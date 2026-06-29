@@ -57,16 +57,28 @@
   let satellites = $derived((data.satellites || []) as SatelliteSummary[]);
   let error = $derived(data.error);
 
-  let station = $state<StationLocation>({ ...stationPresets[0] });
-  let selectedStationId = $state<string>('beni_suef');
-  let selectedNoradId = $state<string>('43880');
-  let lookaheadHours = $state<number>(24);
-  let minElevation = $state<number>(10);
+  import { uiState } from '$lib/stores/ui-state.svelte';
+
+  let selectedStationId = $state<string>(uiState.operations.selectedStationId);
+  let station = $state<StationLocation>({ ...(stationPresets.find(s => s.id === uiState.operations.selectedStationId) || stationPresets[0]) });
+  let selectedNoradId = $state<string>(uiState.operations.selectedNoradId);
+  let lookaheadHours = $state<number>(uiState.operations.lookaheadHours);
+  let minElevation = $state<number>(uiState.operations.minElevation);
   let loading = $state(false);
   let requestError = $state<string | null>(null);
-  let passes = $state<PassPrediction[]>([]);
-  let selectedPassIndex = $state(0);
-  let lastRun = $state<LastRun | null>(null);
+  let passes = $state<PassPrediction[]>(uiState.operations.passes);
+  let selectedPassIndex = $state(uiState.operations.selectedPassIndex);
+  let lastRun = $state<LastRun | null>(uiState.operations.lastRun);
+
+  $effect(() => {
+    uiState.operations.selectedStationId = selectedStationId;
+    uiState.operations.selectedNoradId = selectedNoradId;
+    uiState.operations.lookaheadHours = lookaheadHours;
+    uiState.operations.minElevation = minElevation;
+    uiState.operations.selectedPassIndex = selectedPassIndex;
+    uiState.operations.passes = passes;
+    uiState.operations.lastRun = lastRun;
+  });
 
   let selectedPass = $derived(passes[selectedPassIndex] ?? null);
   let nextPass = $derived(passes[0] ?? null);

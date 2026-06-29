@@ -17,11 +17,18 @@
   let satellites = $derived(data.satellites || []);
   let error = $derived(data.error);
 
-  let noradId = $state<string>('43880');
-  let dataLimit = $state<number>(1000); // Increased limit for better macro trends
+  import { uiState } from '$lib/stores/ui-state.svelte';
 
+  let noradId = $state<string>(uiState.eda.noradId);
+  let dataLimit = $state<number>(uiState.eda.dataLimit);
   let loading = $state(false);
-  let telemetryFrames = $state<TelemetryFrame[]>([]);
+  let telemetryFrames = $state<TelemetryFrame[]>(uiState.eda.telemetryFrames);
+
+  $effect(() => {
+    uiState.eda.noradId = noradId;
+    uiState.eda.dataLimit = dataLimit;
+    uiState.eda.telemetryFrames = telemetryFrames;
+  });
 
   import { normalizeFeatures } from '$lib/data/transforms';
   import type { FeatureMap, NormalizedFeatures } from '$lib/data/transforms';
