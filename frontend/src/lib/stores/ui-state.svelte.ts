@@ -31,5 +31,13 @@ export const uiState = $state({
     limit: 100,
     isLive: true,
     frames: [] as any[]
+  },
+  tracker: {
+    noradId: '43880',
+    activeTab: 'mission' as 'mission' | 'orbital' | 'forecast' | 'conjunctions'
+  },
+  orbitDecay: {
+    noradId: '43880',
+    activeTab: 'overview' as 'overview' | 'diagnostics'
   }
 });

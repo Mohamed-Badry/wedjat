@@ -24,6 +24,7 @@
 </script>
 
 <script lang="ts">
+  import { uiState } from "$lib/stores/ui-state.svelte";
   import { untrack, onDestroy } from "svelte";
   import { fade } from "svelte/transition";
   import { apiFetch } from "$lib/api";
@@ -44,25 +45,28 @@
   import ConjunctionBanner from "$lib/components/tracker/ConjunctionBanner.svelte";
   import TelemetryMatrix from "$lib/components/tracker/TelemetryMatrix.svelte";
 
-  let noradId = $state<string>("43880");
-  let activeTab = $state<"mission" | "orbital" | "forecast" | "conjunctions">("mission");
+  let snapshotData = $state<TrackerSnapshot | null>(null);
+  let conjunctionData = $state<ConjunctionEvent[]>([]);
+  let snapshotLoading = $state<boolean>(false);
+  let snapshotError = $state<string | null>(null);
+  let snapshotLastUpdated = $state<Date | null>(null);
 
   // Sync state from URL parameters on initialization
   $effect.pre(() => {
     const tabParam = $page.url.searchParams.get("tab");
     if (tabParam && ["mission", "orbital", "forecast", "conjunctions"].includes(tabParam)) {
-      activeTab = tabParam as any;
+      uiState.tracker.activeTab = tabParam as any;
     }
     const noradParam = $page.url.searchParams.get("norad_id");
     if (noradParam) {
-      noradId = noradParam;
+      uiState.tracker.noradId = noradParam;
     }
   });
 
   // Sync state changes back to URL search parameters reactively
   $effect(() => {
-    const currentId = noradId;
-    const currentTab = activeTab;
+    const currentId = uiState.tracker.noradId;
+    const currentTab = uiState.tracker.activeTab;
     
     if (typeof window !== "undefined") {
       const url = new URL(window.location.href);
@@ -83,36 +87,38 @@
     }
   });
 
-  let snapshotData = $state<TrackerSnapshot | null>(null);
-  let conjunctionData = $state<ConjunctionEvent[]>([]);
-  let snapshotLoading = $state<boolean>(false);
-  let snapshotError = $state<string | null>(null);
-
   // Fetch logic
   async function fetchTrackerData(isSilentRefresh = false) {
-    if (!noradId || noradId === "all") return;
+    if (!uiState.tracker.noradId || uiState.tracker.noradId === "all") return;
     
     if (!isSilentRefresh) {
-      const cached = readTrackerCache(noradId);
+      const cached = readTrackerCache(uiState.tracker.noradId);
       if (cached) {
         snapshotData = cached.snapshot;
         conjunctionData = cached.conjunctions;
+        snapshotLastUpdated = new Date(cached.updatedAt);
         snapshotError = null;
         snapshotLoading = false;
         return;
       }
-      snapshotLoading = true;
-      snapshotError = null;
     }
+
+    const blockingLoad = !snapshotData && !isSilentRefresh;
+    snapshotLoading = blockingLoad;
+    snapshotError = null;
     
     try {
-      const [snap, conj] = await Promise.all([
-        apiFetch<TrackerSnapshot>(`/api/tracker/state?norad_id=${noradId}`),
-        apiFetch<{ events: ConjunctionEvent[] }>(`/api/tracker/conjunctions?norad_id=${noradId}`)
+      const [snapRes, conjRes] = await Promise.all([
+        apiFetch<TrackerSnapshot>(`/api/tracker/state?norad_id=${uiState.tracker.noradId}`),
+        apiFetch<{ events: ConjunctionEvent[] }>(`/api/tracker/conjunctions?norad_id=${uiState.tracker.noradId}`)
       ]);
+      const snap = snapRes;
+      const conj = conjRes;
+      
+      const updatedAt = writeTrackerCache(uiState.tracker.noradId, snap, conj.events);
       snapshotData = snap;
       conjunctionData = conj.events;
-      writeTrackerCache(noradId, snap, conj.events);
+      snapshotLastUpdated = new Date(updatedAt);
     } catch (e: any) {
       if (!isSilentRefresh) {
         snapshotError = e.message || "Failed to load tracker data";
@@ -129,13 +135,13 @@
   
   $effect(() => {
     // Re-fetch when noradId changes
-    noradId;
+    uiState.tracker.noradId;
     untrack(() => fetchTrackerData());
   });
   
   $effect(() => {
     // Manage interval based on active tab
-    if (activeTab === "mission") {
+    if (uiState.tracker.activeTab === "mission") {
       refreshTimer = setInterval(() => {
         untrack(() => fetchTrackerData(true));
       }, 10000); // 10s refresh
@@ -199,12 +205,31 @@
         <label for="tracker-sat-select" class="text-[10px] font-bold uppercase tracking-wider text-ink-3">Target</label>
         <Select
           id="tracker-sat-select"
-          bind:value={noradId}
-          options={[{ value: '43880', label: 'UWE-4 (43880)' }]}
+          options={[
+            { value: "all", label: "Global Tracker" },
+            { value: "43880", label: "UWE-4 (43880)" },
+            { value: "25544", label: "ISS (25544)" }
+          ]}
+          bind:value={uiState.tracker.noradId}
           class="rounded-lg border-transparent bg-transparent pl-2 pr-8 py-1.5 min-w-[140px] outline-none hover:bg-surface focus:bg-surface transition-colors"
           labelClass="text-sm text-brand font-bold"
         />
       </div>
+
+      {#if snapshotLastUpdated}
+        <div class="flex flex-col items-end mr-1 hidden sm:flex">
+          <span class="text-[10px] text-ink-3 uppercase tracking-wider font-bold">Updated</span>
+          <span class="text-xs text-ink-2 font-mono">{snapshotLastUpdated.toLocaleTimeString()}</span>
+        </div>
+      {/if}
+
+      <button 
+        onclick={() => fetchTrackerData(true)}
+        class="p-2 rounded-lg bg-surface/50 hover:bg-surface text-ink-3 hover:text-brand ring-1 ring-border transition-all"
+        title="Refresh Tracker Data"
+      >
+        <Activity class="w-4 h-4 {snapshotLoading ? 'animate-spin' : ''}" />
+      </button>
 
       <div class="h-6 w-px bg-border/60 mx-1 hidden lg:block"></div>
 
@@ -216,8 +241,8 @@
           { id: "conjunctions", label: "Conjunctions" }
         ] as tab}
           <button
-            onclick={() => activeTab = tab.id as any}
-            class="px-3 py-1.5 text-xs font-bold rounded-lg transition-all duration-300 {activeTab === tab.id ? 'bg-panel text-brand shadow-[0_2px_10px_rgba(139,92,246,0.15)] ring-1 ring-border' : 'text-ink-3 hover:text-ink hover:bg-surface/50'}"
+            onclick={() => uiState.tracker.activeTab = tab.id as any}
+            class="px-3 py-1.5 text-xs font-bold rounded-lg transition-all duration-300 {uiState.tracker.activeTab === tab.id ? 'bg-panel text-brand shadow-[0_2px_10px_rgba(139,92,246,0.15)] ring-1 ring-border' : 'text-ink-3 hover:text-ink hover:bg-surface/50'}"
           >
             {tab.label}
           </button>
@@ -228,7 +253,7 @@
 
   <!-- MAIN CONTENT -->
   <div class="flex lg:min-h-0 lg:flex-1 flex-col lg:overflow-hidden overflow-y-auto overflow-x-hidden pb-safe relative">
-    {#if noradId === "all"}
+    {#if uiState.tracker.noradId === "all"}
       <div class="flex h-full items-center justify-center p-12 text-center text-sm text-ink-3">
         Please select a specific satellite to track.
       </div>
@@ -255,7 +280,7 @@
       <!-- ═══════════════════════════════════════════════════════ -->
       <!-- TAB 1: MISSION CONTROL                                 -->
       <!-- ═══════════════════════════════════════════════════════ -->
-      {#if activeTab === "mission"}
+      {#if uiState.tracker.activeTab === "mission"}
         <div in:fade={{duration: 200}} class="flex flex-col gap-6">
           <ConjunctionBanner events={conjunctionData} />
           
@@ -290,7 +315,7 @@
       <!-- ═══════════════════════════════════════════════════════ -->
       <!-- TAB 2: ORBITAL (COE) + DIAGNOSTICS                    -->
       <!-- ═══════════════════════════════════════════════════════ -->
-      {:else if activeTab === "orbital"}
+      {:else if uiState.tracker.activeTab === "orbital"}
         {@const coe = snapshotData.state.coe}
         <div in:fade={{duration: 200}} class="flex flex-col gap-4 flex-1 min-h-0 lg:h-full">
           
@@ -394,7 +419,7 @@
       <!-- ═══════════════════════════════════════════════════════ -->
       <!-- TAB 3: FORECAST (merged Dynamics + Forecast)           -->
       <!-- ═══════════════════════════════════════════════════════ -->
-      {:else if activeTab === "forecast"}
+      {:else if uiState.tracker.activeTab === "forecast"}
         <div in:fade={{duration: 200}} class="flex flex-col gap-4 flex-1 min-h-0 lg:h-full">
           
           <!-- Top row: Table (left) + Altitude chart (right) -->
@@ -565,7 +590,7 @@
       <!-- ═══════════════════════════════════════════════════════ -->
       <!-- TAB 4: CONJUNCTIONS                                    -->
       <!-- ═══════════════════════════════════════════════════════ -->
-      {:else if activeTab === "conjunctions"}
+      {:else if uiState.tracker.activeTab === "conjunctions"}
         <div in:fade={{duration: 200}} class="chart-card overflow-hidden flex flex-col h-full">
           <div class="px-4 py-3 border-b border-border/50 bg-surface/50 flex justify-between items-center">
             <span class="chart-card-title flex items-center gap-2"><ShieldAlert class="size-4" /> Threat Catalog</span>
