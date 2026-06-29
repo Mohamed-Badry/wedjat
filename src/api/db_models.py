@@ -47,3 +47,38 @@ class TelemetryRow(SQLModel, table=True):
     pass_id: Optional[int] = None
     pass_duration_sec: Optional[float] = None
     pass_frame_count: Optional[int] = None
+
+class TleRecord(SQLModel, table=True):
+    __tablename__ = "tle_records"
+    id: Optional[int] = Field(
+        default=None, sa_column=Column(Integer, Identity(always=True), primary_key=True)
+    )
+    norad_id: int = Field(index=True)
+    epoch_timestamp: datetime = Field(sa_column=Column(DateTime(timezone=True)))
+    tle_line1: str
+    tle_line2: str
+    fetched_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    source: str = Field(default="api")
+
+class SpaceWeatherRecord(SQLModel, table=True):
+    __tablename__ = "space_weather"
+    id: Optional[int] = Field(
+        default=None, sa_column=Column(Integer, Identity(always=True), primary_key=True)
+    )
+    timestamp: datetime = Field(sa_column=Column(DateTime(timezone=True), unique=True))
+    f107_index: float
+    kp_index: float
+    ap_index: float
+    fetched_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class ConjunctionRecord(SQLModel, table=True):
+    __tablename__ = "conjunctions"
+    id: Optional[int] = Field(
+        default=None, sa_column=Column(Integer, Identity(always=True), primary_key=True)
+    )
+    primary_norad_id: int = Field(index=True)
+    secondary_norad_id: int
+    tca_timestamp: datetime = Field(sa_column=Column(DateTime(timezone=True)))
+    miss_distance_km: float
+    collision_probability: float
+    fetched_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
