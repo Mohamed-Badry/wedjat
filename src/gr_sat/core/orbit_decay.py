@@ -111,33 +111,83 @@ def download_with_cache(url: str, filename: str, ttl_seconds: int = 3600) -> Pat
 
 @ttl_cache(ttl_seconds=600)
 def fetch_latest_space_weather() -> SpaceWeatherObservation:
-    """Fetch latest space weather from CelesTrak SW-All.csv with persistent file caching"""
+    """Fetch latest space weather from DB cache, or CelesTrak SW-All.csv"""
+    from datetime import datetime, timezone
+    
+    # 1. DB Cache Look-through
+    try:
+        from sqlmodel import Session, select
+        try:
+            from src.api.database import get_engine
+            from src.api.db_models import SpaceWeatherRecord
+        except ImportError:
+            from api.database import get_engine  # type: ignore
+            from api.db_models import SpaceWeatherRecord  # type: ignore
+
+        engine = get_engine()
+        if engine:
+            with Session(engine) as session:
+                stmt = select(SpaceWeatherRecord).order_by(SpaceWeatherRecord.fetched_at.desc())
+                record = session.exec(stmt).first()
+                if record:
+                    age_hours = (datetime.now(timezone.utc) - record.fetched_at).total_seconds() / 3600.0
+                    if age_hours < 12.0:
+                        return SpaceWeatherObservation(
+                            date=record.timestamp,
+                            f107_obs=record.f107_index,
+                            f107a_obs=record.f107_index, # Proxy
+                            kp_max=record.kp_index,
+                            ap_avg=record.ap_index
+                        )
+    except Exception as e:
+        print(f"Database Space Weather fetch failed: {e}")
+
     url = "https://celestrak.org/SpaceData/SW-All.csv"
-    cache_file = download_with_cache(url, "SW-All.csv")
     
     try:
-        if cache_file.exists():
-            df = pd.read_csv(cache_file)
-            valid = df.dropna(subset=["AP_AVG", "F10.7_OBS"])
-            latest = valid.iloc[-1]
-            
-            def safe_float(val, default):
-                try:
-                    if pd.isna(val): return default
-                    return float(val)
-                except:
-                    return default
+        import httpx
+        import io
+        resp = httpx.get(url, timeout=5.0)
+        resp.raise_for_status()
+        
+        df = pd.read_csv(io.StringIO(resp.text))
+        valid = df.dropna(subset=["AP_AVG", "F10.7_OBS"])
+        latest = valid.iloc[-1]
+        
+        def safe_float(val, default):
+            try:
+                if pd.isna(val): return default
+                return float(val)
+            except:
+                return default
 
-            f107 = safe_float(latest.get("F10.7_OBS", None), -999.0)
-            f107a = safe_float(latest.get("F10.7_81_OBS", latest.get("F10.7_CTR81_OBS", f107)), f107)
-            ap_avg = safe_float(latest.get("AP_AVG", None), -999.0)
-            kp_cols = [safe_float(latest.get(f"KP{i}", -999.0), -999.0) for i in range(1, 9)]
-            kp_cols = [k for k in kp_cols if k != -999.0]
-            kp_max = max(kp_cols) if kp_cols else -999.0
+        f107 = safe_float(latest.get("F10.7_OBS", None), -999.0)
+        f107a = safe_float(latest.get("F10.7_81_OBS", latest.get("F10.7_CTR81_OBS", f107)), f107)
+        ap_avg = safe_float(latest.get("AP_AVG", None), -999.0)
+        kp_cols = [safe_float(latest.get(f"KP{i}", -999.0), -999.0) for i in range(1, 9)]
+        kp_cols = [k for k in kp_cols if k != -999.0]
+        kp_max = max(kp_cols) if kp_cols else -999.0
+        
+        obs = SpaceWeatherObservation(
+            date=datetime.now(timezone.utc), f107_obs=f107, f107a_obs=f107a, kp_max=kp_max, ap_avg=ap_avg
+        )
+        
+        # Save to Database
+        try:
+            if engine:
+                with Session(engine) as session:
+                    rec = SpaceWeatherRecord(
+                        timestamp=obs.date,
+                        f107_index=obs.f107_obs,
+                        kp_index=obs.kp_max,
+                        ap_index=obs.ap_avg
+                    )
+                    session.add(rec)
+                    session.commit()
+        except Exception as e:
+            print(f"Failed to save space weather to DB: {e}")
             
-            return SpaceWeatherObservation(
-                date=datetime.now(), f107_obs=f107, f107a_obs=f107a, kp_max=kp_max, ap_avg=ap_avg
-            )
+        return obs
             
         # Offline Fallback
         fallback_file = PROJECT_ROOT / "data" / "04_daily_orbit_space_weather_uwe4.csv"
@@ -164,58 +214,81 @@ def fetch_latest_space_weather() -> SpaceWeatherObservation:
 
 @ttl_cache(ttl_seconds=3600)
 def get_satellite(norad_id: int) -> Optional['EarthSatellite']:
-    from skyfield.api import Loader
-    cache_dir = PROJECT_ROOT / "data" / "tle"
-    cache_dir.mkdir(parents=True, exist_ok=True)
-    custom_loader = Loader(str(cache_dir))
-    max_cache_age_days = float(os.getenv("TLE_CACHE_MAX_AGE_DAYS", "1.0"))
+    from skyfield.api import load, EarthSatellite
+    from datetime import datetime, timezone
     
-    # 1. Try to load from the centralized active TLE list first
-    active_filename = "celestrak_active.tle"
-    active_url = "https://celestrak.org/NORAD/elements/gp.php?GROUP=active&FORMAT=tle"
-    
-    reload = True
-    active_path = cache_dir / active_filename
-    if active_path.exists():
-        if custom_loader.days_old(active_filename) < max_cache_age_days:
-            reload = False
-            
+    # 1. DB Cache Look-through
     try:
-        tle_file = custom_loader.tle_file(active_url, filename=active_filename, reload=reload)
+        from sqlmodel import Session, select
+        try:
+            from src.api.database import get_engine
+            from src.api.db_models import TleRecord
+        except ImportError:
+            from api.database import get_engine  # type: ignore
+            from api.db_models import TleRecord  # type: ignore
+
+        engine = get_engine()
+        if engine:
+            with Session(engine) as session:
+                stmt = select(TleRecord).where(TleRecord.norad_id == norad_id).order_by(TleRecord.fetched_at.desc())
+                record = session.exec(stmt).first()
+                if record:
+                    age_hours = (datetime.now(timezone.utc) - record.fetched_at).total_seconds() / 3600.0
+                    if age_hours < 12.0:
+                        ts = load.timescale()
+                        return EarthSatellite(record.tle_line1, record.tle_line2, str(norad_id), ts)
     except Exception as e:
-        print(f"Failed to fetch active TLEs: {e}")
-        tle_file = None
-        if active_path.exists():
-            print(f"Falling back to stale active TLE cache")
-            tle_file = custom_loader.tle_file(active_url, filename=active_filename, reload=False)
-            
-    if tle_file:
-        for sat in tle_file:
-            if sat.model.satnum == norad_id:
-                return sat
-        
-    # 2. If not found in active (or banned), try fetching the specific TLE
-    specific_filename = f"tle_{norad_id}.txt"
-    specific_url = f"https://celestrak.org/NORAD/elements/gp.php?CATNR={norad_id}&FORMAT=tle"
-    
-    reload = True
-    specific_path = cache_dir / specific_filename
-    if specific_path.exists():
-        if custom_loader.days_old(specific_filename) < max_cache_age_days:
-            reload = False
-            
+        print(f"Database TLE fetch failed: {e}")
+
+    # 2. Fetch fresh TLE strings from Celestrak if DB missing or stale
+    import httpx
     try:
-        tle_file = custom_loader.tle_file(specific_url, filename=specific_filename, reload=reload)
-    except Exception as e:
-        print(f"Failed to fetch specific TLE for {norad_id}: {e}")
-        tle_file = None
-        if specific_path.exists():
-            print(f"Falling back to stale specific TLE cache")
-            tle_file = custom_loader.tle_file(specific_url, filename=specific_filename, reload=False)
-            
-    if tle_file:
-        return tle_file[0]
+        url = f"https://celestrak.org/NORAD/elements/gp.php?CATNR={norad_id}&FORMAT=tle"
+        resp = httpx.get(url, timeout=5.0)
+        resp.raise_for_status()
         
+        lines = [line.strip() for line in resp.text.strip().split("\n") if line.strip()]
+        if len(lines) >= 3:
+            name = lines[0]
+            line1 = lines[1]
+            line2 = lines[2]
+        elif len(lines) == 2:
+            name = str(norad_id)
+            line1 = lines[0]
+            line2 = lines[1]
+        else:
+            raise ValueError(f"Invalid TLE format received for {norad_id}")
+            
+        # 3. Save the fresh TLE to our Database Cache
+        try:
+            if engine:
+                with Session(engine) as session:
+                    new_rec = TleRecord(
+                        norad_id=norad_id,
+                        epoch_timestamp=datetime.now(timezone.utc), # DB index sorting
+                        tle_line1=line1,
+                        tle_line2=line2,
+                        source="celestrak"
+                    )
+                    session.add(new_rec)
+                    session.commit()
+        except Exception as e:
+            print(f"Failed to save TLE to DB: {e}")
+            
+        ts = load.timescale()
+        return EarthSatellite(line1, line2, name, ts)
+        
+    except Exception as e:
+        print(f"Failed to fetch fresh TLE from Celestrak: {e}")
+        
+    # 3. Ultimate Fallback: Offline flat file
+    fallback_file = PROJECT_ROOT / "data" / "cache" / f"tle_{norad_id}.txt"
+    if fallback_file.exists():
+        ts = load.timescale()
+        lines = fallback_file.read_text().strip().split("\n")
+        if len(lines) >= 2:
+            return EarthSatellite(lines[-2].strip(), lines[-1].strip(), str(norad_id), ts)
+            
     return None
 
 def compute_atmospheric_state(norad_id: int, weather: SpaceWeatherObservation) -> AtmosphericState:
