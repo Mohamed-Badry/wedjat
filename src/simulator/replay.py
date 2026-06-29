@@ -121,9 +121,9 @@ def main():
         else:
             try:
                 record = json.loads(lines[idx % len(lines)])
-                norad_id = record.get("norad_id", DEFAULT_PROFILE.norad_id)
+                norad_id = record.get("norad_cat_id", record.get("norad_id", DEFAULT_PROFILE.norad_id))
                 raw_frame = record.get("frame", "")
-                original_timestamp = record.get("timestamp", datetime.now(timezone.utc).isoformat())
+                original_timestamp = datetime.now(timezone.utc).isoformat()
                 idx += 1
             except:
                 norad_id = DEFAULT_PROFILE.norad_id

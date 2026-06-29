@@ -136,20 +136,46 @@ def create_app(repository: DashboardDataRepository | None = None) -> FastAPI:
             while True:
                 for norad_id in list(subscribed_norad_ids):
                     # Push Telemetry
-                    telemetry_data = await run_in_threadpool(data.recent_frames, norad_id=norad_id, limit=1)
+                    telemetry_data = await run_in_threadpool(data.recent_frames, norad_id=norad_id, limit=20)
                     if telemetry_data.get("frames"):
-                        frame = telemetry_data["frames"][0]
-                        if frame["timestamp"] != last_frame_timestamps.get(norad_id):
-                            last_frame_timestamps[norad_id] = frame["timestamp"]
-                            await websocket.send_json({"type": "push_telemetry", "frame": frame})
+                        frames = telemetry_data["frames"]
+                        last_ts = last_frame_timestamps.get(norad_id)
+                        
+                        if last_ts is None:
+                            last_frame_timestamps[norad_id] = frames[0]["timestamp"]
+                            await websocket.send_json({"type": "push_telemetry", "frame": frames[0]})
+                        else:
+                            new_frames = []
+                            for frame in frames:
+                                if frame["timestamp"] > last_ts:
+                                    new_frames.append(frame)
+                                else:
+                                    break
+                            for frame in reversed(new_frames):
+                                await websocket.send_json({"type": "push_telemetry", "frame": frame})
+                            if new_frames:
+                                last_frame_timestamps[norad_id] = new_frames[0]["timestamp"]
 
                     # Push Anomaly Alerts
-                    anomaly_data = await run_in_threadpool(data.recent_anomalies, norad_id=norad_id, limit=1)
+                    anomaly_data = await run_in_threadpool(data.recent_anomalies, norad_id=norad_id, limit=20)
                     if anomaly_data.get("anomalies"):
-                        anomaly = anomaly_data["anomalies"][0]
-                        if anomaly["timestamp"] != last_anomaly_timestamps.get(norad_id):
-                            last_anomaly_timestamps[norad_id] = anomaly["timestamp"]
-                            await websocket.send_json({"type": "push_anomaly_alert", "alert": anomaly})
+                        anomalies = anomaly_data["anomalies"]
+                        last_anomaly_ts = last_anomaly_timestamps.get(norad_id)
+                        
+                        if last_anomaly_ts is None:
+                            last_anomaly_timestamps[norad_id] = anomalies[0]["timestamp"]
+                            await websocket.send_json({"type": "push_anomaly_alert", "alert": anomalies[0]})
+                        else:
+                            new_anomalies = []
+                            for anomaly in anomalies:
+                                if anomaly["timestamp"] > last_anomaly_ts:
+                                    new_anomalies.append(anomaly)
+                                else:
+                                    break
+                            for anomaly in reversed(new_anomalies):
+                                await websocket.send_json({"type": "push_anomaly_alert", "alert": anomaly})
+                            if new_anomalies:
+                                last_anomaly_timestamps[norad_id] = new_anomalies[0]["timestamp"]
                 
                 await asyncio.sleep(2)
         except (WebSocketDisconnect, RuntimeError):

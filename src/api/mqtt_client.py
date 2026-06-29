@@ -30,7 +30,7 @@ def scoring_worker(repository):
         if task is None:
             break
             
-        telem_id, norad_id, features = task
+        telem_id, norad_id, timestamp_str, features = task
         try:
             model_status = repository.model_status(norad_id)
             if model_status.status == "ready":
@@ -58,6 +58,9 @@ def scoring_worker(repository):
                                 telem.is_anomaly = is_anomaly
                                 session.commit()
                                 logger.info(f"Asynchronously scored frame {telem_id} for NORAD {norad_id}: score={anomaly_score:.3f}")
+                                
+                                # Update cache with anomaly score
+                                repository.update_live_frame_score(int(norad_id), timestamp_str, anomaly_score, is_anomaly)
         except Exception as e:
             logger.error(f"Error scoring frame asynchronously: {e}", exc_info=True)
         finally:
@@ -149,7 +152,17 @@ def on_message(client, userdata, msg):
                 logger.info(f"Persisted frame for NORAD {norad_id}")
                 
                 if res.frame and hasattr(client, "_repository"):
-                    score_queue.put((telem_record.id, int(norad_id), features))
+                    # Add to cache immediately so UI sees it
+                    row_dict = {
+                        "norad_id": int(norad_id),
+                        "timestamp": timestamp.isoformat(),
+                        "is_anomaly": False,
+                        "anomaly_score": None,
+                        **features
+                    }
+                    client._repository.append_live_frame(int(norad_id), row_dict)
+                    
+                    score_queue.put((telem_record.id, int(norad_id), timestamp.isoformat(), features))
                     
             except Exception as e:
                 session.rollback()

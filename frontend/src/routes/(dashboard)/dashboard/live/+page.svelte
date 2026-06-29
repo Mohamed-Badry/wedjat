@@ -67,6 +67,9 @@
   $effect(() => {
     if (!isLive) return;
 
+    // Read synchronously so Svelte tracks dependencies
+    const currentNoradId = noradId;
+
     const wsUrl = `${getWsUrl()}/api/ws/dashboard`;
     let ws = new WebSocket(wsUrl);
 
@@ -74,7 +77,7 @@
       // Send initial subscription
       const payload = {
         action: "subscribe",
-        norad_id: noradId === "all" ? null : parseInt(noradId)
+        norad_id: currentNoradId === "all" ? null : parseInt(currentNoradId)
       };
       ws.send(JSON.stringify(payload));
     };

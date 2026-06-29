@@ -89,6 +89,25 @@ class FrameStore:
 
         return self._cache[sat_id].copy()
 
+    def append_frame(self, norad_id: int, row: dict) -> None:
+        """Injects a live frame directly into the in-memory cache."""
+        if norad_id in self._cache:
+            new_df = pd.DataFrame([row])
+            if "timestamp" in new_df.columns:
+                new_df["timestamp"] = pd.to_datetime(new_df["timestamp"], utc=True)
+            self._cache[norad_id] = pd.concat([self._cache[norad_id], new_df], ignore_index=True)
+            self._cache[norad_id] = self._cache[norad_id].sort_values("timestamp").reset_index(drop=True)
+
+    def update_frame_score(self, norad_id: int, timestamp_str: str, score: float, is_anomaly: bool) -> None:
+        """Updates the anomaly score for a specific cached frame after asynchronous ML processing."""
+        if norad_id in self._cache:
+            df = self._cache[norad_id]
+            ts = pd.to_datetime(timestamp_str, utc=True)
+            idx = df.index[df['timestamp'] == ts].tolist()
+            if idx:
+                df.at[idx[0], 'anomaly_score'] = score
+                df.at[idx[0], 'is_anomaly'] = is_anomaly
+
     def combined_frames(self, norad_id: int | None) -> pd.DataFrame:
         """Return frames for a single satellite, or all satellites combined."""
         if norad_id is not None:

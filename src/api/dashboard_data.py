@@ -169,6 +169,14 @@ class DashboardDataRepository:
 
     # ── Telemetry frames ─────────────────────────────────────────────
 
+    def append_live_frame(self, norad_id: int, row: dict) -> None:
+        """Called by the MQTT worker to inject a live frame into the cache."""
+        self._store.append_frame(norad_id, row)
+
+    def update_live_frame_score(self, norad_id: int, timestamp_str: str, score: float, is_anomaly: bool) -> None:
+        """Called by the ML worker to update a live frame's score in the cache."""
+        self._store.update_frame_score(norad_id, timestamp_str, score, is_anomaly)
+
     def recent_frames(
         self,
         norad_id: int | None = None,
