@@ -1,5 +1,3 @@
-# DISCLAIMER: This project is still nowhere near complete and heavily AI-assisted use at your own discretion.
-
 # Project Watchdog (gr_sat)
 
 This repository hosts the **Project Watchdog** codebase, an end-to-end pipeline for satellite telemetry analysis. It features offline telemetry processing, per-satellite anomaly-model training, synthetic-fault benchmarking, a robust FastAPI backend, and a premium SvelteKit + Tailwind dashboard.
