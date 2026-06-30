@@ -32,8 +32,8 @@
 </script>
 
 <div class="flex flex-col items-center justify-between w-full h-full group">
-  <div class="flex-1 flex items-center justify-center py-2">
-    <svg width={SIZE} height={SIZE} viewBox="0 0 {SIZE} {SIZE}" class="overflow-visible">
+  <div class="flex-1 flex items-center justify-center py-1 min-h-0 w-full">
+    <svg viewBox="0 0 {SIZE} {SIZE}" class="overflow-visible w-full h-full max-h-[180px] max-w-[180px]">
       <!-- Grid/Axes (Subtle) -->
       <line x1="0" y1={CENTER} x2={SIZE} y2={CENTER} stroke="currentColor" class="text-border/20" stroke-width="1" stroke-dasharray="2 4" />
       <line x1={CENTER} y1="0" x2={CENTER} y2={SIZE} stroke="currentColor" class="text-border/20" stroke-width="1" stroke-dasharray="2 4" />
@@ -72,7 +72,7 @@
   </div>
 
   <!-- Phase stats grid -->
-  <div class="w-full grid grid-cols-2 gap-x-4 gap-y-2 border-t border-border/30 pt-3 mt-2 font-mono text-xs">
+  <div class="w-full grid grid-cols-2 gap-x-4 gap-y-2 border-t border-border/30 pt-2 mt-1 font-mono text-xs shrink-0">
     <div class="flex flex-col">
       <span class="text-[9px] font-bold uppercase tracking-wider text-ink-3">True Anomaly</span>
       <span class="text-brand font-bold">{fmt(coe.true_anomaly_deg, 1)}°</span>
