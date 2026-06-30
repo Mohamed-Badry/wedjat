@@ -13,6 +13,7 @@
     // operations
     {
       category: "operations",
+      route: "/dashboard",
       title: "Mission Control Hub",
       description: "The central entrypoint for edge operators. Displays live communication uptime, real-time subsystem statuses, and active orbital profiles.",
       icon: LayoutDashboard,
@@ -22,37 +23,17 @@
     },
     {
       category: "operations",
+      route: "/dashboard/operations",
       title: "Ground Station Pass Planner",
       description: "Calculate line-of-sight communication passes for any custom ground coordinate. Includes real-time azimuth/elevation path tracking and Cairo/ Beni Suef ground station presets.",
       icon: Satellite,
       imageLight: "/screenshots/ops-light.png",
       imageDark: "/screenshots/ops-dark.png",
-      badge: "Navigation",
-      subImageLight: "/screenshots/tracker-conjunctions-light.png",
-      subImageDark: "/screenshots/tracker-conjunctions-dark.png"
+      badge: "Navigation"
     },
     {
       category: "operations",
-      title: "Satellite Orbit Tracker",
-      description: "Real-time orbital tracking using Two-Line Element (TLE) propagation. Track orbital elements, sub-satellite points, and future conjunction risks.",
-      icon: Crosshair,
-      imageLight: "/screenshots/tracker-mission-light.png",
-      imageDark: "/screenshots/tracker-mission-dark.png",
-      badge: "TLE Propagation"
-    },
-    {
-      category: "operations",
-      title: "Orbit Decay AI Predictor",
-      description: "Predict satellite orbital lifespan and decay rates. Combines physical atmospheric density models with neural network adjustments for high-accuracy forecasts.",
-      icon: Cpu,
-      imageLight: "/screenshots/orbit-decay-overview-light.png",
-      imageDark: "/screenshots/orbit-decay-overview-dark.png",
-      badge: "Decay Simulation",
-      subImageLight: "/screenshots/orbit-decay-diagnostics-light.png",
-      subImageDark: "/screenshots/orbit-decay-diagnostics-dark.png",
-    },
-    {
-      category: "operations",
+      route: "/dashboard/tracker",
       title: "Satellite Orbit Tracker",
       description: "Real-time orbital tracking using Two-Line Element (TLE) propagation. Track orbital elements, sub-satellite points, and future conjunction risks.",
       icon: Crosshair,
@@ -64,6 +45,7 @@
     },
     {
       category: "operations",
+      route: "/dashboard/orbit-decay",
       title: "Orbit Decay AI Predictor",
       description: "Predict satellite orbital lifespan and decay rates. Combines physical atmospheric density models with neural network adjustments for high-accuracy forecasts.",
       icon: Cpu,
@@ -77,6 +59,7 @@
     // telemetry
     {
       category: "telemetry",
+      route: "/dashboard/live",
       title: "Live Telemetry Watcher",
       description: "A sub-second WebSocket telemetry stream. Watch raw packet frames parse live directly from hardware radio receivers.",
       icon: Radio,
@@ -86,6 +69,7 @@
     },
     {
       category: "telemetry",
+      route: "/dashboard/inspector",
       title: "Telemetry Frame Inspector",
       description: "Search and filter through historical telemetry archives. Query specific parameters, isolate anomalies, and export raw data.",
       icon: Search,
@@ -95,6 +79,7 @@
     },
     {
       category: "telemetry",
+      route: "/dashboard/analytics",
       title: "Macro Data Analytics",
       description: "Aggregate data over weeks or months to see trends. Render macro battery charge state profiles, temperature cycles, and signal-to-noise ratios.",
       icon: LineChart,
@@ -106,17 +91,19 @@
     // ai
     {
       category: "ai",
+      route: "/dashboard/ml",
       title: "Inference Inspector",
       description: "Root-cause diagnostics using Variational Autoencoders. Hover over flagged anomalies to view exactly which sensor deviated from the VAE's reconstructed baseline.",
       icon: Activity,
       imageLight: "/screenshots/ml-light.png",
       imageDark: "/screenshots/ml-dark.png",
       badge: "Deep Learning",
-      subImageLight: "/screenshots/eda-light.png",
-      subImageDark: "/screenshots/eda-dark.png"
+      subImageLight: "/screenshots/ml-report-light.png",
+      subImageDark: "/screenshots/ml-report-dark.png"
     },
     {
       category: "ai",
+      route: "/dashboard/eda",
       title: "Exploratory Data Analysis",
       description: "A physics-driven notebook detailing battery charge bimodalities, solar panel temperatures, and sensor Pearson correlations.",
       icon: BookOpen,
@@ -126,6 +113,7 @@
     },
     {
       category: "ai",
+      route: "/dashboard/ml-report",
       title: "Model Architecture & Benchmarks",
       description: "Explore the VAE's sensitivity sweeps, ROC curves, and false-positive thresholds against One-Class SVM and Isolation Forest baselines.",
       icon: BrainCircuit,
@@ -277,7 +265,7 @@
             
             <div class="mt-2">
               <a 
-                href="/dashboard/{feature.category === 'operations' && feature.title.includes('Planner') ? 'operations' : feature.title.includes('Watcher') ? 'live' : feature.title.includes('Inspector') && !feature.title.includes('Inference') ? 'inspector' : feature.title.includes('Analytics') ? 'analytics' : feature.title.includes('Inference') ? 'ml' : feature.title.includes('Exploratory') ? 'eda' : 'ml-report'}" 
+                href={feature.route} 
                 class="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-widest text-brand hover:text-brand/80 transition-colors group"
               >
                 Launch Module 
