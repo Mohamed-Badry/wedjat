@@ -281,13 +281,11 @@
       <!-- TAB 1: MISSION CONTROL                                 -->
       <!-- ═══════════════════════════════════════════════════════ -->
       {#if uiState.tracker.activeTab === "mission"}
-        <div in:fade={{duration: 200}} class="flex flex-col gap-6">
-          <ConjunctionBanner events={conjunctionData} />
-          
+        <div in:fade={{duration: 200}} class="flex flex-col gap-4 flex-1 min-h-0 lg:h-full">
           <TelemetryMatrix state={snapshotData.state} />
           
-          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div class="lg:col-span-2 chart-card flex flex-col min-h-[400px]">
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 flex-1 min-h-0">
+            <div class="lg:col-span-2 chart-card flex flex-col min-h-[250px] lg:min-h-0">
               <div class="px-4 py-3 border-b border-border/50 flex justify-between items-center bg-surface/50">
                 <span class="chart-card-title flex items-center gap-2"><MapIcon class="size-4" /> Ground Track</span>
                 <span class="text-[10px] text-ink-3 uppercase font-bold tracking-widest flex items-center gap-1">
@@ -299,15 +297,16 @@
               </div>
             </div>
             
-            <div class="flex flex-col gap-6">
-              <div class="chart-card flex flex-col bg-surface/50">
+            <div class="flex flex-col gap-4 min-h-0">
+              <div class="chart-card flex flex-col bg-surface/50 flex-1 min-h-0">
                 <div class="px-4 py-3 border-b border-border/50">
                   <span class="chart-card-title flex items-center gap-2"><Orbit class="size-4" /> Phase Radar</span>
                 </div>
-                <div class="p-4 flex-1 flex items-center justify-center">
+                <div class="p-4 flex-1 flex items-center justify-center min-h-0">
                   <OrbitalPhaseWidget coe={snapshotData.state.coe} />
                 </div>
               </div>
+              <ConjunctionBanner events={conjunctionData} />
             </div>
           </div>
         </div>

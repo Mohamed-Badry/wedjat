@@ -59,7 +59,7 @@
 </script>
 
 {#if showBanner && primaryEvent}
-  <div class="mb-6 lg:mb-0 lg:absolute lg:top-4 lg:right-6 lg:z-40 w-full lg:max-w-md flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 rounded-xl border {riskColors} p-4 shadow-sm lg:shadow-xl lg:backdrop-blur-md animate-in fade-in slide-in-from-top-4 duration-500 relative pr-10">
+  <div class="w-full flex flex-col items-start gap-3 rounded-xl border {riskColors} p-4 shadow-sm animate-in fade-in relative pr-10">
     <!-- Dismiss button -->
     <button 
       onclick={() => dismissed = true} 
