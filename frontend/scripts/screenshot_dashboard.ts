@@ -62,6 +62,25 @@ const screenshotsDir = '/tmp/gr_sat_screenshots';
             
             // Wait for SvelteKit hydration and rendering to settle
             await new Promise(r => setTimeout(r, 2500));
+
+            // Check for connection error on pages that query backend API
+            let attempts = 0;
+            while (attempts < 8) {
+                const hasError = await page.evaluate(() => {
+                    return document.body.innerText.includes('Connection Error') || 
+                           document.body.innerText.includes('Could not connect to the backend API.');
+                });
+                
+                if (!hasError) {
+                    break;
+                }
+                
+                attempts++;
+                console.log(`  [Warning] Connection Error detected. Retrying navigation in 4s (Attempt ${attempts}/8)...`);
+                await new Promise(r => setTimeout(r, 4000));
+                await page.goto(p.url, { waitUntil: 'networkidle0' });
+                await new Promise(r => setTimeout(r, 2500));
+            }
             
             // Force dark mode just in case (no reload)
             await page.evaluate(() => {
