@@ -19,6 +19,7 @@ from pathlib import Path
 from typing import Any, Literal
 
 import pandas as pd
+from loguru import logger
 
 from gr_sat.ml.ml_config import DATA_DIR, MODEL_DIR, PROJECT_ROOT
 from gr_sat.core.telemetry import DecoderRegistry
@@ -510,20 +511,146 @@ class DashboardDataRepository:
         model = self._scoring.model_status(sat_id)
         current_threshold = model.metadata.threshold if model.metadata else 0.5
 
-        # Simulated sweep data — TODO: replace with real evaluation results
-        sweep = []
-        roc = []
-        for i in range(1, 100):
-            thresh = i / 100.0
-            sweep.append(
-                {
-                    "threshold": thresh,
-                    "f1_score": 1.0 - abs(thresh - 0.5),
-                    "precision": thresh,
-                    "recall": 1.0 - thresh,
-                }
+        try:
+            import torch
+            import numpy as np
+            from sklearn.metrics import roc_curve
+            from gr_sat.ml.model_artifacts import split_chronological
+            from gr_sat.ml.vae import compute_anomaly_scores
+            from gr_sat.core.satellite_profiles import (
+                get_satellite_profile,
+                build_baseline_mask,
+                feature_completeness_mask,
             )
-            roc.append({"fpr": 1.0 - thresh, "tpr": 1.0 - (thresh * 0.5)})
+
+            # Load model artifacts
+            scaler, vae, metadata = self._scoring._load_artifacts(sat_id)
+            profile = get_satellite_profile(str(sat_id))
+
+            # Load dataset
+            data_path = self.processed_dir / f"{sat_id}.csv"
+            if not data_path.exists():
+                raise FileNotFoundError(f"Processed dataset not found at {data_path}")
+
+            df = pd.read_csv(data_path)
+            df["timestamp"] = pd.to_datetime(df["timestamp"])
+            df = df.sort_values("timestamp")
+
+            # Clean and filter using baseline profiles
+            extreme_mask = build_baseline_mask(df, profile)
+            df_clean = df[~extreme_mask].copy()
+            complete_mask = feature_completeness_mask(df_clean, metadata.feature_names)
+            df_ready = df_clean[complete_mask].copy()
+
+            split = split_chronological(df_ready)
+            df_test = split.test.copy()
+
+            # Inject faults inline to avoid rich dependency in evaluation.py
+            rng = np.random.RandomState(42)
+            df_faulted = df_test.copy()
+            y_true = np.zeros(len(df_test), dtype=int)
+
+            # 1. Panel Failure
+            sunlight_mask = df_faulted["temp_panel_z"] > 15
+            sun_idx = np.where(sunlight_mask)[0]
+            valid_starts = [idx for idx in sun_idx if idx + 30 < len(df_faulted)]
+            if valid_starts:
+                chosen_starts = rng.choice(valid_starts, size=min(5, len(valid_starts)), replace=False)
+                for start in chosen_starts:
+                    idx_range = range(start, start + 30)
+                    df_faulted.iloc[list(idx_range), df_faulted.columns.get_loc("batt_current")] = -0.2
+                    y_true[list(idx_range)] = 1
+
+            # 2. Thermal Runaway
+            normal_idx = np.where(y_true == 0)[0]
+            valid_starts_therm = [idx for idx in normal_idx if idx + 30 < len(df_faulted)]
+            if valid_starts_therm:
+                chosen_starts_therm = rng.choice(valid_starts_therm, size=min(5, len(valid_starts_therm)), replace=False)
+                for start in chosen_starts_therm:
+                    idx_range = range(start, start + 30)
+                    if "temp_batt_a" in df_faulted.columns:
+                        df_faulted.iloc[list(idx_range), df_faulted.columns.get_loc("temp_batt_a")] += 7.0
+                    if "temp_batt_b" in df_faulted.columns:
+                        df_faulted.iloc[list(idx_range), df_faulted.columns.get_loc("temp_batt_b")] += 7.0
+                    y_true[list(idx_range)] = 1
+
+            X_faulted_scaled = scaler.transform(df_faulted[metadata.feature_names].values)
+
+            # VAE Inference
+            X_tensor = torch.FloatTensor(X_faulted_scaled)
+            diagnosis_mask = [
+                metadata.feature_names.index(f)
+                for f in metadata.diagnosis_feature_names
+            ]
+            vae.eval()
+            with torch.no_grad():
+                X_recon_vae, mu, logvar = vae(X_tensor)
+                scores = compute_anomaly_scores(
+                    X_recon_vae,
+                    X_tensor,
+                    mu,
+                    logvar,
+                    kld_weight=metadata.kld_weight,
+                    diagnosis_mask=diagnosis_mask,
+                ).numpy()
+
+            # Compute ROC Curve
+            fpr_curve, tpr_curve, _ = roc_curve(y_true, scores)
+
+            # Downsample ROC points for the UI to prevent rendering bloat
+            roc = []
+            step = max(1, len(fpr_curve) // 30)
+            for idx in range(0, len(fpr_curve), step):
+                roc.append({
+                    "fpr": float(fpr_curve[idx]),
+                    "tpr": float(tpr_curve[idx])
+                })
+            if not any(p["fpr"] == 1.0 and p["tpr"] == 1.0 for p in roc):
+                roc.append({"fpr": 1.0, "tpr": 1.0})
+
+            # Threshold Sweep (50 points between min and max scores)
+            sweep = []
+            min_score = float(scores.min())
+            max_score = float(scores.max())
+            threshold_grid = np.linspace(min_score, max_score, 50)
+
+            for thresh in threshold_grid:
+                thresh_val = float(thresh)
+                preds = scores > thresh_val
+                tp = int((preds & (y_true == 1)).sum())
+                fp = int((preds & (y_true == 0)).sum())
+                fn = int((~preds & (y_true == 1)).sum())
+
+                precision = tp / (tp + fp) if (tp + fp) > 0 else 1.0
+                recall = tp / (tp + fn) if (tp + fn) > 0 else 0.0
+                f1 = 2 * (precision * recall) / (precision + recall) if (precision + recall) > 0 else 0.0
+
+                sweep.append({
+                    "threshold": thresh_val,
+                    "f1_score": f1,
+                    "precision": precision,
+                    "recall": recall
+                })
+
+        except Exception as exc:
+            logger.warning(
+                f"Failed to compute real sensitivity sweep for {sat_id}: {exc}. "
+                "Falling back to simulated sweep."
+            )
+            # Simulated fallback sweep
+            sweep = []
+            roc = []
+            for i in range(1, 100):
+                thresh = i / 100.0
+                sweep.append(
+                    {
+                        "threshold": thresh,
+                        "f1_score": 1.0 - abs(thresh - 0.5),
+                        "precision": thresh,
+                        "recall": 1.0 - thresh,
+                    }
+                )
+                roc.append({"fpr": 1.0 - thresh, "tpr": 1.0 - (thresh * 0.5)})
 
         return {
             "norad_id": sat_id,
