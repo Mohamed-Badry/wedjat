@@ -42,6 +42,9 @@
     *   Finalized **V3 Hybrid Edge-to-Cloud Architecture** diagram (Typst) with robust fallback mechanisms.
     *   Hardened MQTT transport with TLS encryption, explicit authentication, and seamless Offline CSV Fallback logic in the Edge Simulator.
     *   Formalized transport resilience and telemetry pipelines using **Allium** domain specification language (`docs/spec/`).
+    *   Implemented a live ML validation pipeline for the sensitivity sweep (`/api/ml/sensitivity`), executing dynamic VAE reconstruction error calculations, ROC curves, and F1/Precision/Recall crossover metrics on-the-fly.
+    *   Hardened UI typography and layout consistency on the Orbit Decay page, improving visibility of Reality Check and Forecast Summary metrics.
+    *   Regenerated all static dashboard screenshots (both dark and light modes) across all SvelteKit pages to document the visual changes.
 *   **Current Sprint (Phase 1 — Foundation):**
     *   Restructure frontend routes into `(landing)` and `(dashboard)` route groups.
     *   Build `DashboardLayout` with sidebar + footer (no antenna bg, no Overview/Team tabs).
