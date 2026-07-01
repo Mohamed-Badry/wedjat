@@ -1,0 +1,14 @@
+{
+    "satellite": "UWE-4",
+    "norad_id": 43880,
+    "horizons": [
+        7,
+        30
+    ],
+    "feature_group": "PHYSICS_DECAY_BSTAR_WEATHER",
+    "model": "Ridge",
+    "install_command": "python -m pip install -r requirements.txt",
+    "run_command": "python app.py",
+    "docs_url": "http://127.0.0.1:8000/docs",
+    "created_at_utc": "2026-07-01T13:52:26.001106+00:00"
+}

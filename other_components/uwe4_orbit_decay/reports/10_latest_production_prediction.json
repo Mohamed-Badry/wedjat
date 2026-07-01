@@ -1,0 +1,34 @@
+{
+    "satellite": "UWE-4",
+    "norad_id": 43880,
+    "created_at_utc": "2026-07-01T13:52:25.214272+00:00",
+    "latest_data_date": "2026-06-30 00:00:00+00:00",
+    "predictions": {
+        "7d": {
+            "horizon_days": 7,
+            "latest_data_date": "2026-06-30 00:00:00+00:00",
+            "selected_model": "Ridge",
+            "target_column": "target_mean_loss_7d_km",
+            "current_altitude_km": 425.674,
+            "current_perigee_km": 422.732,
+            "current_apogee_km": 428.616,
+            "predicted_decay_km": 1.5251729896016322,
+            "predicted_decay_m": 1525.1729896016323,
+            "predicted_decay_rate_m_day": 217.88185565737604,
+            "predicted_altitude_after_horizon_km": 424.14882701039835
+        },
+        "30d": {
+            "horizon_days": 30,
+            "latest_data_date": "2026-06-30 00:00:00+00:00",
+            "selected_model": "Ridge",
+            "target_column": "target_mean_loss_30d_km",
+            "current_altitude_km": 425.674,
+            "current_perigee_km": 422.732,
+            "current_apogee_km": 428.616,
+            "predicted_decay_km": 6.1631501941639115,
+            "predicted_decay_m": 6163.150194163912,
+            "predicted_decay_rate_m_day": 205.43833980546373,
+            "predicted_altitude_after_horizon_km": 419.5108498058361
+        }
+    }
+}
