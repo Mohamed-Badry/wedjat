@@ -1,0 +1,292 @@
+{
+  "project": {
+    "name": "Orbit Decay Predictor",
+    "display_engine": "Hybrid ML Forecast",
+    "internal_engine": "Hybrid Ridge + Baseline_last_30d_rate",
+    "feature_group": "PHYSICS_DECAY_BSTAR_WEATHER",
+    "metric_source": "Best model by lowest MAE per horizon"
+  },
+  "satellite": {
+    "name": "UWE-4",
+    "norad_id": 43880,
+    "latest_date": "2026-06-30",
+    "latest_altitude_km": 425.674,
+    "altitude_column": "current_mean_altitude_km"
+  },
+  "forecasts": [
+    {
+      "horizon_days": 7,
+      "prediction_date": "2026-06-30",
+      "forecast_until": "2026-07-07",
+      "current_altitude_km": 425.674,
+      "forecast_drop_km": 1.4333624585933213,
+      "forecast_drop_m": 1433.3624585933214,
+      "expected_altitude_km": 424.24063754140667,
+      "internal_ai_loss_km": 1.552474917186631,
+      "internal_baseline_loss_km": 1.3142500000000117,
+      "internal_baseline_source": "observed_decay_rolling_30d_km_day",
+      "selected_features": [
+        "observed_decay_rolling_30d_km_day",
+        "mean_motion_dot",
+        "observed_decay_rolling_7d_km_day",
+        "altitude_mean_km",
+        "decay_lag_1d_km_day",
+        "observed_decay_km_day",
+        "bstar",
+        "decay_lag_7d_km_day",
+        "bstar_lag_14d",
+        "bstar_lag_30d",
+        "bstar_lag_7d",
+        "f107_obs_rolling_27d_known_lag1d",
+        "f107_obs_known_lag1d",
+        "sunspot_number_known_lag1d",
+        "high_solar_flux_flag_known_lag1d",
+        "kp_mean_known_lag1d"
+      ],
+      "target_col": "target_mean_loss_7d_km",
+      "train_rows": 2736,
+      "validation_mae_m": 113.09341621774254,
+      "validation_rmse_m": 163.98598928998905,
+      "validation_r2": 0.8730117038197178,
+      "validation_scope": "strict_tle",
+      "best_metric_model": "Hybrid(Ridge + Baseline_last_30d_rate)",
+      "best_metric_method": "hybrid",
+      "display_model_name": "Hybrid ML Forecast"
+    },
+    {
+      "horizon_days": 30,
+      "prediction_date": "2026-06-30",
+      "forecast_until": "2026-07-30",
+      "current_altitude_km": 425.674,
+      "forecast_drop_km": 5.96976637442629,
+      "forecast_drop_m": 5969.76637442629,
+      "expected_altitude_km": 419.7042336255737,
+      "internal_ai_loss_km": 6.30703274885253,
+      "internal_baseline_loss_km": 5.63250000000005,
+      "internal_baseline_source": "observed_decay_rolling_30d_km_day",
+      "selected_features": [
+        "observed_decay_rolling_30d_km_day",
+        "observed_decay_rolling_7d_km_day",
+        "mean_motion_dot",
+        "altitude_mean_km",
+        "decay_lag_1d_km_day",
+        "observed_decay_km_day",
+        "decay_lag_7d_km_day",
+        "bstar",
+        "bstar_lag_7d",
+        "bstar_lag_14d",
+        "bstar_lag_30d",
+        "f107_obs_rolling_27d_known_lag1d",
+        "f107_obs_known_lag1d",
+        "sunspot_number_known_lag1d",
+        "high_solar_flux_flag_known_lag1d",
+        "kp_mean_known_lag1d"
+      ],
+      "target_col": "target_mean_loss_30d_km",
+      "train_rows": 2713,
+      "validation_mae_m": 421.6082426968798,
+      "validation_rmse_m": 588.8432712107914,
+      "validation_r2": 0.9003028129258117,
+      "validation_scope": "strict_tle",
+      "best_metric_model": "Hybrid(Ridge + Baseline_last_14d_rate)",
+      "best_metric_method": "hybrid",
+      "display_model_name": "Hybrid ML Forecast"
+    }
+  ],
+  "last_7d_reality_check": {
+    "start_date": "2026-06-23",
+    "end_date": "2026-06-30",
+    "actual_7d_drop_km": 1.5645000000000664,
+    "predicted_7d_drop_km": 1.3909611012655811,
+    "absolute_error_m": 173.53889873448526,
+    "error_m": 173.53889873448526,
+    "actual_source": "target_mean_loss_7d_km"
+  },
+  "model_comparison": [
+    {
+      "horizon_days": 7,
+      "method_type": "hybrid",
+      "model": "Hybrid(Ridge + Baseline_last_30d_rate)",
+      "ai_model": "Ridge",
+      "baseline_model": "Baseline_last_30d_rate",
+      "MAE_loss_m": 113.09341621774254,
+      "RMSE_loss_m": 163.98598928998905,
+      "R2_loss": 0.8730117038197178
+    },
+    {
+      "horizon_days": 7,
+      "method_type": "AI",
+      "model": "Ridge",
+      "ai_model": "Ridge",
+      "baseline_model": null,
+      "MAE_loss_m": 113.38442293223319,
+      "RMSE_loss_m": 165.9559585349335,
+      "R2_loss": 0.8703348836940548
+    },
+    {
+      "horizon_days": 7,
+      "method_type": "AI",
+      "model": "Ridge",
+      "ai_model": "Ridge",
+      "baseline_model": null,
+      "MAE_loss_m": 113.57950262486693,
+      "RMSE_loss_m": 169.56685967521165,
+      "R2_loss": 0.8646309415312097
+    },
+    {
+      "horizon_days": 7,
+      "method_type": "AI",
+      "model": "Ridge",
+      "ai_model": "Ridge",
+      "baseline_model": null,
+      "MAE_loss_m": 114.45427209228156,
+      "RMSE_loss_m": 170.46121166716168,
+      "R2_loss": 0.8631992129177928
+    },
+    {
+      "horizon_days": 7,
+      "method_type": "hybrid",
+      "model": "Hybrid(Ridge + Baseline_last_30d_rate)",
+      "ai_model": "Ridge",
+      "baseline_model": "Baseline_last_30d_rate",
+      "MAE_loss_m": 114.48319913112867,
+      "RMSE_loss_m": 164.92060238413555,
+      "R2_loss": 0.8715600781262485
+    },
+    {
+      "horizon_days": 30,
+      "method_type": "hybrid",
+      "model": "Hybrid(Ridge + Baseline_last_14d_rate)",
+      "ai_model": "Ridge",
+      "baseline_model": "Baseline_last_14d_rate",
+      "MAE_loss_m": 421.6082426968798,
+      "RMSE_loss_m": 588.8432712107914,
+      "R2_loss": 0.9003028129258117
+    },
+    {
+      "horizon_days": 30,
+      "method_type": "hybrid",
+      "model": "Hybrid(Ridge + Baseline_last_30d_rate)",
+      "ai_model": "Ridge",
+      "baseline_model": "Baseline_last_30d_rate",
+      "MAE_loss_m": 431.6004116052225,
+      "RMSE_loss_m": 597.4990194239161,
+      "R2_loss": 0.8970178043540364
+    },
+    {
+      "horizon_days": 30,
+      "method_type": "hybrid",
+      "model": "Hybrid(Ridge + Baseline_last_14d_rate)",
+      "ai_model": "Ridge",
+      "baseline_model": "Baseline_last_14d_rate",
+      "MAE_loss_m": 433.3829427357382,
+      "RMSE_loss_m": 619.9926214498943,
+      "R2_loss": 0.8894760205084129
+    },
+    {
+      "horizon_days": 30,
+      "method_type": "hybrid",
+      "model": "Hybrid(Ridge + Baseline_last_7d_rate)",
+      "ai_model": "Ridge",
+      "baseline_model": "Baseline_last_7d_rate",
+      "MAE_loss_m": 434.1371164055137,
+      "RMSE_loss_m": 610.18753456286,
+      "R2_loss": 0.8927549874304748
+    },
+    {
+      "horizon_days": 30,
+      "method_type": "baseline",
+      "model": "Baseline_last_30d_rate",
+      "ai_model": null,
+      "baseline_model": "Baseline_last_30d_rate",
+      "MAE_loss_m": 438.9535367545072,
+      "RMSE_loss_m": 612.5250092547656,
+      "R2_loss": 0.8917730537883981
+    }
+  ],
+  "top_features": [
+    {
+      "feature": "current_mean_altitude_km",
+      "selection_count": 615880
+    },
+    {
+      "feature": "mean_motion_dot",
+      "selection_count": 605320
+    },
+    {
+      "feature": "observed_decay_rolling_7d_km_day",
+      "selection_count": 461910
+    },
+    {
+      "feature": "observed_decay_km_day",
+      "selection_count": 461910
+    },
+    {
+      "feature": "observed_decay_rolling_30d_km_day",
+      "selection_count": 403450
+    },
+    {
+      "feature": "bstar_rolling_30d",
+      "selection_count": 167320
+    },
+    {
+      "feature": "bstar",
+      "selection_count": 160040
+    },
+    {
+      "feature": "estimated_drag_acceleration_m_s2",
+      "selection_count": 153970
+    },
+    {
+      "feature": "log_nrlmsis_density",
+      "selection_count": 153970
+    },
+    {
+      "feature": "nrlmsis_temperature_k",
+      "selection_count": 153970
+    },
+    {
+      "feature": "ap_avg_rolling_81d_known_lag1d",
+      "selection_count": 153970
+    },
+    {
+      "feature": "kp_mean_rolling_27d_known_lag1d",
+      "selection_count": 153970
+    },
+    {
+      "feature": "f107_obs_rolling_81d_known_lag1d",
+      "selection_count": 151190
+    },
+    {
+      "feature": "sunspot_number_rolling_27d_known_lag1d",
+      "selection_count": 124565
+    },
+    {
+      "feature": "f107_obs_rolling_27d_known_lag1d",
+      "selection_count": 88500
+    }
+  ],
+  "physics_space_weather_snapshot": {
+    "bstar": 0.0006347488,
+    "f107": 195.4,
+    "kp": 1.0,
+    "ap": 3.0,
+    "nrlmsis_density_kg_m3": 9.6e-13,
+    "log_nrlmsis_density": -12.017201,
+    "nrlmsis_temperature_k": 910.188,
+    "estimated_drag_acceleration_m_s2": 5.6219886e-07
+  },
+  "plot_files": {
+    "altitude_forecast": "/content/uwe4_orbit_decay_project/reports/FINAL_CLEAN_DASHBOARD/clean_01_altitude_forecast.png",
+    "model_comparison_7d": "/content/uwe4_orbit_decay_project/reports/FINAL_CLEAN_DASHBOARD/clean_02_model_comparison_7d.png",
+    "model_comparison_30d": "/content/uwe4_orbit_decay_project/reports/FINAL_CLEAN_DASHBOARD/clean_02_model_comparison_30d.png",
+    "actual_vs_predicted": {
+      "7": "/content/uwe4_orbit_decay_project/reports/FINAL_CLEAN_DASHBOARD/clean_03_actual_vs_predicted_7d.png",
+      "30": "/content/uwe4_orbit_decay_project/reports/FINAL_CLEAN_DASHBOARD/clean_03_actual_vs_predicted_30d.png"
+    },
+    "residuals": "/content/uwe4_orbit_decay_project/reports/FINAL_CLEAN_DASHBOARD/clean_04_residual_distribution.png",
+    "feature_importance": "/content/uwe4_orbit_decay_project/reports/FINAL_CLEAN_DASHBOARD/clean_05_feature_importance.png",
+    "drivers": "/content/uwe4_orbit_decay_project/reports/FINAL_CLEAN_DASHBOARD/clean_06_drivers.png",
+    "decay_history": "/content/uwe4_orbit_decay_project/reports/FINAL_CLEAN_DASHBOARD/clean_07_decay_history.png"
+  }
+}
