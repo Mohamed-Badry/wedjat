@@ -211,7 +211,7 @@
           onclick={() => uiState.orbitDecay.activeTab = "diagnostics"}
           class="px-4 py-2 text-xs font-bold rounded-lg transition-all duration-300 {uiState.orbitDecay.activeTab === 'diagnostics' ? 'bg-panel text-brand shadow-[0_2px_10px_rgba(139,92,246,0.15)] ring-1 ring-border' : 'text-ink-3 hover:text-ink hover:bg-surface/50'}"
         >
-          Model Diagnostics
+          Diagnostics & Validation
         </button>
       </div>
     </div>
@@ -244,6 +244,8 @@
         {@const startAlt = decayData.atmospheric_state.altitude_km}
         {@const drop7 = decayData.forecasts.find((f: any) => f.horizon === 'P7D' || f.horizon === '7 days, 0:00:00')?.predicted_decay_km || 0.7}
         {@const drop30 = decayData.forecasts.find((f: any) => f.horizon === 'P30D' || f.horizon === '30 days, 0:00:00')?.predicted_decay_km || 3.0}
+        {@const rate7 = decayData.forecasts.find((f: any) => f.horizon === 'P7D' || f.horizon === '7 days, 0:00:00')?.decay_rate_m_day || -999}
+        {@const rate30 = decayData.forecasts.find((f: any) => f.horizon === 'P30D' || f.horizon === '30 days, 0:00:00')?.decay_rate_m_day || -999}
         
         {@const maxDrop = drop30 > 0 ? drop30 : 0}
         {@const yMin = Math.floor(startAlt - maxDrop - 2)}
@@ -390,25 +392,35 @@
               </h3>
               <div class="grid grid-cols-2 gap-3">
                 <div class="bg-surface border border-border/50 rounded-xl p-4 flex flex-col justify-between hover:border-emerald-500/30 transition-colors">
-                  <span class="text-[9px] font-bold uppercase tracking-wider text-ink-3 mb-1">7-Day Drop</span>
-                  <div class="flex items-center gap-1.5 {drop7 >= 0 ? 'text-emerald-500' : 'text-emerald-600 dark:text-emerald-400'}">
-                    {#if drop7 >= 0}
-                      <ArrowDown class="size-4 stroke-[3]" />
-                    {:else}
-                      <ArrowDown class="size-4 stroke-[3] rotate-180" />
+                  <span class="text-[10px] font-bold uppercase tracking-wider text-ink-3 mb-1">7-Day Drop</span>
+                  <div class="flex flex-col gap-1">
+                    <div class="flex items-center gap-1.5 {drop7 >= 0 ? 'text-emerald-500' : 'text-emerald-600 dark:text-emerald-400'}">
+                      {#if drop7 >= 0}
+                        <ArrowDown class="size-4 stroke-[3]" />
+                      {:else}
+                        <ArrowDown class="size-4 stroke-[3] rotate-180" />
+                      {/if}
+                      <span class="text-xl font-black">{Math.abs(drop7).toFixed(2)} <span class="text-[10px] font-bold opacity-70">km</span></span>
+                    </div>
+                    {#if rate7 !== -999}
+                      <span class="text-[11px] font-mono text-ink-3">Est. rate: {rate7.toFixed(1)} m/d</span>
                     {/if}
-                    <span class="text-xl font-black">{Math.abs(drop7).toFixed(2)} <span class="text-[10px] font-bold opacity-70">km</span></span>
                   </div>
                 </div>
                 <div class="bg-surface border border-border/50 rounded-xl p-4 flex flex-col justify-between hover:border-brand/30 transition-colors">
-                  <span class="text-[9px] font-bold uppercase tracking-wider text-ink-3 mb-1">30-Day Drop</span>
-                  <div class="flex items-center gap-1.5 {drop30 >= 0 ? 'text-brand' : 'text-emerald-600 dark:text-emerald-400'}">
-                    {#if drop30 >= 0}
-                      <ArrowDown class="size-4 stroke-[3]" />
-                    {:else}
-                      <ArrowDown class="size-4 stroke-[3] rotate-180" />
+                  <span class="text-[10px] font-bold uppercase tracking-wider text-ink-3 mb-1">30-Day Drop</span>
+                  <div class="flex flex-col gap-1">
+                    <div class="flex items-center gap-1.5 {drop30 >= 0 ? 'text-brand' : 'text-emerald-600 dark:text-emerald-400'}">
+                      {#if drop30 >= 0}
+                        <ArrowDown class="size-4 stroke-[3]" />
+                      {:else}
+                        <ArrowDown class="size-4 stroke-[3] rotate-180" />
+                      {/if}
+                      <span class="text-xl font-black">{Math.abs(drop30).toFixed(2)} <span class="text-[10px] font-bold opacity-70">km</span></span>
+                    </div>
+                    {#if rate30 !== -999}
+                      <span class="text-[11px] font-mono text-ink-3">Est. rate: {rate30.toFixed(1)} m/d</span>
                     {/if}
-                    <span class="text-xl font-black">{Math.abs(drop30).toFixed(2)} <span class="text-[10px] font-bold opacity-70">km</span></span>
                   </div>
                 </div>
               </div>
@@ -490,11 +502,11 @@
 
           </div>
         </div>
-      {:else}
-        <!-- DIAGNOSTICS TAB -->
+      {:else if uiState.orbitDecay.activeTab === "diagnostics"}
+        <!-- DIAGNOSTICS & VALIDATION TAB -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pb-6 min-h-[600px]" in:fade={{duration: 300, delay: 100}}>
           {#each decayData.forecasts as forecast, i}
-            <div class="group relative flex flex-col gap-6 rounded-2xl bg-panel border border-border/60 p-7 shadow-sm transition-all duration-300 hover:shadow-lg hover:border-brand/40">
+            <div class="group relative flex flex-col gap-5 rounded-2xl bg-panel border border-border/60 p-7 shadow-sm transition-all duration-300 hover:shadow-lg hover:border-brand/40">
               
               <!-- Glow Effect -->
               <div class="absolute inset-0 -z-10 rounded-2xl bg-gradient-to-b from-brand/5 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100"></div>
@@ -562,8 +574,35 @@
                 </div>
               </div>
 
+              <!-- Reality Check Validation -->
+              <div class="bg-surface/60 p-4 rounded-xl border border-border/40 space-y-3 relative overflow-hidden">
+                <div class="flex justify-between items-center text-[10px] font-bold uppercase tracking-wider text-ink-2">
+                  <span class="flex items-center gap-1"><ShieldAlert class="size-3.5 text-brand" /> Reality Check (Feedback Loop)</span>
+                  <span class="px-2 py-0.5 rounded-full text-[9px] border font-bold
+                    {forecast.reality_check_status?.includes('Excellent') ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20' : 
+                     forecast.reality_check_status?.includes('Good') ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20' : 
+                     'bg-warning/10 text-warning border-warning/20'}">
+                    {forecast.reality_check_status || 'No Data'}
+                  </span>
+                </div>
+                <div class="grid grid-cols-3 gap-2 text-center">
+                  <div class="flex flex-col bg-surface/50 p-2 rounded-lg border border-border/20">
+                    <span class="text-[10px] font-bold uppercase text-ink-3 mb-0.5">Actual Drop</span>
+                    <span class="font-mono text-sm font-black text-ink">{forecast.reality_check_actual_drop_km !== null ? `${forecast.reality_check_actual_drop_km.toFixed(2)} km` : 'N/A'}</span>
+                  </div>
+                  <div class="flex flex-col bg-surface/50 p-2 rounded-lg border border-border/20">
+                    <span class="text-[10px] font-bold uppercase text-ink-3 mb-0.5">Predicted Drop</span>
+                    <span class="font-mono text-sm font-black text-ink">{forecast.reality_check_predicted_drop_km !== null ? `${forecast.reality_check_predicted_drop_km.toFixed(2)} km` : 'N/A'}</span>
+                  </div>
+                  <div class="flex flex-col bg-surface/50 p-2 rounded-lg border border-border/20">
+                    <span class="text-[10px] font-bold uppercase text-ink-3 mb-0.5">Abs. Error</span>
+                    <span class="font-mono text-sm font-black text-brand">{forecast.reality_check_error_m !== null ? `${forecast.reality_check_error_m.toFixed(0)} m` : 'N/A'}</span>
+                  </div>
+                </div>
+              </div>
+
               <!-- Feature Importances (Simulated for Diagnostics) -->
-              <div class="mt-2 flex flex-col gap-3">
+              <div class="mt-1 flex flex-col gap-3">
                 <span class="text-[10px] font-bold uppercase tracking-widest text-ink-3">Feature Importances (Top 3)</span>
                 <div class="flex flex-col gap-2.5">
                   <div class="flex items-center gap-3">

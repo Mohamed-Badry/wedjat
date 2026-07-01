@@ -76,6 +76,11 @@ class OrbitDecayForecast(BaseModel):
     predicted_decay_km: float
     predicted_altitude_km: float
     model_version: str
+    decay_rate_m_day: float = -999.0
+    reality_check_actual_drop_km: Optional[float] = None
+    reality_check_predicted_drop_km: Optional[float] = None
+    reality_check_error_m: Optional[float] = None
+    reality_check_status: Optional[str] = None
 
 def download_with_cache(url: str, filename: str, ttl_seconds: int = 3600) -> Path:
     """Helper method to fetch and cache files cleanly"""
@@ -130,13 +135,14 @@ def fetch_latest_space_weather() -> SpaceWeatherObservation:
                 stmt = select(SpaceWeatherRecord).order_by(SpaceWeatherRecord.fetched_at.desc())
                 record = session.exec(stmt).first()
                 if record:
-                    age_hours = (datetime.now(timezone.utc) - record.fetched_at).total_seconds() / 3600.0
+                    fetched_at = record.fetched_at.replace(tzinfo=timezone.utc) if record.fetched_at.tzinfo is None else record.fetched_at
+                    age_hours = (datetime.now(timezone.utc) - fetched_at).total_seconds() / 3600.0
                     if age_hours < 12.0:
                         return SpaceWeatherObservation(
                             date=record.timestamp,
                             f107_obs=record.f107_index,
                             f107a_obs=record.f107_index, # Proxy
-                            kp_max=record.kp_index,
+                            kp_max=record.kp_index / 10.0 if record.kp_index > 9.0 else record.kp_index,
                             ap_avg=record.ap_index
                         )
     except Exception as e:
@@ -166,7 +172,7 @@ def fetch_latest_space_weather() -> SpaceWeatherObservation:
         ap_avg = safe_float(latest.get("AP_AVG", None), -999.0)
         kp_cols = [safe_float(latest.get(f"KP{i}", -999.0), -999.0) for i in range(1, 9)]
         kp_cols = [k for k in kp_cols if k != -999.0]
-        kp_max = max(kp_cols) if kp_cols else -999.0
+        kp_max = (max(kp_cols) / 10.0) if kp_cols else -999.0
         
         obs = SpaceWeatherObservation(
             date=datetime.now(timezone.utc), f107_obs=f107, f107a_obs=f107a, kp_max=kp_max, ap_avg=ap_avg
@@ -233,7 +239,8 @@ def get_satellite(norad_id: int) -> Optional['EarthSatellite']:
                 stmt = select(TleRecord).where(TleRecord.norad_id == norad_id).order_by(TleRecord.fetched_at.desc())
                 record = session.exec(stmt).first()
                 if record:
-                    age_hours = (datetime.now(timezone.utc) - record.fetched_at).total_seconds() / 3600.0
+                    fetched_at = record.fetched_at.replace(tzinfo=timezone.utc) if record.fetched_at.tzinfo is None else record.fetched_at
+                    age_hours = (datetime.now(timezone.utc) - fetched_at).total_seconds() / 3600.0
                     if age_hours < 12.0:
                         ts = load.timescale()
                         return EarthSatellite(record.tle_line1, record.tle_line2, str(norad_id), ts)
@@ -354,10 +361,11 @@ def _load_decay_model_assets(days: int):
 
 
 @ttl_cache(ttl_seconds=3600)
-def _latest_training_row() -> pd.DataFrame:
+def _load_dataset() -> pd.DataFrame:
     dataset_path = PROJECT_ROOT / "data" / "04_daily_orbit_space_weather_uwe4.csv"
     df = pd.read_csv(dataset_path)
-    return df.tail(1).copy()
+    df["date"] = pd.to_datetime(df["date"], utc=True)
+    return df
 
 
 def _apply_live_features(
@@ -384,25 +392,60 @@ def _apply_live_features(
 def PredictOrbitDecay(satellite_id: int, weather: SpaceWeatherObservation, alt_km: float = 500.0) -> List[OrbitDecayForecast]:
     """
     Predict orbit decay using the pre-trained ML models over 7-day and 30-day horizons.
+    Includes Reality Check metric comparing past predictions to actual observed drop.
     """
     forecasts = []
     
-    # Load dataset for feature extraction
     try:
-        latest_row = _apply_live_features(_latest_training_row(), weather, alt_km)
+        df = _load_dataset()
+        latest_row_orig = df.tail(1).copy()
+        latest_row = _apply_live_features(latest_row_orig, weather, alt_km)
     except Exception as e:
         print(f"Failed to load ML dataset: {e}")
+        df = None
         latest_row = None
     
     for days in [7, 30]:
         predicted_decay_km = -999.0  # Obvious failure value instead of fallback
+        decay_rate_m_day = -999.0
+        
+        actual_drop_km = None
+        predicted_drop_km = None
+        error_m = None
+        status = None
         
         if latest_row is not None:
             try:
                 model, feature_cols = _load_decay_model_assets(days)
                 X_latest = latest_row[list(feature_cols)]
-                # Predict
-                predicted_decay_km = float(model.predict(X_latest)[0])
+                
+                # Model predicts rate in km/day (historical feature name, but used as target)
+                pred_rate_km_day = float(model.predict(X_latest)[0])
+                predicted_decay_km = pred_rate_km_day * days
+                decay_rate_m_day = pred_rate_km_day * 1000.0
+                
+                # Reality Check Logic
+                if df is not None and len(df) > days:
+                    # Current vs Past actual altitude
+                    current_alt = float(df.iloc[-1]["altitude_mean_km"])
+                    past_alt = float(df.iloc[-(days + 1)]["altitude_mean_km"])
+                    actual_drop_km = past_alt - current_alt
+                    
+                    # What did we predict `days` ago using data from then?
+                    row_past = df.iloc[-(days + 1)].copy()
+                    X_past = pd.DataFrame([row_past])[list(feature_cols)]
+                    past_pred_rate_km_day = float(model.predict(X_past)[0])
+                    predicted_drop_km = past_pred_rate_km_day * days
+                    
+                    error_m = abs(actual_drop_km - predicted_drop_km) * 1000.0
+                    
+                    if error_m < 500:
+                        status = "Verified (Excellent)"
+                    elif error_m < 2000:
+                        status = "Verified (Good)"
+                    else:
+                        status = "Degraded"
+                        
             except Exception as e:
                 print(f"Inference failed for {days}d: {e}")
                 
@@ -413,7 +456,12 @@ def PredictOrbitDecay(satellite_id: int, weather: SpaceWeatherObservation, alt_k
                 horizon=timedelta(days=days),
                 predicted_decay_km=predicted_decay_km,
                 predicted_altitude_km=alt_km - predicted_decay_km if alt_km != -999.0 and predicted_decay_km != -999.0 else -999.0,
-                model_version=f"{days}d-production"
+                model_version=f"{days}d-production",
+                decay_rate_m_day=decay_rate_m_day,
+                reality_check_actual_drop_km=actual_drop_km,
+                reality_check_predicted_drop_km=predicted_drop_km,
+                reality_check_error_m=error_m,
+                reality_check_status=status
             )
         )
     return forecasts
