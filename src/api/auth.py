@@ -1,4 +1,4 @@
-from fastapi import HTTPException, status, Header, Query
+from fastapi import HTTPException, status, Header, Query, Request
 from sqlmodel import Session, select
 import os
 from loguru import logger
@@ -11,9 +11,13 @@ except ImportError:
     from db_models import ApiKey
 
 def verify_api_key(
+    request: Request,
     api_key: str | None = Header(default=None, alias="X-API-Key"),
     api_key_query: str | None = Query(default=None, alias="api_key"),
 ):
+    if request.method == "OPTIONS":
+        return None
+
     require_auth = os.getenv("REQUIRE_AUTH", "false").lower() == "true"
     
     if not require_auth:
