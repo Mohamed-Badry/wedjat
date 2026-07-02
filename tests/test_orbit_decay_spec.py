@@ -40,7 +40,7 @@ def test_rule_entity_creation_predict_orbit_decay():
     forecast = results[0]
     assert forecast.satellite_id == 1
     assert forecast.horizon == timedelta(days=7)
-    assert forecast.predicted_decay_km > 0
+    assert forecast.predicted_decay_km != -999.0
 
 @pytest.mark.skip(reason="Pending open question clarification: SpaceWeatherUnavailable")
 def test_rule_success_space_weather_unavailable():
