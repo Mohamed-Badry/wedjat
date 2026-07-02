@@ -16,10 +16,10 @@ frontend/.tmp/
 
 # ── Data & artifacts (large / user-specific) ──
 gp.php
-data/
-satellite-recordings/
-scrap_data/
-models/
+/data/
+/satellite-recordings/
+/scrap_data/
+/models/
 
 # ── Docs build outputs ──
 # docs/figures/
@@ -44,3 +44,12 @@ mosquitto/log/
 
 .antigravitycli/
 **/gp.php
+
+# Large datasets and local run caches
+/src/api/data/
+/src/data/
+other_components/**/data/
+other_components/**/models/
+other_components/**/*.pkl/
+other_components/**/*.csv/
+other_components/**/*.csv/
