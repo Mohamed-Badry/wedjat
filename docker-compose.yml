@@ -56,7 +56,7 @@ services:
     container_name: watchdog_backend
     command: sh -c "cd /app && alembic upgrade head && uvicorn src.api.main:app --host 0.0.0.0 --port 8000"
     ports:
-      - "8000:8000"
+      - "127.0.0.1:8000:8000"
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER:-watchdog}:${POSTGRES_PASSWORD:-watchdog_pass}@db:5432/${POSTGRES_DB:-watchdog_db}
       MQTT_BROKER_URL: broker
@@ -129,7 +129,7 @@ services:
       dockerfile: Dockerfile
     container_name: watchdog_frontend_prod
     ports:
-      - "5173:5173"
+      - "127.0.0.1:5173:5173"
     environment:
       PUBLIC_API_URL: ${PUBLIC_API_URL:-http://localhost:8000}
     depends_on:
