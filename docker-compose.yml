@@ -131,6 +131,7 @@ services:
       - "127.0.0.1:5173:5173"
     environment:
       PUBLIC_API_URL: ${PUBLIC_API_URL:-http://localhost:8000}
+      PUBLIC_MASTER_API_KEY: ${MASTER_API_KEY}
     depends_on:
       - backend
     restart: unless-stopped

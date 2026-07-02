@@ -1,4 +1,4 @@
-from fastapi import HTTPException, status, Header
+from fastapi import HTTPException, status, Header, Query
 from sqlmodel import Session, select
 import os
 from loguru import logger
@@ -10,16 +10,21 @@ except ImportError:
     from database import get_engine
     from db_models import ApiKey
 
-def verify_api_key(api_key: str | None = Header(default=None, alias="X-API-Key")):
+def verify_api_key(
+    api_key: str | None = Header(default=None, alias="X-API-Key"),
+    api_key_query: str | None = Query(default=None, alias="api_key"),
+):
     require_auth = os.getenv("REQUIRE_AUTH", "false").lower() == "true"
     
     if not require_auth:
         return None
 
-    if not api_key:
+    key = api_key or api_key_query
+
+    if not key:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Missing API Key header (X-API-Key)"
+            detail="Missing API Key header (X-API-Key) or query parameter (api_key)"
         )
 
     engine = get_engine()
@@ -28,7 +33,7 @@ def verify_api_key(api_key: str | None = Header(default=None, alias="X-API-Key")
         raise HTTPException(status_code=500, detail="Database not configured")
         
     with Session(engine) as session:
-        statement = select(ApiKey).where(ApiKey.key == api_key, ApiKey.is_active == True)
+        statement = select(ApiKey).where(ApiKey.key == key, ApiKey.is_active == True)
         result = session.exec(statement).first()
         if not result:
             raise HTTPException(

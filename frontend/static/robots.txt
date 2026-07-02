@@ -1,0 +1,3 @@
+# Lock out all public search engine web crawlers and AI scrapers from indexing the private dashboard panel
+User-agent: *
+Disallow: /

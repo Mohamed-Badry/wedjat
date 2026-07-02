@@ -21,7 +21,11 @@ export function getApiUrl(): string {
 
 export function getWsUrl(): string {
   const url = getApiUrl();
-  return url.replace(/^http/, 'ws');
+  const wsUrl = url.replace(/^http/, 'ws');
+  if (env.PUBLIC_MASTER_API_KEY) {
+    return `${wsUrl}?api_key=${encodeURIComponent(env.PUBLIC_MASTER_API_KEY)}`;
+  }
+  return wsUrl;
 }
 
 /**
@@ -39,7 +43,14 @@ export async function apiFetch<T = unknown>(
   init?: RequestInit,
   fetchFn: typeof fetch = fetch,
 ): Promise<T> {
-  const res = await fetchFn(`${getApiUrl()}${path}`, init);
+  const headers = new Headers(init?.headers);
+  if (env.PUBLIC_MASTER_API_KEY) {
+    headers.set('X-API-Key', env.PUBLIC_MASTER_API_KEY);
+  }
+  const res = await fetchFn(`${getApiUrl()}${path}`, {
+    ...init,
+    headers,
+  });
   if (!res.ok) {
     const detail = await res.json().catch(() => null);
     throw new Error(detail?.detail || `API error: HTTP ${res.status}`);
