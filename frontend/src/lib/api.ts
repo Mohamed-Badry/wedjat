@@ -10,8 +10,11 @@ import { env } from '$env/dynamic/public';
  * - SSR: always targets the Docker service name.
  */
 export function getApiUrl(): string {
+  if (env.PUBLIC_API_URL) {
+    return env.PUBLIC_API_URL;
+  }
   if (typeof window !== 'undefined') {
-    return env.PUBLIC_API_URL || 'http://127.0.0.1:8000';
+    return 'http://127.0.0.1:8000';
   }
   return 'http://backend:8000';
 }
