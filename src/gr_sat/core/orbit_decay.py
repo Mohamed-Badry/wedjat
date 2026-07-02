@@ -123,11 +123,11 @@ def fetch_latest_space_weather() -> SpaceWeatherObservation:
     try:
         from sqlmodel import Session, select
         try:
-            from src.api.database import get_engine
-            from src.api.db_models import SpaceWeatherRecord
+            from api.database import get_engine
+            from api.db_models import SpaceWeatherRecord
         except ImportError:
-            from api.database import get_engine  # type: ignore
-            from api.db_models import SpaceWeatherRecord  # type: ignore
+            from src.api.database import get_engine  # type: ignore
+            from src.api.db_models import SpaceWeatherRecord  # type: ignore
 
         engine = get_engine()
         if engine:
@@ -227,11 +227,11 @@ def get_satellite(norad_id: int) -> Optional['EarthSatellite']:
     try:
         from sqlmodel import Session, select
         try:
-            from src.api.database import get_engine
-            from src.api.db_models import TleRecord
+            from api.database import get_engine
+            from api.db_models import TleRecord
         except ImportError:
-            from api.database import get_engine  # type: ignore
-            from api.db_models import TleRecord  # type: ignore
+            from src.api.database import get_engine  # type: ignore
+            from src.api.db_models import TleRecord  # type: ignore
 
         engine = get_engine()
         if engine:
