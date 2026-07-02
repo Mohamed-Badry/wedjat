@@ -83,6 +83,17 @@ def create_app(repository: DashboardDataRepository | None = None) -> FastAPI:
         allow_headers=["X-API-Key", "Content-Type", "Authorization", "Accept"],
     )
 
+    @app.middleware("http")
+    async def add_cors_headers(request: Request, call_next):
+        response = await call_next(request)
+        if "Access-Control-Allow-Origin" not in response.headers:
+            response.headers["Access-Control-Allow-Origin"] = "*"
+        if "Access-Control-Allow-Methods" not in response.headers:
+            response.headers["Access-Control-Allow-Methods"] = "GET, OPTIONS, POST, PUT, DELETE"
+        if "Access-Control-Allow-Headers" not in response.headers:
+            response.headers["Access-Control-Allow-Headers"] = "X-API-Key, Content-Type, Authorization, Accept"
+        return response
+
     @app.get("/")
     def read_root() -> dict:
         return {
