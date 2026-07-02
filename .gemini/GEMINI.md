@@ -45,6 +45,11 @@
     *   Implemented a live ML validation pipeline for the sensitivity sweep (`/api/ml/sensitivity`), executing dynamic VAE reconstruction error calculations, ROC curves, and F1/Precision/Recall crossover metrics on-the-fly.
     *   Hardened UI typography and layout consistency on the Orbit Decay page, improving visibility of Reality Check and Forecast Summary metrics.
     *   Regenerated all static dashboard screenshots (both dark and light modes) across all SvelteKit pages to document the visual changes.
+    *   Anchored `.gitignore` directory patterns (e.g., `/data/`, `/models/`) to prevent Git from recursively ignoring crucial nested frontend code folders (like `frontend/src/lib/data/` which contains `transforms.ts` and `dictionary.ts`).
+    *   Implemented custom CORS fallback middleware in FastAPI (`src/api/main.py`) to bypass SvelteKit Server-Side Rendering (SSR) fetch validation check failures.
+    *   Switched SvelteKit's Docker builder stage to Node.js for Vite production bundling to resolve multi-threading compiler crashes with Bun inside specific Linux VPS Docker hosts.
+    *   Locked down SvelteKit and FastAPI port mappings in `docker-compose.yml` to localhost (`127.0.0.1`), routing all traffic securely through Caddy.
+    *   Built a custom Mosquitto image (`mosquitto/Dockerfile`) and entrypoint workflow to enforce `allow_anonymous false` and dynamically generate secure MQTT credentials at runtime from `.env` keys.
 *   **Current Sprint (Phase 1 — Foundation):**
     *   Restructure frontend routes into `(landing)` and `(dashboard)` route groups.
     *   Build `DashboardLayout` with sidebar + footer (no antenna bg, no Overview/Team tabs).

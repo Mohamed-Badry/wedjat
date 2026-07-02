@@ -12,7 +12,7 @@
 services:
   broker:
     profiles: ["dev", "cloud", "edge"]
-    image: eclipse-mosquitto:2.1.2-alpine
+    build: ./mosquitto
     container_name: watchdog_broker
     ports:
       - "1883:1883"
@@ -20,9 +20,7 @@ services:
       # WARNING: Fallbacks (watchdog/secretpassword) are for local dev ONLY.
       - MQTT_USERNAME=${MQTT_USERNAME:-watchdog}
       - MQTT_PASSWORD=${MQTT_PASSWORD:-secretpassword}
-    entrypoint: ["/mosquitto/entrypoint.sh"]
     volumes:
-      - ./mosquitto/entrypoint.sh:/mosquitto/entrypoint.sh:ro
       - mosquitto_data:/mosquitto/data
       - mosquitto_log:/mosquitto/log
     restart: unless-stopped
@@ -61,9 +59,10 @@ services:
       DATABASE_URL: postgresql://${POSTGRES_USER:-watchdog}:${POSTGRES_PASSWORD:-watchdog_pass}@db:5432/${POSTGRES_DB:-watchdog_db}
       MQTT_BROKER_URL: broker
       MQTT_BROKER_PORT: "1883"
-      # WARNING: Fallbacks are for local dev ONLY.
       MQTT_USERNAME: ${MQTT_USERNAME:-watchdog}
       MQTT_PASSWORD: ${MQTT_PASSWORD:-secretpassword}
+      REQUIRE_AUTH: ${REQUIRE_AUTH:-false}
+      MASTER_API_KEY: ${MASTER_API_KEY}
     volumes:
       - ./src/api:/app/src/api
       - ./src/gr_sat:/app/src/gr_sat
@@ -182,7 +181,7 @@ services:
       - ./models:/app/models
     environment:
       API_URL: http://backend:8000
-      API_KEY: dev_master_key
+      API_KEY: ${MASTER_API_KEY:-dev_master_key}
     depends_on:
       - backend
     restart: unless-stopped
