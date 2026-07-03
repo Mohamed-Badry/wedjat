@@ -61,8 +61,6 @@ services:
       MQTT_BROKER_PORT: "1883"
       MQTT_USERNAME: ${MQTT_USERNAME:-watchdog}
       MQTT_PASSWORD: ${MQTT_PASSWORD:-secretpassword}
-      REQUIRE_AUTH: ${REQUIRE_AUTH:-false}
-      MASTER_API_KEY: ${MASTER_API_KEY}
     volumes:
       - ./src/api:/app/src/api
       - ./src/gr_sat:/app/src/gr_sat
@@ -132,7 +130,6 @@ services:
       - "127.0.0.1:5173:5173"
     environment:
       PUBLIC_API_URL: ${PUBLIC_API_URL:-http://localhost:8000}
-      PUBLIC_MASTER_API_KEY: ${MASTER_API_KEY}
     depends_on:
       - backend
     restart: unless-stopped

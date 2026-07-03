@@ -10,17 +10,27 @@ import { env } from '$env/dynamic/public';
  * - SSR: always targets the Docker service name.
  */
 export function getApiUrl(): string {
+  // SSR: Always use the internal Docker bridge network
+  if (typeof window === 'undefined') {
+    return 'http://backend:8000';
+  }
+  // Browser: If we are on the VPS/production domain, use relative paths to route through Caddy
+  if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+    return '';
+  }
+  // Local Dev: Fall back to local API endpoint
   if (env.PUBLIC_API_URL) {
     return env.PUBLIC_API_URL;
   }
-  if (typeof window !== 'undefined') {
-    return 'http://127.0.0.1:8000';
-  }
-  return 'http://backend:8000';
+  return 'http://127.0.0.1:8000';
 }
 
 export function getWsUrl(): string {
   const url = getApiUrl();
+  if (url === '') {
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    return `${protocol}//${window.location.host}`;
+  }
   return url.replace(/^http/, 'ws');
 }
 
@@ -39,13 +49,8 @@ export async function apiFetch<T = unknown>(
   init?: RequestInit,
   fetchFn: typeof fetch = fetch,
 ): Promise<T> {
-  const headers = new Headers(init?.headers);
-  if (env.PUBLIC_MASTER_API_KEY) {
-    headers.set('X-API-Key', env.PUBLIC_MASTER_API_KEY);
-  }
   const res = await fetchFn(`${getApiUrl()}${path}`, {
     ...init,
-    headers,
   });
   if (!res.ok) {
     const detail = await res.json().catch(() => null);

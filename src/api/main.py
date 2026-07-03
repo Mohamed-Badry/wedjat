@@ -24,11 +24,6 @@ except ImportError:  # pragma: no cover - used when uvicorn runs from src/api
     from dashboard_data import DashboardDataRepository
     from mqtt_client import start_mqtt_client
 
-try:
-    from .auth import verify_api_key, seed_master_key
-except ImportError:
-    from auth import verify_api_key, seed_master_key
-
 
 limiter = Limiter(key_func=get_remote_address)
 
@@ -40,8 +35,6 @@ def _cors_origins() -> list[str]:
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Seed the master API key from environment before starting services
-    seed_master_key()
     client = start_mqtt_client(repository=app.state.repository)
     yield
     if client:
@@ -65,7 +58,6 @@ def create_app(repository: DashboardDataRepository | None = None) -> FastAPI:
         description="FastAPI backend for satellite telemetry dashboard data.",
         version="0.1.0",
         lifespan=lifespan,
-        dependencies=[Depends(verify_api_key)],
     )
     
     app.state.repository = data
