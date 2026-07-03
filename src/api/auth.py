@@ -1,4 +1,5 @@
-from fastapi import HTTPException, status, Header, Query, Request
+from fastapi import HTTPException, status, Header, Query
+from starlette.requests import HTTPConnection
 from sqlmodel import Session, select
 import os
 from loguru import logger
@@ -11,11 +12,14 @@ except ImportError:
     from db_models import ApiKey
 
 def verify_api_key(
-    request: Request,
+    connection: HTTPConnection,
     api_key: str | None = Header(default=None, alias="X-API-Key"),
     api_key_query: str | None = Query(default=None, alias="api_key"),
 ):
-    if request.method == "OPTIONS":
+    # Bypass WebSockets and CORS preflights from the global dependency check
+    if connection.scope["type"] == "websocket":
+        return None
+    if connection.scope.get("method") == "OPTIONS":
         return None
 
     require_auth = os.getenv("REQUIRE_AUTH", "false").lower() == "true"
