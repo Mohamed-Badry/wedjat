@@ -11,7 +11,6 @@ PROJECT_ROOT = Path("/app")
 SCRIPTS_DIR = PROJECT_ROOT / "scripts"
 
 API_URL = os.getenv("API_URL", "http://backend:8000")
-API_KEY = os.getenv("API_KEY", "dev_master_key")
 
 def run_fetch_data():
     logger.info("Starting daily fetch_training_data job (non-interactive, 3 days window)...")
@@ -31,7 +30,7 @@ def run_train_models():
     # We query the API for active satellites so we can retrain all known ones.
     try:
         with httpx.Client(timeout=10.0) as client:
-            response = client.get(f"{API_URL}/api/satellites", headers={"X-API-Key": API_KEY})
+            response = client.get(f"{API_URL}/api/satellites")
             response.raise_for_status()
             satellites = response.json().get("satellites", [])
     except Exception as e:
@@ -61,7 +60,7 @@ def reload_api_models():
     logger.info("Notifying API to reload model cache...")
     try:
         with httpx.Client(timeout=10.0) as client:
-            response = client.post(f"{API_URL}/api/admin/reload_models", headers={"X-API-Key": API_KEY})
+            response = client.post(f"{API_URL}/api/admin/reload_models")
             response.raise_for_status()
         logger.info("API model cache reloaded successfully.")
     except Exception as e:

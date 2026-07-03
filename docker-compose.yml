@@ -180,7 +180,6 @@ services:
       - ./models:/app/models
     environment:
       API_URL: http://backend:8000
-      API_KEY: ${MASTER_API_KEY:-dev_master_key}
     depends_on:
       - backend
     restart: unless-stopped
