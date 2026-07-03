@@ -21,11 +21,7 @@ export function getApiUrl(): string {
 
 export function getWsUrl(): string {
   const url = getApiUrl();
-  const wsUrl = url.replace(/^http/, 'ws');
-  if (env.PUBLIC_MASTER_API_KEY) {
-    return `${wsUrl}?api_key=${encodeURIComponent(env.PUBLIC_MASTER_API_KEY)}`;
-  }
-  return wsUrl;
+  return url.replace(/^http/, 'ws');
 }
 
 /**

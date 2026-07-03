@@ -4,6 +4,7 @@
   import { fly } from "svelte/transition";
   import { flip } from "svelte/animate";
   import { apiFetch, getWsUrl } from "$lib/api";
+  import { env } from '$env/dynamic/public';
   import type { TelemetryFrame } from "$lib/types/api";
 
   import AnomalyTimelinePlot from "$lib/components/charts/AnomalyTimelinePlot.svelte";
@@ -71,7 +72,10 @@
     // Read synchronously so Svelte tracks dependencies
     const currentNoradId = noradId;
 
-    const wsUrl = `${getWsUrl()}/api/ws/dashboard`;
+    let wsUrl = `${getWsUrl()}/api/ws/dashboard`;
+    if (env.PUBLIC_MASTER_API_KEY) {
+      wsUrl += `?api_key=${encodeURIComponent(env.PUBLIC_MASTER_API_KEY)}`;
+    }
     let ws = new WebSocket(wsUrl);
 
     ws.onopen = () => {
