@@ -28,13 +28,22 @@ def run_train_models():
     logger.info("Starting daily train_model job for all active satellites...")
     
     # We query the API for active satellites so we can retrain all known ones.
-    try:
-        with httpx.Client(timeout=10.0) as client:
-            response = client.get(f"{API_URL}/api/satellites")
-            response.raise_for_status()
-            satellites = response.json().get("satellites", [])
-    except Exception as e:
-        logger.error(f"Failed to fetch satellite list from API: {e}")
+    satellites = None
+    for attempt in range(5):
+        try:
+            with httpx.Client(timeout=10.0) as client:
+                response = client.get(f"{API_URL}/api/satellites")
+                response.raise_for_status()
+                satellites = response.json().get("satellites", [])
+            break
+        except Exception as e:
+            logger.warning(f"Failed to fetch satellite list from API (attempt {attempt+1}/5): {e}")
+            if attempt == 4:
+                logger.error("Max retries reached. Skipping train_models job.")
+                return
+            time.sleep(60)
+
+    if satellites is None:
         return
 
     success_count = 0
@@ -58,13 +67,17 @@ def run_train_models():
 
 def reload_api_models():
     logger.info("Notifying API to reload model cache...")
-    try:
-        with httpx.Client(timeout=10.0) as client:
-            response = client.post(f"{API_URL}/api/admin/reload_models")
-            response.raise_for_status()
-        logger.info("API model cache reloaded successfully.")
-    except Exception as e:
-        logger.error(f"Failed to reload API model cache: {e}")
+    for attempt in range(3):
+        try:
+            with httpx.Client(timeout=10.0) as client:
+                response = client.post(f"{API_URL}/api/admin/reload_models")
+                response.raise_for_status()
+            logger.info("API model cache reloaded successfully.")
+            return
+        except Exception as e:
+            logger.warning(f"Failed to reload API model cache (attempt {attempt+1}/3): {e}")
+            time.sleep(10)
+    logger.error("Failed to reload API model cache after retries.")
 
 def main():
     logger.info("Starting Scheduler Service...")
