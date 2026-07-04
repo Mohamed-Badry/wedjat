@@ -10,6 +10,7 @@
     { href: "/dashboard", label: "Dashboard Home", icon: Home },
     { href: "/dashboard/operations", label: "Operations", icon: Satellite },
     { href: "/dashboard/tracker", label: "Tracker", icon: Crosshair },
+    { href: "/dashboard/orbit-decay", label: "Orbit Decay AI", icon: Activity },
     { href: "/dashboard/live", label: "Live Watcher", icon: Zap },
     { href: "/dashboard/inspector", label: "Inspector", icon: Search },
     { href: "/dashboard/analytics", label: "Analytics", icon: LineChart },
@@ -19,7 +20,6 @@
   const analysisLinks = [
     { href: "/dashboard/eda", label: "EDA Report", icon: BookOpen },
     { href: "/dashboard/ml-report", label: "Model Analysis", icon: BrainCircuit },
-    { href: "/dashboard/orbit-decay", label: "Orbit Decay AI", icon: Activity },
   ];
 
   let desktopSidebarOpen = $state(true);
