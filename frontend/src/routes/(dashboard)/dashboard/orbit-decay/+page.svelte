@@ -156,7 +156,7 @@
   <title>Orbit Decay AI — Watchdog</title>
 </svelte:head>
 
-<section class="flex lg:h-full lg:min-h-0 flex-col gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500 ease-out">
+<section class="flex tall-lg:flex-1 tall-lg:min-h-0 flex-col gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500 ease-out">
   <!-- HEADER -->
   <header class="flex flex-none flex-wrap items-end justify-between gap-6 pb-2 border-b border-border/40">
     <div class="space-y-2">
