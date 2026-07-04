@@ -188,7 +188,7 @@
   <title>AI Tracker — Watchdog</title>
 </svelte:head>
 
-<section class="flex lg:h-full lg:min-h-0 flex-col gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500 ease-out">
+<section class="flex tall-lg:flex-1 tall-lg:min-h-0 flex-col gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500 ease-out">
   <!-- HEADER -->
   <header class="flex flex-none flex-wrap items-end justify-between gap-6 pb-2 border-b border-border/40">
     <div class="space-y-2">
@@ -252,7 +252,7 @@
   </header>
 
   <!-- MAIN CONTENT -->
-  <div class="flex lg:min-h-0 lg:flex-1 flex-col lg:overflow-hidden overflow-y-auto overflow-x-hidden pb-safe relative">
+  <div class="flex tall-lg:min-h-0 tall-lg:flex-1 flex-col tall-lg:overflow-hidden overflow-y-auto overflow-x-hidden pb-safe relative">
     {#if uiState.tracker.noradId === "all"}
       <div class="flex h-full items-center justify-center p-12 text-center text-sm text-ink-3">
         Please select a specific satellite to track.
@@ -281,11 +281,11 @@
       <!-- TAB 1: MISSION CONTROL                                 -->
       <!-- ═══════════════════════════════════════════════════════ -->
       {#if uiState.tracker.activeTab === "mission"}
-        <div in:fade={{duration: 200}} class="flex flex-col gap-4 flex-1 min-h-0 lg:h-full">
+        <div in:fade={{duration: 200}} class="flex flex-col gap-4 flex-1 min-h-0 tall-lg:h-full">
           <TelemetryMatrix state={snapshotData.state} />
           
           <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 flex-1 min-h-0">
-            <div class="lg:col-span-2 chart-card flex flex-col min-h-[250px] lg:min-h-0">
+            <div class="lg:col-span-2 chart-card flex flex-col min-h-[250px] tall-lg:min-h-0">
               <div class="px-4 py-3 border-b border-border/50 flex justify-between items-center bg-surface/50">
                 <span class="chart-card-title flex items-center gap-2"><MapIcon class="size-4" /> Ground Track</span>
                 <span class="text-[10px] text-ink-3 uppercase font-bold tracking-widest flex items-center gap-1">
@@ -316,7 +316,7 @@
       <!-- ═══════════════════════════════════════════════════════ -->
       {:else if uiState.tracker.activeTab === "orbital"}
         {@const coe = snapshotData.state.coe}
-        <div in:fade={{duration: 200}} class="flex flex-col gap-4 flex-1 min-h-0 lg:h-full">
+        <div in:fade={{duration: 200}} class="flex flex-col gap-4 flex-1 min-h-0 tall-lg:h-full">
           
           <!-- Primary COE row -->
           <div class="grid grid-cols-2 md:grid-cols-5 gap-3 flex-none">
@@ -335,7 +335,7 @@
           </div>
 
           <!-- Middle row: 3 equal-width columns -->
-          <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:flex-1 lg:min-h-[300px]">
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 tall-lg:flex-1 tall-lg:min-h-[300px]">
             <!-- Derived Parameters -->
             <div class="chart-card flex flex-col bg-surface/50 h-full">
               <div class="px-4 py-2.5 border-b border-border/50 bg-surface/30">
@@ -419,10 +419,10 @@
       <!-- TAB 3: FORECAST (merged Dynamics + Forecast)           -->
       <!-- ═══════════════════════════════════════════════════════ -->
       {:else if uiState.tracker.activeTab === "forecast"}
-        <div in:fade={{duration: 200}} class="flex flex-col gap-4 flex-1 min-h-0 lg:h-full">
+        <div in:fade={{duration: 200}} class="flex flex-col gap-4 flex-1 min-h-0 tall-lg:h-full">
           
           <!-- Top row: Table (left) + Altitude chart (right) -->
-          <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:h-[320px] lg:min-h-[320px] flex-none">
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 tall-lg:h-[320px] tall-lg:min-h-[320px] flex-none">
             <!-- Compact forecast table -->
             <div class="lg:col-span-7 chart-card !p-0 overflow-hidden flex flex-col h-full">
               <div class="px-6 py-3.5 border-b border-border/50 bg-surface/50">
@@ -483,7 +483,7 @@
           </div>
           
           <!-- Bottom row: Elevation profile + Sky track / GS Status -->
-          <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:flex-1 lg:min-h-[270px]">
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 tall-lg:flex-1 tall-lg:min-h-[270px]">
             <div class="chart-card flex flex-col h-full">
               <div class="px-4 py-3 border-b border-border/50 bg-surface/50">
                 <span class="chart-card-title text-xs flex items-center gap-2"><Target class="size-3.5" /> GS Elevation Profile</span>
@@ -598,7 +598,7 @@
             </span>
           </div>
           
-          <div class="overflow-x-auto flex-1">
+          <div class="overflow-y-auto overflow-x-auto max-h-[300px] tall-lg:max-h-none flex-1">
             <table class="w-full text-left text-sm whitespace-nowrap min-w-[800px]">
               <thead class="bg-surface/30 border-b border-border text-xs uppercase tracking-widest text-ink-3 sticky top-0 backdrop-blur z-10">
                 <tr>

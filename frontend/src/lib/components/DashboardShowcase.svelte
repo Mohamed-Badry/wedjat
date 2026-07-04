@@ -193,11 +193,11 @@
   }
 </script>
 
-<section use:gsapAction={{ animation: horizontalScrollAnim }} class="relative bg-surface border-t border-border h-screen w-full flex flex-col justify-center overflow-hidden">
-  <div class="pin-container h-full w-full flex flex-col justify-center pb-0">
+<section use:gsapAction={{ animation: horizontalScrollAnim }} class="relative bg-surface border-t border-border h-screen min-h-[700px] w-full flex flex-col justify-center overflow-hidden">
+  <div class="pin-container h-full w-full flex flex-col pb-0">
     
     <!-- Title section raised up -->
-    <div class="absolute top-6 md:top-8 left-0 w-full px-8 md:px-16 z-20 pointer-events-none">
+    <div class="w-full px-8 md:px-16 z-20 pointer-events-none shrink-0 pt-8 md:pt-12">
       <h2 class="text-4xl md:text-5xl font-black tracking-tight text-ink drop-shadow-sm">
         Explore the <span class="text-transparent bg-clip-text bg-gradient-to-r from-brand to-info">Dashboard.</span>
       </h2>
@@ -207,12 +207,12 @@
     </div>
 
     <!-- The horizontally scrolling strip shifted down -->
-    <div class="scroll-strip flex h-[60vh] px-16 gap-16 md:gap-24 items-center w-max">
+    <div class="scroll-strip flex-1 flex px-16 gap-16 md:gap-24 items-center w-max min-h-0">
       {#each features as feature, i}
         {@const isEven = i % 2 === 0}
         {@const hState = hoverStates[i] ?? { x: 0, y: 0, active: false }}
         
-        <div class="showcase-card flex flex-col gap-5 w-[60vw] md:w-[42vw] lg:w-[35vw] shrink-0 {isEven ? 'translate-y-[6%]' : '-translate-y-[6%]'}">
+        <div class="showcase-card flex flex-col gap-4 md:gap-5 w-[65vw] md:w-[42vw] lg:w-[35vw] shrink-0 {isEven ? 'translate-y-[4%]' : '-translate-y-[4%]'}">
           
           <!-- Image Container with Collage -->
           <div 
