@@ -2,6 +2,7 @@
   import type { PageData } from './$types';
   import { page } from '$app/stores';
   import { apiFetch } from '$lib/api';
+  import { onMount } from 'svelte';
   import { fly, fade } from 'svelte/transition';
   import type { AnomalyRecord } from '$lib/types/api';
   import Tooltip from '$lib/components/ui/Tooltip.svelte';
@@ -28,6 +29,11 @@
     uiState.ml.anomalies = anomalies;
   });
   let selectedAnomalyId = $state<string | null>(null);
+
+  let mounted = $state(false);
+  onMount(() => {
+    mounted = true;
+  });
 
   let selectedAnomaly = $derived(
     selectedAnomalyId ? anomalies.find(a => (a.timestamp + a.norad_id) === selectedAnomalyId) : null
@@ -86,9 +92,9 @@
     <div class="flex-none rounded-xl border border-brand/50 bg-brand/10 p-4 text-sm text-brand">
       {error}
     </div>
-  {:else}
+  {:else if mounted}
     <!-- Controls -->
-    <div in:fly={{ y: -20, duration: 400, delay: 100 }} class="relative z-20 flex-none flex flex-wrap items-end gap-4 rounded-[1.25rem] border border-border bg-panel p-4 shadow-sm backdrop-blur hover:shadow-md transition-shadow duration-300">
+    <div in:fly|global={{ y: -20, duration: 400, delay: 100 }} class="relative z-20 flex-none flex flex-wrap items-end gap-4 rounded-[1.25rem] border border-border bg-panel p-4 shadow-sm backdrop-blur hover:shadow-md transition-shadow duration-300">
       <div class="flex flex-col gap-1.5 flex-1 min-w-0 sm:min-w-[200px]">
         <label for="ml-sat-select" class="text-[10px] font-semibold uppercase tracking-wider text-ink-3">Satellite Filter</label>
         <Select
@@ -124,7 +130,7 @@
     <div class="tall-lg:flex-1 tall-lg:min-h-0 grid gap-5 lg:grid-cols-[300px_minmax(0,1fr)] xl:grid-cols-[350px_minmax(0,1fr)]">
       
       <!-- LEFT COLUMN: Anomaly Triage Queue -->
-      <div in:fly={{ x: -20, duration: 400, delay: 200 }} class="flex flex-col tall-lg:flex-1 tall-lg:min-h-0 w-full h-full rounded-[1.25rem] border border-border bg-panel shadow-panel backdrop-blur hover:shadow-lg transition-shadow duration-300">
+      <div in:fly|global={{ x: -20, duration: 400, delay: 200 }} class="flex flex-col tall-lg:flex-1 tall-lg:min-h-0 w-full h-full rounded-[1.25rem] border border-border bg-panel shadow-panel backdrop-blur hover:shadow-lg transition-shadow duration-300">
         <div class="bg-surface/35 p-4 border-b border-border shrink-0 flex items-center justify-between">
           <h2 class="text-sm font-semibold uppercase tracking-[0.16em] text-ink-3">Anomaly Triage Queue</h2>
           <span class="text-xs font-mono text-ink-3">{anomalies.length}</span>
@@ -143,7 +149,7 @@
             {#each anomalies as anomaly, i}
               {@const frameId = anomaly.timestamp + anomaly.norad_id}
               <button
-                in:fly={{ x: -10, duration: 300, delay: Math.min(300 + i * 30, 800) }}
+                in:fly|global={{ x: -10, duration: 300, delay: Math.min(300 + i * 30, 800) }}
                 type="button"
                 class="w-full text-left rounded-lg border p-3 transition-all duration-300 {selectedAnomalyId === frameId ? 'border-critical bg-critical/10 shadow-[0_0_15px_rgba(244,63,94,0.15)] ring-1 ring-critical/50 scale-[1.02]' : 'border-border bg-surface/50 hover:border-critical/40 hover:bg-surface hover:scale-[1.01]'}"
                 onclick={() => selectedAnomalyId = frameId}
@@ -167,7 +173,7 @@
       </div>
 
       <!-- RIGHT COLUMN: Inference Inspector -->
-      <div in:fly={{ y: 20, duration: 400, delay: 300 }} class="flex flex-col tall-lg:flex-1 tall-lg:min-h-0 rounded-[1.25rem] border border-border bg-panel shadow-panel backdrop-blur hover:shadow-lg transition-shadow duration-300">
+      <div in:fly|global={{ y: 20, duration: 400, delay: 300 }} class="flex flex-col tall-lg:flex-1 tall-lg:min-h-0 rounded-[1.25rem] border border-border bg-panel shadow-panel backdrop-blur hover:shadow-lg transition-shadow duration-300">
         <div class="bg-surface/35 p-4 border-b border-border shrink-0 flex items-center justify-between">
           <h2 class="text-sm font-semibold uppercase tracking-[0.16em] text-ink-3">Root Cause Attribution</h2>
           {#if selectedAnomaly}

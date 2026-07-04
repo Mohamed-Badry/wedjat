@@ -28,6 +28,11 @@
     error = data.error;
   });
 
+  let mounted = $state(false);
+  onMount(() => {
+    mounted = true;
+  });
+
   // ── WebSocket with exponential-backoff reconnection ────────────────────────
   let ws: WebSocket | null = null;
   let retryDelay = 1000;
@@ -96,9 +101,9 @@
     <h2 class="text-lg font-semibold">Connection Error</h2>
     <p class="mt-2 text-sm">{error}</p>
   </div>
-{:else if summary}
+{:else if summary && mounted}
   <section class="flex flex-col tall-xl:flex-1 tall-xl:min-h-0 gap-5">
-    <div in:fade={{ duration: 400 }} class="flex-none space-y-1">
+    <div class="flex-none space-y-1">
       <p class="text-xs font-semibold uppercase tracking-[0.2em] text-muted">System Overview</p>
       <h1 class="text-3xl font-semibold tracking-tight text-ink">Dashboard Home</h1>
     </div>
@@ -108,7 +113,7 @@
       {#each statCards as stat, i}
         {@const Icon = stat.icon}
         {@const value = summary.totals[stat.key]}
-        <article in:fly={{ y: 40, duration: 700, delay: i * 100, easing: backOut }} class="group flex items-center justify-between rounded-[1.25rem] border border-border bg-panel p-5 shadow-panel backdrop-blur transition-all duration-300 hover:-translate-y-1 hover:border-brand/30 hover:shadow-[0_8px_30px_rgba(139,92,246,0.12)]">
+        <article in:fly|global={{ y: 40, duration: 700, delay: i * 100, easing: backOut }} class="group flex items-center justify-between rounded-[1.25rem] border border-border bg-panel p-5 shadow-panel backdrop-blur transition-all duration-300 hover:-translate-y-1 hover:border-brand/30 hover:shadow-[0_8px_30px_rgba(139,92,246,0.12)]">
           <div class="flex flex-col">
             <p class="text-xs font-semibold uppercase tracking-wider text-ink-3">{stat.label}</p>
             <p class="mt-1 text-2xl sm:text-3xl font-bold tracking-tight text-brand">{typeof value === 'number' ? value.toLocaleString() : value}</p>
@@ -126,13 +131,13 @@
       <!-- Left Col (Component Health & Active Profiles) -->
       <div class="flex flex-col gap-6 tall-xl:min-h-0">
         <!-- Service Status -->
-        <div in:fly={{ y: 40, duration: 700, delay: 300, easing: backOut }} class="flex flex-col rounded-[1.25rem] border border-border bg-panel shadow-panel backdrop-blur flex-none overflow-hidden hover:shadow-lg transition-shadow duration-300">
+        <div in:fly|global={{ y: 40, duration: 700, delay: 300, easing: backOut }} class="flex flex-col rounded-[1.25rem] border border-border bg-panel shadow-panel backdrop-blur flex-none overflow-hidden hover:shadow-lg transition-shadow duration-300">
           <div class="bg-surface/35 p-4 border-b border-border shrink-0">
             <h2 class="text-sm font-semibold uppercase tracking-[0.16em] text-ink-3">Component Health</h2>
           </div>
           <div class="flex flex-col gap-3 p-4 shrink-0">
             {#each summary.service_status as component, i}
-              <div in:fly={{ x: -10, duration: 300, delay: 400 + i * 50 }} class="group flex items-start justify-between rounded-xl border border-border/50 bg-surface/30 p-4 transition-all hover:border-brand/30 hover:bg-brand/5 hover:shadow-sm">
+              <div in:fly|global={{ x: -10, duration: 300, delay: 400 + i * 50 }} class="group flex items-start justify-between rounded-xl border border-border/50 bg-surface/30 p-4 transition-all hover:border-brand/30 hover:bg-brand/5 hover:shadow-sm">
                 <div class="flex flex-col gap-1.5">
                   <span class="text-sm font-semibold capitalize text-ink transition-colors group-hover:text-brand">{component.name.replace('_', ' ')}</span>
                   <p class="text-[11px] font-medium leading-relaxed text-ink-3 group-hover:text-ink-2 transition-colors">{component.detail}</p>
@@ -147,7 +152,7 @@
         </div>
 
         <!-- Active Profiles Table -->
-        <div in:fly={{ y: 40, duration: 700, delay: 400, easing: backOut }} class="flex flex-col tall-xl:flex-1 tall-xl:min-h-0 rounded-[1.25rem] border border-border bg-panel shadow-panel backdrop-blur hover:shadow-lg transition-shadow duration-300">
+        <div in:fly|global={{ y: 40, duration: 700, delay: 400, easing: backOut }} class="flex flex-col tall-xl:flex-1 tall-xl:min-h-0 rounded-[1.25rem] border border-border bg-panel shadow-panel backdrop-blur hover:shadow-lg transition-shadow duration-300">
           <div class="bg-surface/35 p-4 border-b border-border shrink-0">
             <h2 class="text-sm font-semibold uppercase tracking-[0.16em] text-ink-3">Active Profiles</h2>
           </div>
@@ -191,7 +196,7 @@
 <div class="flex flex-col gap-6 tall-xl:min-h-0">
         <!-- Throughput Sparkline -->
         {#if summary.throughput_buckets && summary.throughput_buckets.length > 0}
-          <div in:fly={{ y: 40, duration: 700, delay: 500, easing: backOut }} class="flex-none chart-card border border-border rounded-[1.25rem] bg-panel p-4 shadow-sm backdrop-blur hover:shadow-lg transition-shadow duration-300">
+          <div in:fly|global={{ y: 40, duration: 700, delay: 500, easing: backOut }} class="flex-none chart-card border border-border rounded-[1.25rem] bg-panel p-4 shadow-sm backdrop-blur hover:shadow-lg transition-shadow duration-300">
             <div class="flex items-center justify-between mb-2">
               <h2 class="text-sm font-semibold uppercase tracking-[0.16em] text-ink-3">Throughput (24h)</h2>
               <div class="text-right">
@@ -208,7 +213,7 @@
         {/if}
 
         <!-- Recent Anomalies -->
-        <div in:fly={{ y: 40, duration: 700, delay: 600, easing: backOut }} class="flex flex-col tall-xl:flex-1 tall-xl:min-h-0 rounded-[1.25rem] border border-border bg-panel shadow-panel backdrop-blur overflow-hidden hover:shadow-lg transition-shadow duration-300">
+        <div in:fly|global={{ y: 40, duration: 700, delay: 600, easing: backOut }} class="flex flex-col tall-xl:flex-1 tall-xl:min-h-0 rounded-[1.25rem] border border-border bg-panel shadow-panel backdrop-blur overflow-hidden hover:shadow-lg transition-shadow duration-300">
           <div class="bg-surface/35 p-4 border-b border-border shrink-0 flex flex-col xl:flex-row xl:items-center justify-between gap-4">
             <div class="flex flex-col sm:flex-row sm:items-center gap-4">
               <h2 class="text-sm font-semibold uppercase tracking-[0.16em] text-ink-3 whitespace-nowrap">Recent Anomalies</h2>
@@ -242,7 +247,7 @@
               <div class="grid grid-cols-1 sm:grid-cols-2 2xl:grid-cols-3 gap-4">
                 {#each summary.recent_anomalies as anomaly, i}
                   {@const severityHex = getSeverityColor(anomaly.score)}
-                  <a in:fly={{ y: 20, duration: 400, delay: 600 + (i * 50) }} href="/dashboard/ml?timestamp={encodeURIComponent(anomaly.timestamp)}&norad_id={anomaly.norad_id}" class="group relative overflow-hidden rounded-xl border bg-surface/20 p-5 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg" style="border-color: {severityHex}; shadow-color: {severityHex};">
+                  <a in:fly|global={{ y: 20, duration: 400, delay: 600 + (i * 50) }} href="/dashboard/ml?timestamp={encodeURIComponent(anomaly.timestamp)}&norad_id={anomaly.norad_id}" class="group relative overflow-hidden rounded-xl border bg-surface/20 p-5 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg" style="border-color: {severityHex}; shadow-color: {severityHex};">
                     <div class="absolute inset-0 opacity-5" style="background-color: {severityHex};"></div>
                     <div class="relative flex items-center justify-between mb-4">
                       <span class="rounded-md px-2 py-0.5 text-[10px] font-bold tracking-widest border" style="color: {severityHex}; border-color: {severityHex}; background-color: color-mix(in srgb, {severityHex} 15%, transparent);">NORAD {anomaly.norad_id}</span>
