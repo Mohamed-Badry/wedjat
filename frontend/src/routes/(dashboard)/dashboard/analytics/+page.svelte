@@ -423,8 +423,8 @@
           <!-- Bottom Grid -->
           <div class="dashboard-columns grid-quality-split w-full tall-lg:flex-1 tall-lg:min-h-0 !items-stretch">
             <!-- Left Info Panel & Field Success rates -->
-            <div class="flex flex-col gap-3">
-              <div class="panel-card flex-1">
+            <div class="flex flex-col gap-3 h-full">
+              <div class="panel-card flex-none">
                 <h3 class="mt-0 mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-ink-3">
                   <span class="inline-block h-3 w-1 rounded-sm bg-brand"></span>
                   Decoder Performance Summary
