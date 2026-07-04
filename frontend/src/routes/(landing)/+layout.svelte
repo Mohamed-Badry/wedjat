@@ -4,6 +4,8 @@
   import ScrollIndicator from "$lib/components/ScrollIndicator.svelte";
   import { themeState, toggleTheme } from "$lib/theme.svelte";
   import { Sun, Moon } from "lucide-svelte";
+  import { fly } from "svelte/transition";
+  import { backOut } from "svelte/easing";
 
   let { children } = $props();
 
@@ -42,7 +44,7 @@
 <div class="min-h-screen">
   <div class="flex min-h-screen w-full flex-col">
     <div class="mx-auto w-full max-w-[1800px] px-4 pt-4 sm:px-8 sm:pt-6 lg:px-10">
-      <header class="mb-10 rounded-[2rem] border border-border bg-panel px-5 py-4 shadow-panel backdrop-blur sm:px-6">
+      <header in:fly={{ y: -20, duration: 800, delay: 200, easing: backOut }} class="mb-10 rounded-[2rem] border border-border bg-panel px-5 py-4 shadow-panel backdrop-blur sm:px-6">
       <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
           <a class="text-lg font-semibold tracking-[0.18em] text-muted uppercase" href="/">

@@ -47,8 +47,9 @@
 {#if !isBottom}
   <button 
     onclick={scrollDown}
-    transition:fade={{ duration: 300 }}
-    class="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center opacity-60 hover:opacity-100 transition-opacity cursor-pointer group"
+    in:fade={{ duration: 800, delay: 1000 }}
+    out:fade={{ duration: 300 }}
+    class="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center opacity-60 hover:opacity-100 transition-opacity cursor-pointer group animate-bounce"
     aria-label="Scroll down"
   >
     <!-- Minimalist mouse silhouette -->
