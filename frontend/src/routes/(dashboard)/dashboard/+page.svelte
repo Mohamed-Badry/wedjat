@@ -209,6 +209,33 @@
         <!-- Orbit Decay AI Preview -->
         {#if decayData && decayData.forecasts}
           {@const drop7 = decayData.forecasts.find((f: any) => f.horizon === 'P7D' || f.horizon === '7 days, 0:00:00')?.predicted_decay_km || 0}
+          {@const drop30 = decayData.forecasts.find((f: any) => f.horizon === 'P30D' || f.horizon === '30 days, 0:00:00')?.predicted_decay_km || 0}
+          <div in:fly={{ y: 40, duration: 700, delay: 450, easing: backOut }} class="flex-none rounded-[1.25rem] border border-border bg-panel shadow-panel backdrop-blur hover:shadow-lg transition-shadow duration-300">
+            <div class="bg-surface/35 p-3 px-4 border-b border-border flex items-center justify-between rounded-t-[1.25rem]">
+              <div class="flex items-center gap-2">
+                <Activity class="size-4 text-brand" />
+                <h2 class="text-sm font-semibold uppercase tracking-[0.16em] text-ink-3">Orbit Decay AI</h2>
+              </div>
+              <a href="/dashboard/orbit-decay" class="text-[10px] font-bold uppercase tracking-widest text-brand hover:text-brand-light transition-colors border border-brand/30 bg-brand/10 px-2 py-0.5 rounded-md">View Full</a>
+            </div>
+            <div class="p-4 grid grid-cols-2 gap-4">
+              <div class="flex flex-col gap-1">
+                <span class="text-[10px] font-bold uppercase tracking-wider text-ink-3">7-Day Prediction</span>
+                <div class="flex items-baseline gap-1.5 {drop7 > 0 ? 'text-emerald-500' : 'text-brand'}">
+                  <span class="text-2xl font-black">{drop7 > -990 ? drop7.toFixed(2) : "ERR"}</span>
+                  <span class="text-xs font-bold opacity-70">km</span>
+                </div>
+              </div>
+              <div class="flex flex-col gap-1 border-l border-border pl-4">
+                <span class="text-[10px] font-bold uppercase tracking-wider text-ink-3">30-Day Prediction</span>
+                <div class="flex items-baseline gap-1.5 {drop30 > 0 ? 'text-emerald-500' : 'text-brand'}">
+                  <span class="text-2xl font-black">{drop30 > -990 ? drop30.toFixed(2) : "ERR"}</span>
+                  <span class="text-xs font-bold opacity-70">km</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        {/if}
         <!-- Throughput Sparkline -->
         {#if summary.throughput_buckets && summary.throughput_buckets.length > 0}
           <div in:fly|global={{ y: 40, duration: 700, delay: 500, easing: backOut }} class="flex-none chart-card border border-border rounded-[1.25rem] bg-panel p-4 shadow-sm backdrop-blur hover:shadow-lg transition-shadow duration-300">
