@@ -78,10 +78,14 @@
   function stickyStoryAnim(node: HTMLElement) {
     const steps = gsap.utils.toArray('.story-step', node) as HTMLElement[];
     const visuals = gsap.utils.toArray('.story-visual', node) as HTMLElement[];
+    const contents = gsap.utils.toArray('.story-content', node) as HTMLElement[];
 
     // Ensure first visual is visible, others hidden
     gsap.set(visuals, { autoAlpha: 0, scale: 0.95, zIndex: 0 });
     gsap.set(visuals[0], { autoAlpha: 1, scale: 1, zIndex: 10 });
+
+    // Hide ALL story-content elements initially — ScrollTrigger will reveal them
+    gsap.set(contents, { autoAlpha: 0, y: 80 });
 
     steps.forEach((step, index) => {
       const content = step.querySelector('.story-content');
@@ -98,13 +102,13 @@
         });
 
         tl.fromTo(content, 
-          { opacity: 0, y: 80 },
-          { opacity: 1, y: 0, duration: 1, ease: "none" }
+          { autoAlpha: 0, y: 80 },
+          { autoAlpha: 1, y: 0, duration: 1, ease: "none" }
         )
         // Hold state perfectly still while the right-side visual is showcased
         .to({}, { duration: 3 })
         // Fade out smoothly as it gets pushed up by the next step
-        .to(content, { opacity: 0, y: -80, duration: 1, ease: "none" });
+        .to(content, { autoAlpha: 0, y: -80, duration: 1, ease: "none" });
       }
 
       // Crossfade the right-hand visual

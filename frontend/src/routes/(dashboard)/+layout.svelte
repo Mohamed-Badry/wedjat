@@ -36,7 +36,7 @@
   }
 </script>
 
-<div class="flex min-h-screen bg-surface text-ink transition-colors overflow-x-hidden" in:fade={{ duration: 400 }}>
+<div class="flex min-h-screen bg-surface text-ink transition-colors overflow-x-hidden">
   <!-- Sidebar -->
   <aside in:fly={{ x: -50, duration: 600, delay: 100 }} class="fixed inset-y-0 left-0 z-50 flex w-64 shrink-0 flex-col border-r border-border bg-panel shadow-panel backdrop-blur transition-all duration-300 md:sticky md:top-0 md:h-screen {mobileSidebarOpen ? 'translate-x-0' : '-translate-x-full'} {desktopSidebarOpen ? 'md:translate-x-0 md:ml-0' : 'md:-translate-x-full md:-ml-64'}">
     <div class="flex h-16 items-center justify-between border-b border-border px-6">
@@ -127,7 +127,7 @@
       </div>
     </header>
 
-    <main class="flex-1 relative min-h-0">
+    <main class="flex-1 flex flex-col min-h-0 relative">
       <div class="absolute inset-0 w-full h-full flex flex-col overflow-y-auto overflow-x-hidden p-3 sm:p-5 md:p-8 lg:p-10">
         {@render children()}
       </div>

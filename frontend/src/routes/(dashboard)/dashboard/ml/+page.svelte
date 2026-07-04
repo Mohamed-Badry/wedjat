@@ -76,7 +76,7 @@
   <title>ML Interface — Watchdog</title>
 </svelte:head>
 
-<section class="flex flex-col lg:h-full lg:min-h-0 gap-5 animate-in fade-in slide-in-from-bottom-4 duration-500 ease-out">
+<section class="flex flex-col tall-lg:flex-1 tall-lg:min-h-0 gap-5 animate-in fade-in slide-in-from-bottom-4 duration-500 ease-out">
   <div class="flex-none space-y-1">
     <p class="text-xs font-semibold uppercase tracking-[0.2em] text-muted">Live Dashboards</p>
     <h1 class="text-3xl font-semibold tracking-tight text-ink">Inference Inspector</h1>
@@ -121,15 +121,16 @@
     </div>
 
     <!-- Main Grid Layout -->
-    <div class="lg:flex-1 lg:min-h-0 grid gap-5 lg:grid-cols-[300px_minmax(0,1fr)] xl:grid-cols-[350px_minmax(0,1fr)]">
+    <div class="tall-lg:flex-1 tall-lg:min-h-0 grid gap-5 lg:grid-cols-[300px_minmax(0,1fr)] xl:grid-cols-[350px_minmax(0,1fr)]">
       
       <!-- LEFT COLUMN: Anomaly Triage Queue -->
-      <div in:fly={{ x: -20, duration: 400, delay: 200 }} class="flex flex-col lg:flex-1 lg:min-h-0 rounded-[1.25rem] border border-border bg-panel shadow-panel backdrop-blur hover:shadow-lg transition-shadow duration-300">
+      <div in:fly={{ x: -20, duration: 400, delay: 200 }} class="flex flex-col tall-lg:flex-1 tall-lg:min-h-0 w-full h-full rounded-[1.25rem] border border-border bg-panel shadow-panel backdrop-blur hover:shadow-lg transition-shadow duration-300">
         <div class="bg-surface/35 p-4 border-b border-border shrink-0 flex items-center justify-between">
           <h2 class="text-sm font-semibold uppercase tracking-[0.16em] text-ink-3">Anomaly Triage Queue</h2>
           <span class="text-xs font-mono text-ink-3">{anomalies.length}</span>
         </div>
-        <div class="lg:flex-1 lg:min-h-0 overflow-y-auto max-h-[400px] lg:max-h-none p-3 space-y-2">
+        <div class="flex-1 relative min-h-[300px] tall-lg:min-h-0">
+          <div class="absolute inset-0 overflow-y-auto p-3 space-y-2">
           {#if loading && anomalies.length === 0}
             <div class="flex h-32 items-center justify-center">
               <div class="h-6 w-6 animate-spin rounded-full border-2 border-surface border-t-brand"></div>
@@ -161,11 +162,12 @@
               </button>
             {/each}
           {/if}
+          </div>
         </div>
       </div>
 
       <!-- RIGHT COLUMN: Inference Inspector -->
-      <div in:fly={{ y: 20, duration: 400, delay: 300 }} class="flex flex-col lg:flex-1 lg:min-h-0 rounded-[1.25rem] border border-border bg-panel shadow-panel backdrop-blur hover:shadow-lg transition-shadow duration-300">
+      <div in:fly={{ y: 20, duration: 400, delay: 300 }} class="flex flex-col tall-lg:flex-1 tall-lg:min-h-0 rounded-[1.25rem] border border-border bg-panel shadow-panel backdrop-blur hover:shadow-lg transition-shadow duration-300">
         <div class="bg-surface/35 p-4 border-b border-border shrink-0 flex items-center justify-between">
           <h2 class="text-sm font-semibold uppercase tracking-[0.16em] text-ink-3">Root Cause Attribution</h2>
           {#if selectedAnomaly}
@@ -173,7 +175,7 @@
           {/if}
         </div>
         
-        <div class="lg:flex-1 lg:min-h-0 p-5 flex flex-col overflow-y-auto">
+        <div class="tall-lg:flex-1 tall-lg:min-h-0 p-5 flex flex-col overflow-y-auto">
           {#if !selectedAnomaly}
             <div class="flex h-full items-center justify-center text-ink-3 text-sm">
               Select an anomaly from the queue to inspect.
@@ -224,7 +226,7 @@
               </div>
 
               <!-- Actual vs Expected Grid -->
-              <section class="flex flex-col lg:flex-1 lg:min-h-0 overflow-y-auto pr-2 pb-2">
+              <section class="flex flex-col 2xl:flex-1 2xl:min-h-0 pr-2 pb-2">
                 <div class="flex flex-col 2xl:flex-row gap-6">
                   
                   <div class="flex flex-col flex-1 min-w-0">
@@ -241,7 +243,7 @@
                     {#if selectedAnomaly.feature_contributions && selectedAnomaly.reconstructed_features}
                       {@const features = Object.entries(selectedAnomaly.feature_contributions).sort((a: any, b: any) => b[1] - a[1])}
                       
-                      <div class="grid grid-cols-1 xl:grid-cols-2 gap-4">
+                      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
                         {#each features as [key, contribution], i}
                           {@const isRootCause = i === 0}
                           <div class="flex flex-col rounded-xl border {isRootCause ? 'border-critical bg-critical/5 shadow-md shadow-critical/10' : 'border-border bg-surface/50'} p-4 transition-colors">

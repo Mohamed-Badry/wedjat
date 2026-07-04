@@ -97,7 +97,7 @@
     <p class="mt-2 text-sm">{error}</p>
   </div>
 {:else if summary}
-  <section class="flex flex-col xl:h-full xl:min-h-0 gap-5">
+  <section class="flex flex-col tall-xl:flex-1 tall-xl:min-h-0 gap-5">
     <div in:fade={{ duration: 400 }} class="flex-none space-y-1">
       <p class="text-xs font-semibold uppercase tracking-[0.2em] text-muted">System Overview</p>
       <h1 class="text-3xl font-semibold tracking-tight text-ink">Dashboard Home</h1>
@@ -121,10 +121,10 @@
     </div>
 
     <!-- Main Grid Layout -->
-    <div class="xl:flex-1 xl:min-h-0 grid gap-6 grid-cols-1 xl:grid-cols-[1fr_2fr]">
+    <div class="tall-xl:flex-1 tall-xl:min-h-0 grid gap-6 grid-cols-1 xl:grid-cols-[1fr_2fr]">
 
       <!-- Left Col (Component Health & Active Profiles) -->
-      <div class="flex flex-col gap-6 xl:min-h-0">
+      <div class="flex flex-col gap-6 tall-xl:min-h-0">
         <!-- Service Status -->
         <div in:fly={{ y: 40, duration: 700, delay: 300, easing: backOut }} class="flex flex-col rounded-[1.25rem] border border-border bg-panel shadow-panel backdrop-blur flex-none overflow-hidden hover:shadow-lg transition-shadow duration-300">
           <div class="bg-surface/35 p-4 border-b border-border shrink-0">
@@ -147,11 +147,11 @@
         </div>
 
         <!-- Active Profiles Table -->
-        <div in:fly={{ y: 40, duration: 700, delay: 400, easing: backOut }} class="flex flex-col xl:flex-1 xl:min-h-0 rounded-[1.25rem] border border-border bg-panel shadow-panel backdrop-blur hover:shadow-lg transition-shadow duration-300">
+        <div in:fly={{ y: 40, duration: 700, delay: 400, easing: backOut }} class="flex flex-col tall-xl:flex-1 tall-xl:min-h-0 rounded-[1.25rem] border border-border bg-panel shadow-panel backdrop-blur hover:shadow-lg transition-shadow duration-300">
           <div class="bg-surface/35 p-4 border-b border-border shrink-0">
             <h2 class="text-sm font-semibold uppercase tracking-[0.16em] text-ink-3">Active Profiles</h2>
           </div>
-          <div class="lg:flex-1 lg:min-h-0 overflow-y-auto relative">
+          <div class="tall-xl:flex-1 tall-xl:min-h-0 overflow-y-auto relative">
             <table class="w-full text-left text-xs">
               <thead class="sticky top-0 bg-surface/90 backdrop-blur text-ink-3 shadow-sm z-10">
                 <tr>
@@ -188,7 +188,7 @@
       </div>
 
       <!-- Right Col (Throughput & Anomalies) -->
-      <div class="flex flex-col gap-6 xl:min-h-0">
+<div class="flex flex-col gap-6 tall-xl:min-h-0">
         <!-- Throughput Sparkline -->
         {#if summary.throughput_buckets && summary.throughput_buckets.length > 0}
           <div in:fly={{ y: 40, duration: 700, delay: 500, easing: backOut }} class="flex-none chart-card border border-border rounded-[1.25rem] bg-panel p-4 shadow-sm backdrop-blur hover:shadow-lg transition-shadow duration-300">
@@ -208,7 +208,7 @@
         {/if}
 
         <!-- Recent Anomalies -->
-        <div in:fly={{ y: 40, duration: 700, delay: 600, easing: backOut }} class="flex flex-col xl:flex-1 xl:min-h-0 rounded-[1.25rem] border border-border bg-panel shadow-panel backdrop-blur overflow-hidden hover:shadow-lg transition-shadow duration-300">
+        <div in:fly={{ y: 40, duration: 700, delay: 600, easing: backOut }} class="flex flex-col tall-xl:flex-1 tall-xl:min-h-0 rounded-[1.25rem] border border-border bg-panel shadow-panel backdrop-blur overflow-hidden hover:shadow-lg transition-shadow duration-300">
           <div class="bg-surface/35 p-4 border-b border-border shrink-0 flex flex-col xl:flex-row xl:items-center justify-between gap-4">
             <div class="flex flex-col sm:flex-row sm:items-center gap-4">
               <h2 class="text-sm font-semibold uppercase tracking-[0.16em] text-ink-3 whitespace-nowrap">Recent Anomalies</h2>
@@ -233,7 +233,7 @@
             </div>
             <span class="text-xs font-mono text-ink-3 xl:text-right whitespace-nowrap">{summary.recent_anomalies.length} recorded</span>
           </div>
-          <div class="xl:flex-1 xl:min-h-0 overflow-y-auto p-5">
+          <div class="tall-xl:flex-1 tall-xl:min-h-0 overflow-y-auto p-5">
             {#if summary.recent_anomalies.length === 0}
               <div class="flex h-full items-center justify-center p-6 text-center text-sm text-ink-3">
                 No recent anomalies detected.

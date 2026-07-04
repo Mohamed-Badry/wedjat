@@ -269,4 +269,11 @@ html:not(.light) .leaflet-control-attribution {
 
 .slide-in-from-bottom-4 {
   animation-name: enter-fade, enter-slide-bottom;
-}body { overflow-x: hidden; }
+}
+
+body { overflow-x: hidden; }
+
+/* ── Tailwind Custom Variants for Fixed-Screen Dashboard ──
+   Only enforces fixed layouts and removes scrollbars if there is enough vertical space. */
+@custom-variant tall-lg (@media (min-width: 1024px) and (min-height: 850px));
+@custom-variant tall-xl (@media (min-width: 1280px) and (min-height: 850px));

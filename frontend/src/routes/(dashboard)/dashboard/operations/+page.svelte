@@ -218,7 +218,7 @@
   <title>Operations — Watchdog</title>
 </svelte:head>
 
-<section class="flex flex-col lg:h-full lg:min-h-0 gap-5 animate-in fade-in slide-in-from-bottom-4 duration-500 ease-out">
+<section class="flex flex-col tall-lg:flex-1 tall-lg:min-h-0 gap-5 animate-in fade-in slide-in-from-bottom-4 duration-500 ease-out">
   <div class="flex-none space-y-1">
     <p class="text-xs font-semibold uppercase tracking-[0.2em] text-muted">Operations Center</p>
     <h1 class="text-3xl font-semibold tracking-tight text-ink">Pass Planning Console</h1>
@@ -295,7 +295,7 @@
     {/if}
 
     <!-- MAIN GRID (Fills remaining height) -->
-    <div class="lg:flex-1 lg:min-h-0 grid gap-5 lg:grid-cols-[400px_minmax(0,1fr)] xl:grid-cols-[450px_minmax(0,1fr)]">
+    <div class="tall-lg:flex-1 tall-lg:min-h-0 grid gap-5 lg:grid-cols-[400px_minmax(0,1fr)] xl:grid-cols-[450px_minmax(0,1fr)]">
       
       <!-- LEFT COLUMN: Map & Coordinates -->
       <section in:fly={{ x: -20, duration: 400, delay: 200 }} class="flex flex-col min-h-[300px] rounded-[1.5rem] border border-border bg-panel p-5 shadow-panel backdrop-blur overflow-hidden hover:shadow-lg transition-shadow duration-300">
@@ -353,7 +353,7 @@
       </section>
 
       <!-- RIGHT COLUMN: Pass Results (Timeline & List) -->
-      <section in:fly={{ y: 20, duration: 400, delay: 300 }} class="flex flex-col lg:flex-1 min-h-[200px] overflow-hidden rounded-[1.5rem] border border-border bg-panel shadow-panel backdrop-blur hover:shadow-lg transition-shadow duration-300">
+      <section in:fly={{ y: 20, duration: 400, delay: 300 }} class="flex flex-col tall-lg:flex-1 min-h-[200px] overflow-hidden rounded-[1.5rem] border border-border bg-panel shadow-panel backdrop-blur hover:shadow-lg transition-shadow duration-300">
         {#if loading}
           <div class="flex flex-1 items-center justify-center">
             <div class="h-8 w-8 animate-spin rounded-full border-4 border-surface border-t-brand"></div>
@@ -406,7 +406,7 @@
             </div>
 
             <!-- Scrollable Pass List -->
-            <div class="lg:flex-1 lg:min-h-0 overflow-y-auto max-h-[400px] lg:max-h-none p-4">
+            <div class="tall-lg:flex-1 tall-lg:min-h-0 overflow-y-auto max-h-[400px] tall-lg:max-h-none p-4">
               <div class="grid gap-3 xl:grid-cols-2">
                 {#each passes as pass, index}
                   <button

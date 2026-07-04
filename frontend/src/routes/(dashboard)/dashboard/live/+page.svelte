@@ -128,7 +128,7 @@
   <title>Live Watcher — Watchdog</title>
 </svelte:head>
 
-<section class="flex lg:h-full lg:min-h-0 flex-col gap-4 animate-in fade-in slide-in-from-bottom-4 duration-500 ease-out">
+<section class="flex tall-lg:flex-1 tall-lg:min-h-0 flex-col gap-4 animate-in fade-in slide-in-from-bottom-4 duration-500 ease-out">
   <!-- 1. HEADER: Title & Global Controls -->
   <header class="flex flex-none flex-wrap items-center justify-between gap-4">
     <div class="space-y-1">
@@ -186,12 +186,12 @@
     </div>
   {:else}
     <!-- TELEMETRY FEED (Scrollable Area) -->
-    <div class="flex lg:min-h-0 lg:flex-1 flex-col rounded-[1.25rem] border border-border bg-panel shadow-panel backdrop-blur">
+    <div class="flex tall-lg:min-h-0 tall-lg:flex-1 flex-col rounded-[1.25rem] border border-border bg-panel shadow-panel backdrop-blur">
       <div class="shrink-0 border-b border-border bg-surface/35 p-3">
         <h2 class="text-[11px] font-semibold uppercase tracking-[0.16em] text-ink-3">Telemetry Feed</h2>
       </div>
 
-      <div class="lg:flex-1 lg:min-h-0 overflow-y-auto max-h-[400px] lg:max-h-none p-4">
+      <div class="tall-lg:flex-1 tall-lg:min-h-0 overflow-y-auto max-h-[350px] tall-lg:max-h-none p-4">
         {#if loading && frames.length === 0}
           <div class="flex h-full items-center justify-center py-12">
             <div class="h-8 w-8 animate-spin rounded-full border-2 border-surface border-t-brand"></div>

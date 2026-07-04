@@ -206,7 +206,7 @@
   }
 </style>
 
-<section in:fly={{ y: 15, duration: 400, delay: 50 }} class="flex flex-col gap-4 w-full h-full max-h-[92vh] overflow-hidden">
+<section in:fly={{ y: 15, duration: 400, delay: 50 }} class="flex flex-col gap-4 w-full tall-lg:flex-1 tall-lg:min-h-0 tall-lg:max-h-[92vh] tall-lg:overflow-hidden">
   
   <!-- Header row (Very compact) -->
   <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 shrink-0">
@@ -421,7 +421,7 @@
           </div>
 
           <!-- Bottom Grid -->
-          <div class="dashboard-columns grid-quality-split w-full shrink-0">
+          <div class="dashboard-columns grid-quality-split w-full tall-lg:flex-1 tall-lg:min-h-0 !items-stretch">
             <!-- Left Info Panel & Field Success rates -->
             <div class="flex flex-col gap-3">
               <div class="panel-card flex-1">
@@ -442,12 +442,12 @@
               </div>
 
               <!-- Real Dynamic Field Success Table -->
-              <div class="panel-card">
+              <div class="panel-card flex-1 min-h-0 flex flex-col">
                 <h3 class="mt-0 mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-ink-3">
                   <span class="inline-block h-3 w-1 rounded-sm bg-brand"></span>
                   Field Extraction success
                 </h3>
-                <div class="overflow-x-auto">
+                <div class="overflow-x-auto flex-1 min-h-0">
                   <table class="w-full text-left text-[11px] border-collapse">
                     <thead>
                       <tr class="border-b border-border/40 text-ink-3 font-semibold">
@@ -488,11 +488,11 @@
               </h3>
               
               {#if analytics.quality.missing_fields.length > 0}
-                <div class="w-full">
+                <div class="w-full flex-1 h-full min-h-[420px]">
                   <MissingFieldsBarChart data={analytics.quality.missing_fields} height={420} />
                 </div>
               {:else}
-                <div class="w-full h-[420px] flex flex-col items-center justify-center text-emerald-500 border border-dashed border-emerald-500/20 bg-emerald-500/5 rounded-xl p-6">
+                <div class="w-full flex-1 h-full min-h-[420px] flex flex-col items-center justify-center text-emerald-500 border border-dashed border-emerald-500/20 bg-emerald-500/5 rounded-xl p-6">
                   <span class="text-sm font-semibold mb-1">100% Data Integrity</span>
                   <span class="text-[10px] opacity-75">No missing fields recorded. All packets parsed perfectly.</span>
                 </div>
