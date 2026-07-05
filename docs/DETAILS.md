@@ -2,7 +2,7 @@
 
 ## 1. Core Objective
 **Real-Time Anomaly Detection at the Edge (Target State).**
-Project Watchdog is intended to become a "First Responder" for amateur satellite telemetry, flagging anomalies such as power, thermal, and attitude-related faults during a pass.
+Project Wedjat is intended to become a "First Responder" for amateur satellite telemetry, flagging anomalies such as power, thermal, and attitude-related faults during a pass.
 
 **Current repository status:** the offline data pipeline, decoder normalization, model training, synthetic-fault benchmarking, and a Dockerized 5-container microservice stack (Broker, TimescaleDB, FastAPI, SvelteKit, Simulator) are fully implemented.
 
@@ -32,7 +32,7 @@ Based on our Beni Suef ground station and the `satnogs-decoders` library:
 ## 3. High-Level Architecture (The V-Model)
 The intended system is split into two distinct environments that share a common logic core to ensure consistency.
 
-**Implementation note:** Both the offline "Lab" path and the live "Watchdog" deployment (via a 5-component Docker stack) are now fully implemented and integrated.
+**Implementation note:** Both the offline "Lab" path and the live "Wedjat" deployment (via a 5-component Docker stack) are now fully implemented and integrated.
 
 ### A. "The Lab" (Offline Training Pipeline)
 * **Goal:** Learn "Normal" behavior from historical data.
@@ -55,7 +55,7 @@ The intended system is split into two distinct environments that share a common 
 * **Algorithm: Unified PyTorch Variational Autoencoder (VAE)**
     *   **Historical Note:** We initially attempted a "Hybrid Pipeline" using `sklearn.covariance.EllipticEnvelope` as a Stage 1 screener. We deprecated it because LEO telemetry physics strictly dictate *Bimodal* operating states (Day/Night). A linear boundary drawing Gaussians was unable to wrap both states without dropping ~50% of the anomaly recalls.
     *   **The VAE Approach:** A PyTorch VAE mathematically handles non-linear bounds efficiently.
-    *   **Stage 1 (Detection):** Calculate the overall frame reconstruction error (MSE) + Kullback-Leibler Divergence (KLD). To prevent bimodal external environmental variables (like `temp_panel_z` as an eclipse proxy) from falsely inflating the MSE, the loss and anomaly scores are computed using a **Diagnosis Mask**. The VAE takes all features as input to learn inter-system context, but only internal health metrics (e.g. `batt_voltage`, `batt_current`, `temp_batt_a`, `temp_batt_b`) contribute to the anomaly score. The operating threshold is set at the **99.9th percentile** of raw validation scores, ensuring an expected false positive rate of ~0.1%. At runtime, raw per-frame scores are compared directly against this threshold. The live watchdog additionally applies a rolling median over recent scores as an operational debounce layer, making it even more conservative than the batch scoring path.
+    *   **Stage 1 (Detection):** Calculate the overall frame reconstruction error (MSE) + Kullback-Leibler Divergence (KLD). To prevent bimodal external environmental variables (like `temp_panel_z` as an eclipse proxy) from falsely inflating the MSE, the loss and anomaly scores are computed using a **Diagnosis Mask**. The VAE takes all features as input to learn inter-system context, but only internal health metrics (e.g. `batt_voltage`, `batt_current`, `temp_batt_a`, `temp_batt_b`) contribute to the anomaly score. The operating threshold is set at the **99.9th percentile** of raw validation scores, ensuring an expected false positive rate of ~0.1%. At runtime, raw per-frame scores are compared directly against this threshold. The live wedjat additionally applies a rolling median over recent scores as an operational debounce layer, making it even more conservative than the batch scoring path.
     *   **Stage 2 (Diagnosis):** For flagged frames, inspect the per-node Mean Squared Error of the masked internal health metrics. The node with the largest error isolates the Root Cause.
     *   **Stage 3 (Sensitivity Sweep & Threshold Tuning):** Runs dynamic VAE evaluation on the test split, injecting synthetic faults to compute live ROC (FPR/TPR) and Precision/Recall/F1-score curves on-the-fly. This allows operators to visualize detection trade-offs for varying anomaly thresholds.
 
@@ -80,7 +80,7 @@ These are target metrics for the planned online runtime, not a statement of curr
 1.  **Latency:** Target < 10ms inference per frame.
 2.  **Footprint:** Target < 5MB model file size.
 
-### B. "The Watchdog" (Hybrid Edge-to-Cloud Deployment Pipeline)
+### B. "The Wedjat" (Hybrid Edge-to-Cloud Deployment Pipeline)
 * **Goal:** Detect anomalies during a 10-minute satellite pass in real-time, serving public insights.
 * **Source:** Local Antenna -> SDR -> Demodulator (Edge Laptop) -> Cloud MQTT Broker (`telemetry/live/{norad_id}`).
 * **Deployment Split:**

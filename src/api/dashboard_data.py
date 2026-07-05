@@ -107,7 +107,7 @@ class DashboardDataRepository:
         )
         return {
             "status": overall_status(components),
-            "service": "gr_sat Watchdog API",
+            "service": "gr_sat Wedjat API",
             "generated_at": now_iso(),
             "components": components,
             "supported_satellites": [

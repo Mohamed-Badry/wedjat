@@ -1,5 +1,5 @@
 """
-Manage API Keys for gr_sat Watchdog API
+Manage API Keys for gr_sat Wedjat API
 
 Usage:
   pixi run python scripts/manage_keys.py create "SvelteKit Master Key"

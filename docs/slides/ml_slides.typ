@@ -124,9 +124,9 @@ A 100% detection rate on extreme faults proves nothing; basic thresholds can cat
   "Provides real-time subsystem attribution for both dashboards and offline benchmarking.",
 )
 
-== Architecture: The Watchdog Stack
+== Architecture: The Wedjat Stack
 
-We have deployed the real-time watchdog as a 5-container microservice stack:
+We have deployed the real-time wedjat as a 5-container microservice stack:
 
 #grid(
   columns: (1fr, 1fr),

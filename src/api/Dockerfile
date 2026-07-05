@@ -31,7 +31,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends libpq5 curl && 
 
 COPY --from=builder /install /usr/local
 
-RUN useradd -m -s /bin/bash watchdog
+RUN useradd -m -s /bin/bash wedjat
 WORKDIR /app
 
 COPY pyproject.toml README.md /app/
@@ -40,8 +40,8 @@ COPY db/migrations /app/db/migrations
 COPY src/gr_sat /app/src/gr_sat
 COPY src/api /app/src/api
 
-RUN chown -R watchdog:watchdog /app
-USER watchdog
+RUN chown -R wedjat:wedjat /app
+USER wedjat
 
 WORKDIR /app
 

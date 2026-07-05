@@ -1,5 +1,5 @@
 """
-gr_sat — The Shared Core for Project Watchdog.
+gr_sat — The Shared Core for Project Wedjat.
 
 Provides the telemetry standardization layer (TelemetryFrame), the decoder
 registry, and satellite-specific decoder implementations.

@@ -1,7 +1,7 @@
 """
 Telemetry Processing Pipeline.
 
-Implements the full data refinement pipeline for Project Watchdog:
+Implements the full data refinement pipeline for Project Wedjat:
 
     data/raw/{norad_id}/*.jsonl   (SatNOGS API fetches)
       ↓  Stage 1: Decode (Kaitai Structs)

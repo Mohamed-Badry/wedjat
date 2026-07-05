@@ -1,6 +1,6 @@
-# Project Watchdog (gr_sat)
+# Project Wedjat (gr_sat)
 
-This repository hosts the **Project Watchdog** codebase, an end-to-end pipeline for satellite telemetry analysis. It features offline telemetry processing, per-satellite anomaly-model training, synthetic-fault benchmarking, a robust FastAPI backend, and a premium SvelteKit + Tailwind dashboard.
+This repository hosts the **Project Wedjat** codebase, an end-to-end pipeline for satellite telemetry analysis. It features offline telemetry processing, per-satellite anomaly-model training, synthetic-fault benchmarking, a robust FastAPI backend, and a premium SvelteKit + Tailwind dashboard.
 
 ## Key Documentation
 
@@ -123,8 +123,8 @@ powershell -c "irm bun.sh/install.ps1 | iex"
 ### 2. Setup the Project
 Clone the repo and install dependencies:
 ```bash
-git clone https://github.com/Mohamed-Badry/watchdog.git
-cd watchdog
+git clone https://github.com/Mohamed-Badry/wedjat.git
+cd wedjat
 pixi install
 cd frontend && bun install && cd ..
 ```
@@ -173,9 +173,9 @@ just train-benchmark 43880 100      # Train for 100 epochs, then benchmark immed
 ```
 
 ### Phase 3: Operations & Frontend
-Run the minimal backend watchdog runtime and the beautiful SvelteKit dashboard.
+Run the minimal backend wedjat runtime and the beautiful SvelteKit dashboard.
 ```bash
-just watchdog --norad 43880 --help  # Run backend anomaly watchdog
+just wedjat --norad 43880 --help  # Run backend anomaly wedjat
 just frontend-dev                   # Start frontend SvelteKit development server (localhost:5173)
 just frontend-build                 # Build the frontend production bundle
 just frontend-preview               # Preview the production build
@@ -202,7 +202,7 @@ Spins up the local data buffer and simulator/radio software.
 
 ## Complete Data & Directory Structure
 
-Project Watchdog is strictly organized to separate raw data pipelines, machine learning models, core logic, simulated environments, and user interfaces.
+Project Wedjat is strictly organized to separate raw data pipelines, machine learning models, core logic, simulated environments, and user interfaces.
 
 ```text
 .
@@ -246,7 +246,7 @@ Project Watchdog is strictly organized to separate raw data pipelines, machine l
 │   ├── process_data.py         # Pipeline Stage 1+2: Decodes & normalizes raw telemetry into ML arrays
 │   ├── train_model.py          # Pipeline Stage 3: Trains VAE models on processed satellite data
 │   ├── generate_faults.py      # Pipeline Stage 4: Injects synthetic faults and benchmarks models
-│   └── watchdog_runtime.py     # Minimal deterministic online runtime for stream processing
+│   └── wedjat_runtime.py     # Minimal deterministic online runtime for stream processing
 ├── notebooks/                  # Interactive Jupytext Notebooks for Prototyping
 │   ├── uwe4_pipeline_eda.py    # Multi-scale EDA, hyperparameter sweeps, statistical profiling
 │   └── telemetry_inspector.py  # Visual ground-truth debugger

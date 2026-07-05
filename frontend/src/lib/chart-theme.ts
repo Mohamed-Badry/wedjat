@@ -1,5 +1,5 @@
 /**
- * Shared SveltePlot defaults for the Watchdog dashboard.
+ * Shared SveltePlot defaults for the Wedjat dashboard.
  * Color constants, margin presets, and scale configs used across all chart components.
  *
  * ALL chart colors MUST be defined here — never hardcode hex in .svelte files.
@@ -17,7 +17,7 @@ export const INK3 = 'var(--color-ink-3)';
 export const BORDER = 'var(--color-border)';
 
 // ── Semantic chart colors ───────────────────────────────────────────────────
-export const WATCHDOG_COLORS = {
+export const WEDJAT_COLORS = {
   nominal: MUTED,
   anomaly: ALERT,
   reference: '#94a3b8',

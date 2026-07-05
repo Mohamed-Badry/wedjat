@@ -217,7 +217,7 @@ A 100% detection rate on extreme faults proves nothing; basic thresholds can cat
 
 == Final Live Dashboard Strategy
 
-To productize "The Watchdog", we would transition these findings into a unified `marimo` reactive notebook or service-backed UI. This dashboard is not yet implemented in the repository.
+To productize "The Wedjat", we would transition these findings into a unified `marimo` reactive notebook or service-backed UI. This dashboard is not yet implemented in the repository.
 
 *Key Dashboard Widgets to build:*
 1. *Live Pass View:* Telemetry graphing in real-time as packets decode.

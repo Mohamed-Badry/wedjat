@@ -26,7 +26,7 @@
 #align(center)[
   #rect(fill: rgb("f1f5f9"), stroke: 2pt + rgb("94a3b8"), radius: 12pt, inset: 30pt, width: 1100pt)[
     #align(left)[
-      #text(size: 18pt, weight: "bold", fill: rgb("334155"))[Docker Host (vps-watchdog)]
+      #text(size: 18pt, weight: "bold", fill: rgb("334155"))[Docker Host (vps-wedjat)]
     ]
     #v(30pt)
 
@@ -43,9 +43,9 @@
           #grid(
             columns: (auto),
             row-gutter: 20pt,
-            container("mqtt", "watchdog_broker", "Mosquitto (1883)", rgb("8b5cf6")),
-            container("postgresql", "watchdog_db", "TimescaleDB (5432)", rgb("0ea5e9")),
-            container("python", "watchdog_scheduler", "Cron: Fetch & Train", rgb("f59e0b"))
+            container("mqtt", "wedjat_broker", "Mosquitto (1883)", rgb("8b5cf6")),
+            container("postgresql", "wedjat_db", "TimescaleDB (5432)", rgb("0ea5e9")),
+            container("python", "wedjat_scheduler", "Cron: Fetch & Train", rgb("f59e0b"))
           )
         ]
       ],
@@ -57,7 +57,7 @@
         #align(left)[#text(size: 14pt, weight: "bold", fill: rgb("2563eb"))[Application Tier]]
         #v(30pt)
         #align(center)[
-          #container("fastapi", "watchdog_api", "FastAPI Core (Port 8000)", rgb("3b82f6"))
+          #container("fastapi", "wedjat_api", "FastAPI Core (Port 8000)", rgb("3b82f6"))
         ]
       ],
 
@@ -68,7 +68,7 @@
         #align(left)[#text(size: 14pt, weight: "bold", fill: rgb("e11d48"))[Presentation Tier]]
         #v(30pt)
         #align(center)[
-          #container("svelte", "watchdog_frontend", "SvelteKit UI (Port 5173)", rgb("e11d48"))
+          #container("svelte", "wedjat_frontend", "SvelteKit UI (Port 5173)", rgb("e11d48"))
         ]
       ]
     )

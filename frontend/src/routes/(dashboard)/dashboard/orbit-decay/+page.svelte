@@ -153,7 +153,7 @@
 </script>
 
 <svelte:head>
-  <title>Orbit Decay AI — Watchdog</title>
+  <title>Orbit Decay AI — Wedjat</title>
 </svelte:head>
 
 <section class="flex tall-lg:flex-1 tall-lg:min-h-0 flex-col gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500 ease-out">

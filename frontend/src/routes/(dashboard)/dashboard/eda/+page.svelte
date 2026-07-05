@@ -95,7 +95,7 @@
 </script>
 
 <svelte:head>
-  <title>EDA Report — Watchdog</title>
+  <title>EDA Report — Wedjat</title>
 </svelte:head>
 
 <div class="mx-auto w-full max-w-7xl pb-24">

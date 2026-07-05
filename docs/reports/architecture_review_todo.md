@@ -40,7 +40,7 @@ This file captures the outcomes of the April 11, 2026 architecture/code review a
 - The docs say the anomaly threshold is learned during training and used at inference.
   - Actual code: the threshold is computed only inside `scripts/generate_faults.py` during offline evaluation and is not persisted with the model.
 
-- The docs describe a real-time watchdog deployed on edge hardware.
+- The docs describe a real-time wedjat deployed on edge hardware.
   - Actual code: there is no implemented online inference service, receiver loop, alerting path, or runtime state machine.
 
 - The docs say rolling-variance style temporal features were discarded.
@@ -164,7 +164,7 @@ These are accepted as real defects and need explicit implementation plans before
   - should thresholding be percentile-based, EVT-based, or stability-based?
   - do we want one threshold per satellite, per subsystem, or per operating regime?
 
-### 2.4 No actual online watchdog runtime exists
+### 2.4 No actual online wedjat runtime exists
 
 - Status: `Completed`
 - Severity: `Critical`
@@ -173,7 +173,7 @@ These are accepted as real defects and need explicit implementation plans before
 - Current behavior:
   - there is no implemented online receiver/inference/alert service, only offline fetch, processing, training, and synthetic benchmarking.
 - Why this is a systemic risk:
-  - the repo cannot currently operate as the real-time ground-station watchdog described in the docs
+  - the repo cannot currently operate as the real-time ground-station wedjat described in the docs
   - no timeout handling exists when telemetry stops
   - no fallback state exists if model inference fails
   - no alert transport or runtime observability exists
@@ -182,8 +182,8 @@ These are accepted as real defects and need explicit implementation plans before
 - Design note:
   - `docs/critical_bug_plans.md` section 4
 - Implemented scope:
-  - `src/gr_sat/watchdog.py`
-  - `scripts/watchdog_runtime.py`
+  - `src/gr_sat/wedjat.py`
+  - `scripts/wedjat_runtime.py`
   - deterministic packet-by-packet inference
   - runtime state machine with `idle`, `receiving`, `gap`, `degraded`, `alerting`
   - minimal alert sink callback
@@ -256,7 +256,7 @@ These are accepted as real defects and need explicit implementation plans before
   - `process_frame_result()` now returns structured stage/code/message failures
   - `UWE4Decoder` classifies decode and adapt failures explicitly
   - offline processing logs per-code failure breakdowns
-  - watchdog results now expose `failure_code`
+  - wedjat results now expose `failure_code`
 
 ### 3.5 Pass segmentation and cadence handling are simplistic
 

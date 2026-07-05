@@ -149,13 +149,13 @@
 #place_node(180pt, 400pt, component("antenna", "Antenna & SDR", "Captures live RF", border: rgb("10b981")))
 #place_node(180pt, 520pt, component("python", "Decoder Pipeline", "Hex parsing to JSON", border: rgb("10b981")))
 
-#place_node(520pt, 220pt, component("python", "watchdog_scheduler", "Cron: Fetch & Train", border: rgb("f59e0b")))
-#place_node(520pt, 520pt, component("mqtt", "watchdog_broker", "Mosquitto (1883)", border: rgb("8b5cf6")))
+#place_node(520pt, 220pt, component("python", "wedjat_scheduler", "Cron: Fetch & Train", border: rgb("f59e0b")))
+#place_node(520pt, 520pt, component("mqtt", "wedjat_broker", "Mosquitto (1883)", border: rgb("8b5cf6")))
 
 #place_node(860pt, 370pt, component("fastapi", "AI Backend (FastAPI)", "Inference & Routing", border: rgb("3b82f6")))
 
 #place_node(1200pt, 220pt, component("pytorch", "Inference Engine", "PyTorch VAE", border: rgb("8b5cf6")))
-#place_node(1200pt, 520pt, component("postgresql", "watchdog_db", "TimescaleDB", border: rgb("0ea5e9")))
+#place_node(1200pt, 520pt, component("postgresql", "wedjat_db", "TimescaleDB", border: rgb("0ea5e9")))
 
 // SvelteKit is visually distinct inside the End Users box
 #place(dx: 1560pt - 130pt, dy: 340pt - 60pt)[

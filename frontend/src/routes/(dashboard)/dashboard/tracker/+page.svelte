@@ -185,7 +185,7 @@
 </script>
 
 <svelte:head>
-  <title>AI Tracker — Watchdog</title>
+  <title>AI Tracker — Wedjat</title>
 </svelte:head>
 
 <section class="flex tall-lg:flex-1 tall-lg:min-h-0 flex-col gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500 ease-out">

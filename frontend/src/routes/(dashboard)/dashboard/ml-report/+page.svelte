@@ -9,7 +9,7 @@
 </script>
 
 <svelte:head>
-  <title>Model Analysis — Watchdog</title>
+  <title>Model Analysis — Wedjat</title>
 </svelte:head>
 
 <div class="mx-auto w-full max-w-7xl pb-24">

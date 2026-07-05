@@ -1,5 +1,5 @@
 """
-Shared core configuration constants for Project Watchdog.
+Shared core configuration constants for Project Wedjat.
 """
 
 import os

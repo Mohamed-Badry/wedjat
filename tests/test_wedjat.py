@@ -14,8 +14,8 @@ ALL_FEATURES = list(DEFAULT_PROFILE.feature_contract.feature_names)
 from gr_sat.ml.model_artifacts import ModelArtifactMetadata, model_artifact_paths, save_model_metadata
 from gr_sat.ml.vae import TelemetryVAE
 from gr_sat.core.telemetry import FrameProcessingResult, TelemetryFrame
-from gr_sat.ml.watchdog import (
-    OnlineWatchdog,
+from gr_sat.ml.wedjat import (
+    OnlineWedjat,
     STATE_ALERTING,
     STATE_DEGRADED,
     STATE_GAP,
@@ -50,8 +50,8 @@ def _build_frame(
     )
 
 
-class OnlineWatchdogTests(unittest.TestCase):
-    def _build_watchdog(self, threshold: float = 1.0):
+class OnlineWedjatTests(unittest.TestCase):
+    def _build_wedjat(self, threshold: float = 1.0):
         tmpdir = tempfile.TemporaryDirectory()
         models_dir = Path(tmpdir.name)
         paths = model_artifact_paths(models_dir, "43880")
@@ -88,83 +88,83 @@ class OnlineWatchdogTests(unittest.TestCase):
             diagnosis_feature_names=list(ALL_FEATURES),
         )
         save_model_metadata(paths.metadata, metadata)
-        return tmpdir, OnlineWatchdog.from_artifacts("43880", models_dir=models_dir, gap_timeout_seconds=60)
+        return tmpdir, OnlineWedjat.from_artifacts("43880", models_dir=models_dir, gap_timeout_seconds=60)
 
-    def test_watchdog_starts_idle_and_transitions_to_receiving(self):
-        tmpdir, watchdog = self._build_watchdog(threshold=1.0)
+    def test_wedjat_starts_idle_and_transitions_to_receiving(self):
+        tmpdir, wedjat = self._build_wedjat(threshold=1.0)
         self.addCleanup(tmpdir.cleanup)
 
         packet_time = datetime(2026, 1, 1, tzinfo=timezone.utc)
         with patch(
-            "gr_sat.ml.watchdog.process_frame_result",
+            "gr_sat.ml.wedjat.process_frame_result",
             return_value=FrameProcessingResult(frame=_build_frame(packet_time, 0.0)),
         ):
-            result = watchdog.process_packet(b"\x00", packet_time)
+            result = wedjat.process_packet(b"\x00", packet_time)
 
-        self.assertEqual(watchdog.state, STATE_RECEIVING)
+        self.assertEqual(wedjat.state, STATE_RECEIVING)
         self.assertEqual(result.status, "ok")
         self.assertFalse(result.is_anomaly)
         self.assertEqual(result.state, STATE_RECEIVING)
 
-    def test_watchdog_alerts_on_high_score(self):
-        tmpdir, watchdog = self._build_watchdog(threshold=1.0)
+    def test_wedjat_alerts_on_high_score(self):
+        tmpdir, wedjat = self._build_wedjat(threshold=1.0)
         self.addCleanup(tmpdir.cleanup)
 
         alerts = []
-        watchdog.alert_sink = alerts.append
+        wedjat.alert_sink = alerts.append
         packet_time = datetime(2026, 1, 1, tzinfo=timezone.utc)
         with patch(
-            "gr_sat.ml.watchdog.process_frame_result",
+            "gr_sat.ml.wedjat.process_frame_result",
             return_value=FrameProcessingResult(frame=_build_frame(packet_time, 2.0)),
         ):
-            result = watchdog.process_packet(b"\x00", packet_time)
+            result = wedjat.process_packet(b"\x00", packet_time)
 
         self.assertEqual(result.state, STATE_ALERTING)
         self.assertTrue(result.is_anomaly)
         self.assertEqual(len(alerts), 1)
 
-    def test_watchdog_reports_gap_after_timeout(self):
-        tmpdir, watchdog = self._build_watchdog(threshold=1.0)
+    def test_wedjat_reports_gap_after_timeout(self):
+        tmpdir, wedjat = self._build_wedjat(threshold=1.0)
         self.addCleanup(tmpdir.cleanup)
 
         packet_time = datetime(2026, 1, 1, tzinfo=timezone.utc)
         with patch(
-            "gr_sat.ml.watchdog.process_frame_result",
+            "gr_sat.ml.wedjat.process_frame_result",
             return_value=FrameProcessingResult(frame=_build_frame(packet_time, 0.0)),
         ):
-            watchdog.process_packet(b"\x00", packet_time)
+            wedjat.process_packet(b"\x00", packet_time)
 
-        state = watchdog.check_gap(packet_time + timedelta(seconds=61))
+        state = wedjat.check_gap(packet_time + timedelta(seconds=61))
         self.assertEqual(state, STATE_GAP)
 
-    def test_watchdog_enters_degraded_state_on_inference_error(self):
-        tmpdir, watchdog = self._build_watchdog(threshold=1.0)
+    def test_wedjat_enters_degraded_state_on_inference_error(self):
+        tmpdir, wedjat = self._build_wedjat(threshold=1.0)
         self.addCleanup(tmpdir.cleanup)
 
         packet_time = datetime(2026, 1, 1, tzinfo=timezone.utc)
         broken_frame = _build_frame(packet_time, 0.0, temp_panel_z=None)
         with patch(
-            "gr_sat.ml.watchdog.process_frame_result",
+            "gr_sat.ml.wedjat.process_frame_result",
             return_value=FrameProcessingResult(frame=broken_frame),
         ):
-            result = watchdog.process_packet(b"\x00", packet_time)
+            result = wedjat.process_packet(b"\x00", packet_time)
 
         self.assertEqual(result.state, STATE_DEGRADED)
         self.assertEqual(result.status, "error")
         self.assertIn("Missing required feature", result.error)
         self.assertEqual(result.failure_code, "inference_error")
 
-    def test_watchdog_reports_idle_before_any_packets(self):
-        tmpdir, watchdog = self._build_watchdog(threshold=1.0)
+    def test_wedjat_reports_idle_before_any_packets(self):
+        tmpdir, wedjat = self._build_wedjat(threshold=1.0)
         self.addCleanup(tmpdir.cleanup)
 
-        self.assertEqual(watchdog.check_gap(datetime(2026, 1, 1, tzinfo=timezone.utc)), STATE_IDLE)
+        self.assertEqual(wedjat.check_gap(datetime(2026, 1, 1, tzinfo=timezone.utc)), STATE_IDLE)
 
-    def test_watchdog_tracks_feature_contract_metadata(self):
-        tmpdir, watchdog = self._build_watchdog(threshold=1.0)
+    def test_wedjat_tracks_feature_contract_metadata(self):
+        tmpdir, wedjat = self._build_wedjat(threshold=1.0)
         self.addCleanup(tmpdir.cleanup)
 
-        status = watchdog.status()
+        status = wedjat.status()
 
         self.assertEqual(status["feature_contract_version"], 3)
         self.assertIn("batt_voltage", status["feature_names"])

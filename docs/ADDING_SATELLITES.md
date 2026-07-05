@@ -1,6 +1,6 @@
-# Integrating a New Satellite into Project Watchdog
+# Integrating a New Satellite into Project Wedjat
 
-Project Watchdog is designed to be highly modular. Thanks to a decentralized registry pattern and the underlying schemaless JSONB database architecture, adding a new satellite requires **zero SQL migrations** and **zero frontend updates**. 
+Project Wedjat is designed to be highly modular. Thanks to a decentralized registry pattern and the underlying schemaless JSONB database architecture, adding a new satellite requires **zero SQL migrations** and **zero frontend updates**. 
 
 When you add a satellite decoder, the SvelteKit frontend dynamically queries the API and builds its ML Analytics charts based strictly on whatever features the decoder outputs!
 

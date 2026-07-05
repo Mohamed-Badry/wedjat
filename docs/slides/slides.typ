@@ -8,7 +8,7 @@
 #show: metropolis-theme.with(
   aspect-ratio: "16-9",
   config-info(
-    title: [Project Watchdog],
+    title: [Project Wedjat],
     subtitle: [AI-Powered Amateur Satellite Ground Station],
     author: [],
   ),
@@ -113,7 +113,7 @@ Instead of just logging data, this system provides early warnings for satellite 
       width: 100%,
       stroke: (left: 4pt + color-primary),
       [
-        *Our Solution: The Watchdog*
+        *Our Solution: The Wedjat*
         #v(0.5em)
         Running an *Unsupervised ML Model* on the ground station.
         #v(0.5em)
@@ -245,7 +245,7 @@ Two distinct environments sharing a single *Shared Core*.
     - *Action:* Train Autoencoder
   ],
   [
-    *B. The Watchdog (Edge Deployment)*
+    *B. The Wedjat (Edge Deployment)*
     - Live anomaly detection (5 Docker Microservices)
     - Source: Live Antenna -> SDR -> MQTT
     - *Action:* FastAPI backend inference & SvelteKit dashboard
@@ -514,9 +514,9 @@ A 100% detection rate on extreme faults proves nothing; basic thresholds can cat
   "Provides real-time subsystem attribution for both dashboards and offline benchmarking.",
 )
 
-== Architecture: The Watchdog Stack
+== Architecture: The Wedjat Stack
 
-We have deployed the real-time watchdog as a 5-container microservice stack:
+We have deployed the real-time wedjat as a 5-container microservice stack:
 
 #grid(
   columns: (1fr, 1fr),

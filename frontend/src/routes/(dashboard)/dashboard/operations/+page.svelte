@@ -215,7 +215,7 @@
 </script>
 
 <svelte:head>
-  <title>Operations — Watchdog</title>
+  <title>Operations — Wedjat</title>
 </svelte:head>
 
 <section class="flex flex-col tall-lg:flex-1 tall-lg:min-h-0 gap-5 animate-in fade-in slide-in-from-bottom-4 duration-500 ease-out">

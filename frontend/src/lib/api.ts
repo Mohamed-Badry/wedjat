@@ -1,5 +1,5 @@
 /**
- * Centralized API client for the Watchdog backend.
+ * Centralized API client for the Wedjat backend.
  * All API URL resolution, fetch wrappers, and error handling live here.
  */
 import { env } from '$env/dynamic/public';
@@ -35,7 +35,7 @@ export function getWsUrl(): string {
 }
 
 /**
- * Typed fetch wrapper for the Watchdog REST API.
+ * Typed fetch wrapper for the Wedjat REST API.
  * Handles URL resolution, JSON parsing, and error extraction.
  *
  * @param path  - API path (e.g. `/api/satellites`)
