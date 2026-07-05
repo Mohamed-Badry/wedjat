@@ -3,8 +3,15 @@ import asyncio
 import os
 from typing import Literal
 
-from loguru import logger
-from fastapi import FastAPI, HTTPException, Query, WebSocket, WebSocketDisconnect, Depends, Request, Response
+from fastapi import (
+    FastAPI,
+    HTTPException,
+    Query,
+    WebSocket,
+    WebSocketDisconnect,
+    Request,
+    Response,
+)
 from fastapi.concurrency import run_in_threadpool
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
@@ -39,6 +46,7 @@ async def lifespan(app: FastAPI):
     yield
     if client:
         import api.mqtt_client as mqtt_module
+
         if hasattr(mqtt_module, "score_queue"):
             mqtt_module.score_queue.put(None)  # shutdown worker
         client.loop_stop()
@@ -59,12 +67,12 @@ def create_app(repository: DashboardDataRepository | None = None) -> FastAPI:
         version="0.1.0",
         lifespan=lifespan,
     )
-    
+
     app.state.repository = data
-    
+
     app.state.limiter = limiter
     app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
-    
+
     # Compress massive JSON payloads (like 10k telemetry frames) to save bandwidth
     app.add_middleware(GZipMiddleware, minimum_size=1000)
     app.add_middleware(
@@ -81,9 +89,13 @@ def create_app(repository: DashboardDataRepository | None = None) -> FastAPI:
         if "Access-Control-Allow-Origin" not in response.headers:
             response.headers["Access-Control-Allow-Origin"] = "*"
         if "Access-Control-Allow-Methods" not in response.headers:
-            response.headers["Access-Control-Allow-Methods"] = "GET, OPTIONS, POST, PUT, DELETE"
+            response.headers["Access-Control-Allow-Methods"] = (
+                "GET, OPTIONS, POST, PUT, DELETE"
+            )
         if "Access-Control-Allow-Headers" not in response.headers:
-            response.headers["Access-Control-Allow-Headers"] = "X-API-Key, Content-Type, Authorization, Accept"
+            response.headers["Access-Control-Allow-Headers"] = (
+                "X-API-Key, Content-Type, Authorization, Accept"
+            )
         return response
 
     @app.get("/")
@@ -122,10 +134,14 @@ def create_app(repository: DashboardDataRepository | None = None) -> FastAPI:
                     norad_id = msg.get("norad_id")
                     if action == "subscribe":
                         subscribed_norad_ids.add(norad_id)
-                        await websocket.send_json({"subscribed": True, "norad_id": norad_id})
+                        await websocket.send_json(
+                            {"subscribed": True, "norad_id": norad_id}
+                        )
                     elif action == "unsubscribe":
                         subscribed_norad_ids.discard(norad_id)
-                        await websocket.send_json({"unsubscribed": True, "norad_id": norad_id})
+                        await websocket.send_json(
+                            {"unsubscribed": True, "norad_id": norad_id}
+                        )
             except WebSocketDisconnect:
                 pass
             except Exception:
@@ -139,35 +155,43 @@ def create_app(repository: DashboardDataRepository | None = None) -> FastAPI:
             while True:
                 for norad_id in list(subscribed_norad_ids):
                     # Push Telemetry
-                    telemetry_data = await run_in_threadpool(data.recent_frames, norad_id=norad_id, limit=20)
+                    telemetry_data = await run_in_threadpool(
+                        data.recent_frames, norad_id=norad_id, limit=20
+                    )
                     if telemetry_data.get("frames"):
                         frames = telemetry_data["frames"]
                         last_ts = last_frame_timestamps.get(norad_id)
-                        
-                        if last_ts is None:
-                            last_frame_timestamps[norad_id] = frames[0]["timestamp"]
-                            await websocket.send_json({"type": "push_telemetry", "frame": frames[0]})
-                        else:
-                            new_frames = []
-                            for frame in frames:
-                                if frame["timestamp"] > last_ts:
-                                    new_frames.append(frame)
-                                else:
-                                    break
-                            for frame in reversed(new_frames):
-                                await websocket.send_json({"type": "push_telemetry", "frame": frame})
-                            if new_frames:
-                                last_frame_timestamps[norad_id] = new_frames[0]["timestamp"]
+
+                    if last_ts is None:
+                        last_frame_timestamps[norad_id] = (
+                            frames[0]["timestamp"] if frames else ""
+                        )
+                    else:
+                        new_frames = []
+                        for frame in frames:
+                            if frame["timestamp"] > last_ts:
+                                new_frames.append(frame)
+                            else:
+                                break
+                        for frame in reversed(new_frames):
+                            await websocket.send_json(
+                                {"type": "push_telemetry", "frame": frame}
+                            )
+                        if new_frames:
+                            last_frame_timestamps[norad_id] = new_frames[0]["timestamp"]
 
                     # Push Anomaly Alerts
-                    anomaly_data = await run_in_threadpool(data.recent_anomalies, norad_id=norad_id, limit=20)
+                    anomaly_data = await run_in_threadpool(
+                        data.recent_anomalies, norad_id=norad_id, limit=20
+                    )
                     if anomaly_data.get("anomalies"):
                         anomalies = anomaly_data["anomalies"]
                         last_anomaly_ts = last_anomaly_timestamps.get(norad_id)
-                        
+
                         if last_anomaly_ts is None:
-                            last_anomaly_timestamps[norad_id] = anomalies[0]["timestamp"]
-                            await websocket.send_json({"type": "push_anomaly_alert", "alert": anomalies[0]})
+                            last_anomaly_timestamps[norad_id] = (
+                                anomalies[0]["timestamp"] if anomalies else ""
+                            )
                         else:
                             new_anomalies = []
                             for anomaly in anomalies:
@@ -176,10 +200,14 @@ def create_app(repository: DashboardDataRepository | None = None) -> FastAPI:
                                 else:
                                     break
                             for anomaly in reversed(new_anomalies):
-                                await websocket.send_json({"type": "push_anomaly_alert", "alert": anomaly})
+                                await websocket.send_json(
+                                    {"type": "push_anomaly_alert", "alert": anomaly}
+                                )
                             if new_anomalies:
-                                last_anomaly_timestamps[norad_id] = new_anomalies[0]["timestamp"]
-                
+                                last_anomaly_timestamps[norad_id] = new_anomalies[0][
+                                    "timestamp"
+                                ]
+
                 await asyncio.sleep(2)
         except (WebSocketDisconnect, RuntimeError):
             pass
@@ -279,6 +307,7 @@ def create_app(repository: DashboardDataRepository | None = None) -> FastAPI:
     ) -> dict:
         """Returns the full TrackerSnapshot: live state, forecast, profiles, ground track."""
         from gr_sat.core.orbit_tracker import compute_tracker_snapshot
+
         try:
             snapshot = compute_tracker_snapshot(norad_id)
             response.headers["Cache-Control"] = "private, max-age=5"
@@ -296,6 +325,7 @@ def create_app(repository: DashboardDataRepository | None = None) -> FastAPI:
     ) -> dict:
         """Returns upcoming conjunction events with Foster collision probabilities."""
         from gr_sat.core.conjunctions import find_conjunctions
+
         events = find_conjunctions(lookahead_hours=lookahead_hours, norad_id=norad_id)
         response.headers["Cache-Control"] = "private, max-age=300"
         return {
@@ -309,14 +339,15 @@ def create_app(repository: DashboardDataRepository | None = None) -> FastAPI:
     def tracker_tle(request: Request, norad_id: int = Query(default=43880)) -> dict:
         """Returns the current TLE lines, source, and age for display."""
         from gr_sat.core.orbit_decay import get_satellite
+
         sat = get_satellite(norad_id)
         if not sat:
             raise HTTPException(status_code=503, detail="No TLE available")
         return {
             "line0": sat.name,
-            "line1": sat.model.line1 if hasattr(sat.model, 'line1') else None,
-            "line2": sat.model.line2 if hasattr(sat.model, 'line2') else None,
-            "epoch": sat.epoch.utc_iso() if hasattr(sat, 'epoch') else None,
+            "line1": sat.model.line1 if hasattr(sat.model, "line1") else None,
+            "line2": sat.model.line2 if hasattr(sat.model, "line2") else None,
+            "epoch": sat.epoch.utc_iso() if hasattr(sat, "epoch") else None,
         }
 
     @app.get("/api/orbit/decay-prediction")
@@ -327,7 +358,12 @@ def create_app(repository: DashboardDataRepository | None = None) -> FastAPI:
         norad_id: int = Query(default=43880),
     ) -> dict:
         try:
-            from gr_sat.core.orbit_decay import fetch_latest_space_weather, PredictOrbitDecay, compute_atmospheric_state
+            from gr_sat.core.orbit_decay import (
+                fetch_latest_space_weather,
+                PredictOrbitDecay,
+                compute_atmospheric_state,
+            )
+
             weather = fetch_latest_space_weather()
             atm_state = compute_atmospheric_state(norad_id, weather)
             # If atmospheric state altitude failed, try dataset altitude as fallback
@@ -335,19 +371,22 @@ def create_app(repository: DashboardDataRepository | None = None) -> FastAPI:
             if effective_alt <= 0:
                 try:
                     from gr_sat.core.orbit_decay import _load_dataset
+
                     _df = _load_dataset()
                     effective_alt = float(_df.iloc[-1]["altitude_mean_km"])
                     atm_state.altitude_km = effective_alt
                 except Exception:
                     pass
-            forecasts = PredictOrbitDecay(satellite_id=norad_id, weather=weather, alt_km=atm_state.altitude_km)
+            forecasts = PredictOrbitDecay(
+                satellite_id=norad_id, weather=weather, alt_km=atm_state.altitude_km
+            )
             response.headers["Cache-Control"] = "private, max-age=600"
-            
+
             return {
                 "norad_id": norad_id,
                 "space_weather": weather.model_dump(mode="json"),
                 "atmospheric_state": atm_state.model_dump(mode="json"),
-                "forecasts": [f.model_dump(mode="json") for f in forecasts]
+                "forecasts": [f.model_dump(mode="json") for f in forecasts],
             }
         except Exception as exc:
             raise HTTPException(status_code=500, detail=str(exc)) from exc
@@ -363,7 +402,10 @@ def create_app(repository: DashboardDataRepository | None = None) -> FastAPI:
     @app.post("/api/admin/reload_models")
     def reload_models() -> dict:
         data.reload_models()
-        return {"status": "success", "message": "Model cache cleared. New models will be loaded on next inference."}
+        return {
+            "status": "success",
+            "message": "Model cache cleared. New models will be loaded on next inference.",
+        }
 
     return app
 

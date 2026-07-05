@@ -106,6 +106,7 @@
                 is_anomaly: true
               }
             };
+            frames = [...frames];
           } else {
             // Insert it as a new frame if we don't have the telemetry base
             frames = [data.alert, ...frames].slice(0, limit);
