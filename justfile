@@ -16,6 +16,13 @@ default:
 fetch +args='':
     pixi run python scripts/fetch_training_data.py {{args}}
 
+# Fetch historical TLE data from Space-Track for a satellite and insert into DB / local cache
+# Usage:
+#   just fetch-tle --norad 43880 --days 30
+#   just fetch-tle --norad 43880 --start 2026-01-01 --end 2026-07-01
+fetch-tle +args='':
+    pixi run python scripts/fetch_tle_data.py {{args}}
+
 # Process raw data through the full pipeline: raw → interim → processed
 # Usage:
 #   just process              -> Interactive Menu

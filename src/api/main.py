@@ -330,6 +330,16 @@ def create_app(repository: DashboardDataRepository | None = None) -> FastAPI:
             from gr_sat.core.orbit_decay import fetch_latest_space_weather, PredictOrbitDecay, compute_atmospheric_state
             weather = fetch_latest_space_weather()
             atm_state = compute_atmospheric_state(norad_id, weather)
+            # If atmospheric state altitude failed, try dataset altitude as fallback
+            effective_alt = atm_state.altitude_km
+            if effective_alt <= 0:
+                try:
+                    from gr_sat.core.orbit_decay import _load_dataset
+                    _df = _load_dataset()
+                    effective_alt = float(_df.iloc[-1]["altitude_mean_km"])
+                    atm_state.altitude_km = effective_alt
+                except Exception:
+                    pass
             forecasts = PredictOrbitDecay(satellite_id=norad_id, weather=weather, alt_km=atm_state.altitude_km)
             response.headers["Cache-Control"] = "private, max-age=600"
             

@@ -38,7 +38,7 @@ class OrbitDecayTrainer:
             self._train_for_horizon(df, horizon)
             
     def _train_for_horizon(self, df: pd.DataFrame, horizon: int):
-        target_col = f"observed_decay_rolling_{horizon}d_km_day"
+        target_col = f"target_decay_next_{horizon}d_km"
         if target_col not in df.columns:
             logger.error(f"Target column {target_col} not found in dataset. Skipping.")
             return
@@ -66,7 +66,7 @@ class OrbitDecayTrainer:
         rmse = np.sqrt(mean_squared_error(y_test, preds))
         r2 = r2_score(y_test, preds)
         
-        logger.info(f"Test MAE: {mae * 1000:.2f} m/day | RMSE: {rmse * 1000:.2f} m/day | R2: {r2:.3f}")
+        logger.info(f"Test MAE: {(mae / horizon) * 1000:.2f} m/day | RMSE: {(rmse / horizon) * 1000:.2f} m/day | R2: {r2:.3f}")
         
         # 6. Save Artifacts
         self._save_artifacts(model, features, horizon, mae, rmse, r2)
@@ -79,21 +79,46 @@ class OrbitDecayTrainer:
     def _select_features(self, df: pd.DataFrame, target_col: str) -> List[str]:
         """
         Productionized feature selection:
-        Filters out leaked features, target col, and string cols.
-        Drops zero-variance and highly collinear features.
+        Uses a proven, leak-free feature subset (PHYSICS_DECAY_BSTAR_WEATHER) if available.
+        Otherwise programmatically filters out future target leakage columns.
         """
-        forbidden = ["date", "norad_id", "satellite_name", target_col]
+        whitelist = [
+            "observed_decay_rolling_30d_km_day",
+            "observed_decay_rolling_7d_km_day",
+            "mean_motion_dot",
+            "altitude_mean_km",
+            "decay_lag_1d_km_day",
+            "observed_decay_km_day",
+            "bstar",
+            "decay_lag_7d_km_day",
+            "bstar_lag_7d",
+            "bstar_lag_14d",
+            "bstar_lag_30d",
+            "f107_obs_rolling_27d_known_lag1d",
+            "f107_obs_known_lag1d",
+            "f107_adj_known_lag1d",
+            "sunspot_number_known_lag1d",
+            "high_solar_flux_flag_known_lag1d"
+        ]
+        
+        # Check if we can use the whitelist
+        available_whitelist = [f for f in whitelist if f in df.columns]
+        if len(available_whitelist) >= 10:
+            return available_whitelist
+            
+        forbidden = ["date", "norad_id", "satellite_name", "epoch", "creation_date", target_col]
         potential = [c for c in df.columns if c not in forbidden and pd.api.types.is_numeric_dtype(df[c])]
         
-        # Drop columns containing the word 'decay' and the exact horizon unless it's a lag
-        potential = [c for c in potential if not ("decay" in c and not "lag" in c)]
+        # Drop columns containing "target" or "next" (future leakage)
+        potential = [c for c in potential if "target" not in c and "next" not in c]
+        
+        # Drop columns containing the word 'decay' unless it's a lag or rolling average of past values
+        potential = [c for c in potential if not ("decay" in c and not ("lag" in c or "rolling" in c))]
         
         # Drop high nulls
         null_ratios = df[potential].isnull().mean()
         potential = [c for c in potential if null_ratios[c] < 0.3]
         
-        # In a real production system, we would do recursive feature elimination.
-        # For performance, we return the filtered potential list.
         return potential
 
     def _build_ensemble_model(self):
@@ -117,9 +142,60 @@ class OrbitDecayTrainer:
     def _save_artifacts(self, model: Pipeline, features: List[str], horizon: int, mae: float, rmse: float, r2: float):
         model_path = self.output_dir / f"uwe4_production_model_{horizon}d.pkl"
         feature_path = self.output_dir / f"uwe4_production_features_{horizon}d.json"
+        metrics_path = self.output_dir / f"uwe4_production_metrics_{horizon}d.json"
+        registry_path = self.output_dir / "uwe4_production_model_registry.json"
         
         joblib.dump(model, model_path)
         with open(feature_path, "w") as f:
             json.dump(features, f, indent=4)
+        
+        # Write metrics JSON
+        from datetime import datetime, timezone
+        metrics = {
+            "satellite": "UWE-4",
+            "norad_id": self.norad_id,
+            "horizon_days": horizon,
+            "target_col": f"target_decay_next_{horizon}d_km",
+            "model_type": "VotingRegressor(HGB+RF+BayesianRidge)",
+            "test_metrics": {
+                "MAE_total_km": mae,
+                "RMSE_total_km": rmse,
+                "R2": r2,
+                "MAE_m_day": (mae / horizon) * 1000,
+                "RMSE_m_day": (rmse / horizon) * 1000,
+            },
+            "feature_count": len(features),
+            "created_at_utc": datetime.now(timezone.utc).isoformat(),
+        }
+        with open(metrics_path, "w") as f:
+            json.dump(metrics, f, indent=4)
+        
+        # Update or create model registry
+        if registry_path.exists():
+            with open(registry_path, "r") as f:
+                registry = json.load(f)
+        else:
+            registry = {
+                "satellite": "UWE-4",
+                "norad_id": self.norad_id,
+                "models": {}
+            }
+        
+        key = f"{horizon}d"
+        registry["models"][key] = {
+            "horizon_days": horizon,
+            "model_name": "VotingRegressor(HGB+RF+BayesianRidge)",
+            "model_file": f"uwe4_production_model_{horizon}d.pkl",
+            "features_file": f"uwe4_production_features_{horizon}d.json",
+            "metrics_file": f"uwe4_production_metrics_{horizon}d.json",
+            "target_column": f"target_decay_next_{horizon}d_km",
+            "feature_group": "PHYSICS_DECAY_BSTAR_WEATHER",
+            "selected_features_count": len(features),
+        }
+        registry["created_at_utc"] = datetime.now(timezone.utc).isoformat()
+        registry["production_model"] = "VotingRegressor(HGB+RF+BayesianRidge)"
+        
+        with open(registry_path, "w") as f:
+            json.dump(registry, f, indent=4)
             
         logger.success(f"Saved {horizon}d model to {model_path}")

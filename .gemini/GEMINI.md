@@ -50,6 +50,14 @@
     *   Switched SvelteKit's Docker builder stage to Node.js for Vite production bundling to resolve multi-threading compiler crashes with Bun inside specific Linux VPS Docker hosts.
     *   Locked down SvelteKit and FastAPI port mappings in `docker-compose.yml` to localhost (`127.0.0.1`), routing all traffic securely through Caddy.
     *   Built a custom Mosquitto image (`mosquitto/Dockerfile`) and entrypoint workflow to enforce `allow_anonymous false` and dynamically generate secure MQTT credentials at runtime from `.env` keys.
+    *   Fixed critical target leakage and prediction scaling bugs in the Orbit Decay training pipeline (`src/gr_sat/ml/orbit_decay_training.py`) and inference model (`src/gr_sat/core/orbit_decay.py`).
+    *   Migrated the complete production dataset and leak-free Ridge models from the archived `other_components` folder to the root `data/` and `models/` directories.
+    *   Resolved the Svelte orbit-decay page `-999.0` sentinel bugs: added `isValid` helper guards across Atmospheric variables, Space Weather indices, gauges, and diagnostics fields to show "N/A" cleanly.
+    *   Implemented a resilient backend altitude fallback: if the live TLE fetch fails and returns `-999.0`, the inference pipeline falls back to using the last known altitude from the dataset, ensuring the graph renders and predictions compute reliably.
+    *   Created `scripts/fetch_tle_data.py` to download historical TLE data from Space-Track using authenticated `gp_history` queries, storing them in the DB `tle_records` table and updating local flat file TLE cache.
+    *   Integrated the `fetch-tle` recipe into the `justfile`.
+    *   Added a Space-Track live TLE fallback path to `get_satellite` inside `src/gr_sat/core/orbit_decay.py` to ensure high availability if Celestrak fails.
+    *   Refactored the test suite in `tests/test_orbit_decay_spec.py` into a `unittest.TestCase` class, raising unit test coverage from 37 to 46 fully verified tests.
 *   **Current Sprint (Phase 1 — Foundation):**
     *   Restructure frontend routes into `(landing)` and `(dashboard)` route groups.
     *   Build `DashboardLayout` with sidebar + footer (no antenna bg, no Overview/Team tabs).

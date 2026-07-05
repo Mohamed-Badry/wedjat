@@ -147,6 +147,11 @@
     return (value - Math.floor(value) - 0.5) * amplitude;
   }
 
+  /** Returns true if the value is a valid measurement (not a -999 sentinel). */
+  function isValid(v: any): boolean {
+    return v !== null && v !== undefined && !isNaN(v) && v > -900;
+  }
+
   // Generate grid lines
   const yTicks = [490, 492.5, 495, 497.5, 500, 502.5, 505];
   const xTicks = [0, 5, 10, 15, 20, 25, 30];
@@ -435,19 +440,23 @@
               <div class="grid grid-cols-2 gap-3">
                 <div class="bg-panel border border-border/50 rounded-xl p-3 flex flex-col gap-1">
                   <span class="text-[9px] font-bold uppercase tracking-wider text-ink-3">Exospheric Temp</span>
-                  <span class="font-mono text-sm font-black text-ink">{decayData.atmospheric_state.exospheric_temp_k.toFixed(1)} <span class="text-[9px] text-ink-3 font-sans">K</span></span>
+                  <span class="font-mono text-sm font-black text-ink">{isValid(decayData.atmospheric_state.exospheric_temp_k) ? `${decayData.atmospheric_state.exospheric_temp_k.toFixed(1)}` : 'N/A'} <span class="text-[9px] text-ink-3 font-sans">K</span></span>
                 </div>
                 <div class="bg-panel border border-border/50 rounded-xl p-3 flex flex-col gap-1">
                   <span class="text-[9px] font-bold uppercase tracking-wider text-ink-3">Density (ρ)</span>
-                  <span class="font-mono text-sm font-black text-ink">{decayData.atmospheric_state.density_kg_m3.toExponential(2)} <span class="text-[9px] text-ink-3 font-sans">kg/m³</span></span>
+                  <span class="font-mono text-sm font-black text-ink">{isValid(decayData.atmospheric_state.density_kg_m3) ? decayData.atmospheric_state.density_kg_m3.toExponential(2) : 'N/A'} <span class="text-[9px] text-ink-3 font-sans">kg/m³</span></span>
                 </div>
                 <div class="bg-panel border border-border/50 rounded-xl p-3 flex flex-col gap-1">
                   <span class="text-[9px] font-bold uppercase tracking-wider text-ink-3">Ballistic Coeff (B*)</span>
-                  <span class="font-mono text-sm font-black text-ink">{decayData.atmospheric_state.bstar.toExponential(2)} <span class="text-[9px] text-ink-3 font-sans">1/er</span></span>
+                  <span class="font-mono text-sm font-black text-ink">{isValid(decayData.atmospheric_state.bstar) ? decayData.atmospheric_state.bstar.toExponential(2) : 'N/A'} <span class="text-[9px] text-ink-3 font-sans">1/er</span></span>
                 </div>
                 <div class="bg-panel border border-border/50 rounded-xl p-3 flex flex-col gap-1">
                   <span class="text-[9px] font-bold uppercase tracking-wider text-ink-3">Drag Coeff (Cd)</span>
-                  <span class="font-mono text-sm font-black text-ink">{decayData.atmospheric_state.drag_coeff.toFixed(2)}</span>
+                  <span class="font-mono text-sm font-black text-ink">{isValid(decayData.atmospheric_state.drag_coeff) ? decayData.atmospheric_state.drag_coeff.toFixed(2) : 'N/A'}</span>
+                </div>
+                <div class="bg-panel border border-border/50 rounded-xl p-3 flex flex-col gap-1 col-span-2">
+                  <span class="text-[9px] font-bold uppercase tracking-wider text-ink-3">Drag Acceleration</span>
+                  <span class="font-mono text-sm font-black text-ink">{isValid(decayData.atmospheric_state.drag_acceleration) ? decayData.atmospheric_state.drag_acceleration.toExponential(4) : 'N/A'} <span class="text-[9px] text-ink-3 font-sans">m/s²</span></span>
                 </div>
               </div>
             </div>
@@ -467,10 +476,10 @@
                 <div class="space-y-1.5">
                   <div class="flex justify-between items-end">
                     <span class="text-[10px] font-bold tracking-wider text-ink-2">F10.7 Solar Flux</span>
-                    <span class="font-mono text-base font-black tracking-tight text-ink">{decayData.space_weather.f107_obs} <span class="text-[9px] text-ink-3 font-sans">sfu</span></span>
+                    <span class="font-mono text-base font-black tracking-tight text-ink">{isValid(decayData.space_weather.f107_obs) ? decayData.space_weather.f107_obs : 'N/A'} <span class="text-[9px] text-ink-3 font-sans">sfu</span></span>
                   </div>
                   <div class="h-1.5 w-full bg-surface rounded-full overflow-hidden">
-                    <div class="h-full bg-gradient-to-r from-amber-500 to-orange-600 rounded-full" style="width: {Math.min(100, Math.max(0, (decayData.space_weather.f107_obs - 60) / 140 * 100))}%"></div>
+                    <div class="h-full bg-gradient-to-r from-amber-500 to-orange-600 rounded-full" style="width: {isValid(decayData.space_weather.f107_obs) ? Math.min(100, Math.max(0, (decayData.space_weather.f107_obs - 60) / 140 * 100)) : 0}%"></div>
                   </div>
                 </div>
                 
@@ -478,7 +487,7 @@
                 <div class="space-y-1.5">
                   <div class="flex justify-between items-end">
                     <span class="text-[10px] font-bold tracking-wider text-ink-2">Geomagnetic Kp Max</span>
-                    <span class="font-mono text-base font-black tracking-tight text-ink">{decayData.space_weather.kp_max} <span class="text-[9px] text-ink-3 font-sans">idx</span></span>
+                    <span class="font-mono text-base font-black tracking-tight text-ink">{isValid(decayData.space_weather.kp_max) ? decayData.space_weather.kp_max : 'N/A'} <span class="text-[9px] text-ink-3 font-sans">idx</span></span>
                   </div>
                   <div class="h-1.5 w-full bg-surface rounded-full overflow-hidden flex gap-0.5">
                     {#each Array(9) as _, i}
@@ -491,10 +500,10 @@
                 <div class="space-y-1.5">
                   <div class="flex justify-between items-end">
                     <span class="text-[10px] font-bold tracking-wider text-ink-2">Ap Avg</span>
-                    <span class="font-mono text-base font-black tracking-tight text-ink">{decayData.space_weather.ap_avg}</span>
+                    <span class="font-mono text-base font-black tracking-tight text-ink">{isValid(decayData.space_weather.ap_avg) ? decayData.space_weather.ap_avg : 'N/A'}</span>
                   </div>
                   <div class="h-1.5 w-full bg-surface rounded-full overflow-hidden">
-                    <div class="h-full bg-gradient-to-r from-blue-400 to-indigo-600 rounded-full" style="width: {Math.min(100, Math.max(0, (decayData.space_weather.ap_avg) / 100 * 100))}%"></div>
+                    <div class="h-full bg-gradient-to-r from-blue-400 to-indigo-600 rounded-full" style="width: {isValid(decayData.space_weather.ap_avg) ? Math.min(100, Math.max(0, (decayData.space_weather.ap_avg) / 100 * 100)) : 0}%"></div>
                   </div>
                 </div>
               </div>
@@ -555,7 +564,7 @@
                   </span>
                   <div class="flex items-baseline gap-1 {forecast.predicted_decay_km >= 0 ? 'text-critical' : 'text-emerald-600 dark:text-emerald-400'}">
                     <span class="font-mono text-4xl font-black tracking-tighter">
-                      {forecast.predicted_decay_km >= 0 ? '-' : '+'}{Math.abs(forecast.predicted_decay_km).toFixed(3)}
+                      {#if isValid(forecast.predicted_decay_km)}{forecast.predicted_decay_km >= 0 ? '-' : '+'}{Math.abs(forecast.predicted_decay_km).toFixed(3)}{:else}N/A{/if}
                     </span>
                     <span class="text-xs font-bold uppercase tracking-wider">km</span>
                   </div>
@@ -568,7 +577,7 @@
                     <span class="text-[10px] font-bold uppercase tracking-widest text-ink-2 flex items-center gap-1.5"><ShieldAlert class="size-3 text-brand"/> Resulting Altitude</span>
                   </div>
                   <div class="flex items-baseline gap-1">
-                    <span class="font-mono text-3xl font-black tracking-tighter text-ink">{forecast.predicted_altitude_km.toFixed(2)}</span>
+                    <span class="font-mono text-3xl font-black tracking-tighter text-ink">{isValid(forecast.predicted_altitude_km) ? forecast.predicted_altitude_km.toFixed(2) : 'N/A'}</span>
                     <span class="text-xs font-bold uppercase tracking-wider text-ink-3">km</span>
                   </div>
                 </div>
