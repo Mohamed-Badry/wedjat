@@ -21,8 +21,27 @@ def run_fetch_data():
             cwd=str(PROJECT_ROOT)
         )
         logger.info("Successfully fetched new data.")
+        
+        # We must process the raw data so that it's available for training
+        logger.info("Running process_data.py...")
+        subprocess.run(
+            ["python", str(SCRIPTS_DIR / "process_data.py"), "--all"],
+            check=True,
+            cwd=str(PROJECT_ROOT)
+        )
+        logger.info("Successfully processed new data.")
+        
+        # We must also seed the processed data to the database
+        logger.info("Running seed_database.py...")
+        subprocess.run(
+            ["python", str(SCRIPTS_DIR / "seed_database.py"), "--all"],
+            check=True,
+            cwd=str(PROJECT_ROOT)
+        )
+        logger.info("Successfully seeded new data into the database.")
+        
     except subprocess.CalledProcessError as e:
-        logger.error(f"Data fetching failed: {e}")
+        logger.error(f"Data fetching or processing failed: {e}")
 
 def run_train_models():
     logger.info("Starting daily train_model job for all active satellites...")

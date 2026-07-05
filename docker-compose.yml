@@ -173,11 +173,14 @@ services:
       context: .
       dockerfile: src/scheduler/Dockerfile
     container_name: watchdog_scheduler
+    env_file:
+      - .env
     volumes:
       - ./src:/app/src
       - ./scripts:/app/scripts
       - ./data:/app/data
       - ./models:/app/models
+      - ./logs:/app/logs
     environment:
       API_URL: http://backend:8000
     depends_on:
