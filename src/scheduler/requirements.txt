@@ -1,3 +1,10 @@
+--extra-index-url https://download.pytorch.org/whl/cpu
 schedule==1.2.1
 httpx>=0.25.0
 loguru==0.7.3
+python-dotenv>=1.2.1
+rich>=14.3.2
+pandas>=3.0.0
+scikit-learn==1.6.1
+joblib>=1.4.2
+torch
