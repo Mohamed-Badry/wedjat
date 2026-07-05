@@ -47,7 +47,8 @@
       <header in:fly={{ y: -20, duration: 800, delay: 200, easing: backOut }} class="mb-10 rounded-[2rem] border border-border bg-panel px-5 py-4 shadow-panel backdrop-blur sm:px-6">
       <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <a class="text-lg font-semibold tracking-[0.18em] text-muted uppercase" href="/">
+          <a class="flex items-center gap-3 text-xl font-semibold tracking-[0.18em] text-muted uppercase hover:text-brand transition-colors" href="/">
+            <img src="/favicon.svg" alt="Project Wedjat Logo" class="size-8" />
             Project Wedjat
           </a>
           <p class="mt-1 max-w-xl text-sm text-ink-3">
