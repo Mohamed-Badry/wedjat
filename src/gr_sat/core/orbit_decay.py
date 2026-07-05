@@ -119,15 +119,15 @@ def fetch_latest_space_weather() -> SpaceWeatherObservation:
     """Fetch latest space weather from DB cache, or CelesTrak SW-All.csv"""
     from datetime import datetime, timezone
     
-    # 1. DB Cache Look-through
+    engine = None
     try:
         from sqlmodel import Session, select
         try:
-            from api.database import get_engine
-            from api.db_models import SpaceWeatherRecord
+            from src.api.database import get_engine
+            from src.api.db_models import SpaceWeatherRecord
         except ImportError:
-            from src.api.database import get_engine  # type: ignore
-            from src.api.db_models import SpaceWeatherRecord  # type: ignore
+            from api.database import get_engine  # type: ignore
+            from api.db_models import SpaceWeatherRecord  # type: ignore
 
         engine = get_engine()
         if engine:
@@ -223,15 +223,15 @@ def get_satellite(norad_id: int) -> Optional['EarthSatellite']:
     from skyfield.api import load, EarthSatellite
     from datetime import datetime, timezone
     
-    # 1. DB Cache Look-through
+    engine = None
     try:
         from sqlmodel import Session, select
         try:
-            from api.database import get_engine
-            from api.db_models import TleRecord
+            from src.api.database import get_engine
+            from src.api.db_models import TleRecord
         except ImportError:
-            from src.api.database import get_engine  # type: ignore
-            from src.api.db_models import TleRecord  # type: ignore
+            from api.database import get_engine  # type: ignore
+            from api.db_models import TleRecord  # type: ignore
 
         engine = get_engine()
         if engine:
