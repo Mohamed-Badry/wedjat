@@ -9,7 +9,7 @@
 #align(center)[
   #text(size: 22pt, weight: "bold")[UWE-4 Anomaly Detection Dataflow] \
   #v(1em)
-  #text(size: 12pt, fill: luma(100))[Project Watchdog Core Architecture]
+  #text(size: 12pt, fill: luma(100))[Project Wedjat Core Architecture]
 ]
 
 = Pipeline Architecture

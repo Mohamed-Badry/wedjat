@@ -1,4 +1,4 @@
-# Project Watchdog — Docker Compose Dev Stack
+# Project Wedjat — Docker Compose Dev Stack
 #
 # Credentials & config are read from .env (auto-loaded by Compose).
 # Copy .env.example → .env and fill in your values.
@@ -13,12 +13,12 @@ services:
   broker:
     profiles: ["dev", "cloud", "edge"]
     build: ./mosquitto
-    container_name: watchdog_broker
+    container_name: wedjat_broker
     ports:
       - "1883:1883"
     environment:
-      # WARNING: Fallbacks (watchdog/secretpassword) are for local dev ONLY.
-      - MQTT_USERNAME=${MQTT_USERNAME:-watchdog}
+      # WARNING: Fallbacks (wedjat/secretpassword) are for local dev ONLY.
+      - MQTT_USERNAME=${MQTT_USERNAME:-wedjat}
       - MQTT_PASSWORD=${MQTT_PASSWORD:-secretpassword}
     volumes:
       - mosquitto_data:/mosquitto/data
@@ -28,16 +28,16 @@ services:
   db:
     profiles: ["dev", "cloud"]
     image: timescale/timescaledb:2.26.4-pg15
-    container_name: watchdog_db
+    container_name: wedjat_db
     ports:
       - "127.0.0.1:5432:5432"
     environment:
       # WARNING: Fallbacks are for local dev ONLY. Set in .env for production.
-      POSTGRES_USER: ${POSTGRES_USER:-watchdog}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-watchdog_pass}
-      POSTGRES_DB: ${POSTGRES_DB:-watchdog_db}
+      POSTGRES_USER: ${POSTGRES_USER:-wedjat}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-wedjat_pass}
+      POSTGRES_DB: ${POSTGRES_DB:-wedjat_db}
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-watchdog} -d ${POSTGRES_DB:-watchdog_db}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-wedjat} -d ${POSTGRES_DB:-wedjat_db}"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -51,15 +51,15 @@ services:
     build:
       context: .
       dockerfile: src/api/Dockerfile
-    container_name: watchdog_backend
+    container_name: wedjat_backend
     command: sh -c "cd /app && python src/api/safe_migrate.py && uvicorn src.api.main:app --host 0.0.0.0 --port 8000"
     ports:
       - "127.0.0.1:8000:8000"
     environment:
-      DATABASE_URL: postgresql://${POSTGRES_USER:-watchdog}:${POSTGRES_PASSWORD:-watchdog_pass}@db:5432/${POSTGRES_DB:-watchdog_db}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-wedjat}:${POSTGRES_PASSWORD:-wedjat_pass}@db:5432/${POSTGRES_DB:-wedjat_db}
       MQTT_BROKER_URL: broker
       MQTT_BROKER_PORT: "1883"
-      MQTT_USERNAME: ${MQTT_USERNAME:-watchdog}
+      MQTT_USERNAME: ${MQTT_USERNAME:-wedjat}
       MQTT_PASSWORD: ${MQTT_PASSWORD:-secretpassword}
     volumes:
       - ./src/api:/app/src/api
@@ -92,7 +92,7 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
       target: builder
-    container_name: watchdog_frontend
+    container_name: wedjat_frontend
     command: bun run dev --host 0.0.0.0
     ports:
       - "5173:5173"
@@ -125,7 +125,7 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-    container_name: watchdog_frontend_prod
+    container_name: wedjat_frontend_prod
     ports:
       - "127.0.0.1:5173:5173"
     environment:
@@ -139,7 +139,7 @@ services:
     build:
       context: .
       dockerfile: src/simulator/Dockerfile
-    container_name: watchdog_simulator
+    container_name: wedjat_simulator
     volumes:
       - ./src/simulator:/app/src/simulator
       - ./src/gr_sat:/app/src/gr_sat
@@ -148,7 +148,7 @@ services:
       MQTT_BROKER_URL: broker
       MQTT_BROKER_PORT: "1883"
       # WARNING: Fallbacks are for local dev ONLY.
-      MQTT_USERNAME: ${MQTT_USERNAME:-watchdog}
+      MQTT_USERNAME: ${MQTT_USERNAME:-wedjat}
       MQTT_PASSWORD: ${MQTT_PASSWORD:-secretpassword}
     depends_on:
       - broker
@@ -172,7 +172,7 @@ services:
     build:
       context: .
       dockerfile: src/scheduler/Dockerfile
-    container_name: watchdog_scheduler
+    container_name: wedjat_scheduler
     env_file:
       - .env
     volumes:

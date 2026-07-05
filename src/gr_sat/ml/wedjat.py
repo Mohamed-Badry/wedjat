@@ -1,5 +1,5 @@
 """
-Minimal online watchdog runtime for deterministic packet-by-packet inference.
+Minimal online wedjat runtime for deterministic packet-by-packet inference.
 """
 
 from __future__ import annotations
@@ -28,7 +28,7 @@ STATE_ALERTING = "alerting"
 
 
 @dataclass(frozen=True)
-class WatchdogAlert:
+class WedjatAlert:
     norad_id: str
     timestamp: datetime
     score: float
@@ -38,7 +38,7 @@ class WatchdogAlert:
 
 
 @dataclass(frozen=True)
-class WatchdogResult:
+class WedjatResult:
     status: str
     state: str
     score: float | None = None
@@ -49,7 +49,7 @@ class WatchdogResult:
     frame: TelemetryFrame | None = None
 
 
-class OnlineWatchdog:
+class OnlineWedjat:
     def __init__(
         self,
         norad_id: str,
@@ -57,7 +57,7 @@ class OnlineWatchdog:
         model,
         metadata: ModelArtifactMetadata,
         gap_timeout_seconds: float = 180.0,
-        alert_sink: Callable[[WatchdogAlert], None] | None = None,
+        alert_sink: Callable[[WedjatAlert], None] | None = None,
     ):
         self.norad_id = int(norad_id)
         self.scaler = scaler
@@ -86,8 +86,8 @@ class OnlineWatchdog:
         norad_id: str,
         models_dir: Path = MODEL_DIR,
         gap_timeout_seconds: float = 180.0,
-        alert_sink: Callable[[WatchdogAlert], None] | None = None,
-    ) -> "OnlineWatchdog":
+        alert_sink: Callable[[WedjatAlert], None] | None = None,
+    ) -> "OnlineWedjat":
         scaler, model, metadata = load_model_artifacts(norad_id, models_dir)
         return cls(
             norad_id=norad_id,
@@ -156,7 +156,7 @@ class OnlineWatchdog:
         payload: bytes,
         timestamp: datetime,
         source: str = "live_station",
-    ) -> WatchdogResult:
+    ) -> WedjatResult:
         self.last_packet_at = timestamp
 
         try:
@@ -165,7 +165,7 @@ class OnlineWatchdog:
             )
             if not frame_result.ok:
                 self.state = STATE_RECEIVING
-                return WatchdogResult(
+                return WedjatResult(
                     status=frame_result.failure.code,
                     state=self.state,
                     error=frame_result.failure.message,
@@ -194,7 +194,7 @@ class OnlineWatchdog:
 
             if is_anomaly and self.alert_sink is not None:
                 self.alert_sink(
-                    WatchdogAlert(
+                    WedjatAlert(
                         norad_id=str(self.norad_id),
                         timestamp=timestamp,
                         score=score,
@@ -209,7 +209,7 @@ class OnlineWatchdog:
                     )
                 )
 
-            return WatchdogResult(
+            return WedjatResult(
                 status="ok",
                 state=self.state,
                 score=score,
@@ -220,7 +220,7 @@ class OnlineWatchdog:
             )
         except Exception as exc:
             self.state = STATE_DEGRADED
-            return WatchdogResult(
+            return WedjatResult(
                 status="error",
                 state=self.state,
                 error=str(exc),

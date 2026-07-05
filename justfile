@@ -1,4 +1,4 @@
-# Justfile for Project Watchdog
+# Justfile for Project Wedjat
 
 set shell := ["bash", "-c"]
 
@@ -64,12 +64,12 @@ viz-passes:
 # Run the full visualization pipeline (Select -> Visualize)
 regenerate-all: analyze-targets viz-passes
 
-# Minimal deterministic online watchdog runtime
+# Minimal deterministic online wedjat runtime
 # Usage:
-#   just watchdog --norad 43880 --help
-#   just watchdog --norad 43880 --payload-hex "AABB..." --timestamp "2026-01-01T00:00:00Z"
-watchdog +args='':
-    pixi run python scripts/watchdog_runtime.py {{args}}
+#   just wedjat --norad 43880 --help
+#   just wedjat --norad 43880 --payload-hex "AABB..." --timestamp "2026-01-01T00:00:00Z"
+wedjat +args='':
+    pixi run python scripts/wedjat_runtime.py {{args}}
 
 # Run regression tests
 test:

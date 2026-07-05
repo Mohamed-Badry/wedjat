@@ -104,7 +104,7 @@
 </script>
 
 <svelte:head>
-  <title>Dashboard — Watchdog</title>
+  <title>Dashboard — Wedjat</title>
 </svelte:head>
 
 {#if error}

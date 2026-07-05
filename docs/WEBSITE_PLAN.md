@@ -7,7 +7,7 @@ The `gr_sat` repository has successfully established a robust **offline machine 
 - **Data Pipeline:** Fetching (SatNOGS API) -> Decoding (Kaitai Structs) -> Normalization (normalized arrays).
 - **Modeling:** Per-satellite Autoencoders/VAEs are trained and evaluated using synthetic-fault benchmarking.
 - **Core Logic:** The Python codebase (`src/gr_sat`) is well-structured with dedicated modules for decoding, processing, profiles, and models.
-- **Minimal Runtime:** A rudimentary, single-threaded online inference loop (`watchdog_runtime.py`) exists but lacks network ingress, persistence, or a UI.
+- **Minimal Runtime:** A rudimentary, single-threaded online inference loop (`wedjat_runtime.py`) exists but lacks network ingress, persistence, or a UI.
 
 ---
 

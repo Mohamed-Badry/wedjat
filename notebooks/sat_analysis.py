@@ -1,7 +1,7 @@
 # %% [markdown]
 # # Comprehensive Satellite Candidate Analysis
 #
-# **Goal:** Identify the optimal cluster of satellites for the "Project Watchdog" anomaly detector.
+# **Goal:** Identify the optimal cluster of satellites for the "Project Wedjat" anomaly detector.
 #
 # **Data Sources:**
 # 1.  `amsat-active-frequencies.csv`: Frequency and Modulation data.

@@ -1,4 +1,4 @@
--- Project Watchdog: TimescaleDB Schema
+-- Project Wedjat: TimescaleDB Schema
 -- Executed once on first `docker compose up` via /docker-entrypoint-initdb.d/
 
 CREATE EXTENSION IF NOT EXISTS timescaledb;

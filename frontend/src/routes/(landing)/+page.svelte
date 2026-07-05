@@ -136,7 +136,7 @@
 </script>
 
 <svelte:head>
-  <title>Watchdog | The Mission Control Standard</title>
+  <title>Wedjat | The Mission Control Standard</title>
 </svelte:head>
 
 <div class="relative z-10 w-full">
@@ -203,7 +203,7 @@
                   Orbital Pass <br/><span class="text-ink-2 font-medium">Predictions & Planning</span>
                 </h2>
                 <p class="text-lg text-ink-3 leading-relaxed">
-                  Predict when satellites cross your local horizon. Watchdog computes high-precision skyplots, pass timelines, and visibility windows for your specific ground station coordinates.
+                  Predict when satellites cross your local horizon. Wedjat computes high-precision skyplots, pass timelines, and visibility windows for your specific ground station coordinates.
                 </p>
               </div>
               
@@ -231,7 +231,7 @@
                   Real-Time WebSocket <br/><span class="text-ink-2 font-medium">Telemetry Ingress</span>
                 </h2>
                 <p class="text-lg text-ink-3 leading-relaxed">
-                  Stream telemetry frames directly to your browser as they arrive. Watchdog establishes high-performance WebSockets to decode telemetry fields (battery, currents, temperature) with sub-second latency.
+                  Stream telemetry frames directly to your browser as they arrive. Wedjat establishes high-performance WebSockets to decode telemetry fields (battery, currents, temperature) with sub-second latency.
                 </p>
                 <div class="flex items-center gap-4 mt-2">
                    <div class="flex items-center gap-2 rounded-full border border-ok/20 bg-ok/10 px-4 py-2 text-sm font-semibold text-ok">
@@ -309,7 +309,7 @@
                   State Vector Tracking <br/><span class="text-ink-2 font-medium">& Conjunction Risk</span>
                 </h2>
                 <p class="text-lg text-ink-3 leading-relaxed">
-                  Real-time classical orbital elements (COE) and Cartesian state vector monitoring. Watchdog propagates orbits dynamically via SGP4, tracking satellite coordinate trends and calculating collision probabilities with the mathematically rigorous **Foster (1992)** covariance model.
+                  Real-time classical orbital elements (COE) and Cartesian state vector monitoring. Wedjat propagates orbits dynamically via SGP4, tracking satellite coordinate trends and calculating collision probabilities with the mathematically rigorous **Foster (1992)** covariance model.
                 </p>
               </div>
 
@@ -360,7 +360,7 @@
                   Exospheric Density <br/><span class="text-ink-2 font-medium">& Decay Forecasting</span>
                 </h2>
                 <p class="text-lg text-ink-3 leading-relaxed">
-                  Long-term decay prognostics under real solar weather. Watchdog models localized atmospheric drag using the **NRLMSISE-00** model, using geomagnetic indicators (F10.7, Kp) to drive machine learning ensembles forecasting 7-day and 30-day semi-major axis decay.
+                  Long-term decay prognostics under real solar weather. Wedjat models localized atmospheric drag using the **NRLMSISE-00** model, using geomagnetic indicators (F10.7, Kp) to drive machine learning ensembles forecasting 7-day and 30-day semi-major axis decay.
                 </p>
               </div>
 
@@ -585,7 +585,7 @@
         <a class="group relative inline-flex items-center gap-3 rounded-full bg-brand px-12 py-5 text-lg font-bold text-white shadow-[0_0_40px_rgba(139,92,246,0.6)] transition-all hover:scale-110 hover:bg-brand/90 hover:shadow-[0_0_60px_rgba(139,92,246,0.8)] overflow-hidden" href="/dashboard">
           <!-- Sparkle hover effect -->
           <div class="absolute inset-0 -translate-x-full bg-white/20 skew-x-12 transition-transform duration-700 ease-out group-hover:translate-x-full"></div>
-          Start Watchdog
+          Start Wedjat
           <ChevronRight class="size-6 transition-transform group-hover:translate-x-2" />
         </a>
       </div>

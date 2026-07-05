@@ -1,5 +1,5 @@
 """
-Shared model/training constants for Project Watchdog.
+Shared model/training constants for Project Wedjat.
 """
 
 import os

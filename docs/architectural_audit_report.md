@@ -1,6 +1,6 @@
 # Architectural Audit Report
 
-**Project:** Project Watchdog — Satellite Telemetry Anomaly Detection System
+**Project:** Project Wedjat — Satellite Telemetry Anomaly Detection System
 **Date:** 2026-06-20
 **Auditor Role:** Principal Systems Architect
 **Scope:** Full-stack audit — core library, API layer, frontend, scripts, infrastructure
@@ -9,7 +9,7 @@
 
 ## 1. Executive Summary
 
-Project Watchdog is a satellite telemetry monitoring and anomaly detection system built around a Python core library (`gr_sat`), a FastAPI backend, a SvelteKit frontend, TimescaleDB for time-series storage, and an MQTT broker for real-time data ingestion. The system fetches telemetry from SatNOGS, decodes satellite frames, trains a Variational Autoencoder (VAE) for anomaly detection, and presents results through a web dashboard.
+Project Wedjat is a satellite telemetry monitoring and anomaly detection system built around a Python core library (`gr_sat`), a FastAPI backend, a SvelteKit frontend, TimescaleDB for time-series storage, and an MQTT broker for real-time data ingestion. The system fetches telemetry from SatNOGS, decodes satellite frames, trains a Variational Autoencoder (VAE) for anomaly detection, and presents results through a web dashboard.
 
 **The core library (`src/gr_sat/`) is architecturally sound.** It has a clean acyclic dependency graph, well-defined module boundaries, and a solid decoder registry pattern. The decoders subsystem is the best-architected component in the entire codebase. However, the system suffers from **catastrophic architectural rot at the integration boundaries** — specifically the API layer and the scripts layer — where separation of concerns has collapsed entirely.
 
@@ -31,14 +31,14 @@ The single most critical structural failure is `src/api/dashboard_data.py`: a **
 * **Component:** VAE model loading, forward pass, anomaly scoring, and result persistence
 * **Current Location:** `src/api/mqtt_client.py` `on_message()` callback — interleaves message parsing, database writes, model loading from disk, torch inference, and more database writes in a single callback function.
 * **Why it's wrong:** The MQTT callback is a transport-layer concern. It should receive a message, validate it minimally, and hand off to a processing pipeline. Instead, it performs blocking ML inference on the MQTT event loop, creates a new `DashboardDataRepository` instance per message (accessing a private `_score_frames()` method), and has no error isolation — a torch failure kills the entire telemetry ingestion path.
-* **Correct Location:** The callback should enqueue frames into an async processing pipeline. ML inference should be handled by a dedicated worker/service that consumes from a queue, using a cached `Watchdog` singleton.
+* **Correct Location:** The callback should enqueue frames into an async processing pipeline. ML inference should be handled by a dedicated worker/service that consumes from a queue, using a cached `Wedjat` singleton.
 
 ### 2.3 ML Inference Duplicated in API Data Service
 
 * **Component:** VAE forward pass, scaler transforms, anomaly score computation
-* **Current Location:** `src/api/dashboard_data.py` (lines performing `torch.no_grad()`, `scaler.transform()`, VAE reconstruction) — duplicates inference logic that already exists in `src/gr_sat/watchdog.py`.
-* **Why it's wrong:** The API layer re-implements ML inference instead of delegating to the core library's `Watchdog` or `compute_anomaly_scores()`. This creates a second inference path that can drift from the training path.
-* **Correct Location:** All inference should flow through `src/gr_sat/watchdog.py` or `src/gr_sat/models.compute_anomaly_scores()`. The API layer should only orchestrate, never compute.
+* **Current Location:** `src/api/dashboard_data.py` (lines performing `torch.no_grad()`, `scaler.transform()`, VAE reconstruction) — duplicates inference logic that already exists in `src/gr_sat/wedjat.py`.
+* **Why it's wrong:** The API layer re-implements ML inference instead of delegating to the core library's `Wedjat` or `compute_anomaly_scores()`. This creates a second inference path that can drift from the training path.
+* **Correct Location:** All inference should flow through `src/gr_sat/wedjat.py` or `src/gr_sat/models.compute_anomaly_scores()`. The API layer should only orchestrate, never compute.
 
 ### 2.4 Data Aggregation Algorithms in the API Layer
 
@@ -71,8 +71,8 @@ The single most critical structural failure is `src/api/dashboard_data.py`: a **
 ### 2.8 Duplicated Feature Engineering Between Batch and Online Paths
 
 * **Component:** Rolling standard deviation computation for voltage and temperature features
-* **Current Location:** `src/gr_sat/processing.py` (batch path, using pandas rolling windows) AND `src/gr_sat/watchdog.py` (online path, using `collections.deque` with independent implementation)
-* **Why it's wrong:** Two independent implementations of the same feature engineering will inevitably diverge. If the batch processing module changes window sizes or backing fields, the online watchdog won't follow — causing train/serve skew that silently degrades anomaly detection accuracy.
+* **Current Location:** `src/gr_sat/processing.py` (batch path, using pandas rolling windows) AND `src/gr_sat/wedjat.py` (online path, using `collections.deque` with independent implementation)
+* **Why it's wrong:** Two independent implementations of the same feature engineering will inevitably diverge. If the batch processing module changes window sizes or backing fields, the online wedjat won't follow — causing train/serve skew that silently degrades anomaly detection accuracy.
 * **Correct Location:** A shared `FeatureEngineer` abstraction in `src/gr_sat/features.py` with both batch (DataFrame) and online (streaming) implementations that share configuration (window sizes, field names) from a single source of truth.
 
 ### 2.9 Satellite Profile Data Duplicated Across Scripts
@@ -177,7 +177,7 @@ The single most critical structural failure is `src/api/dashboard_data.py`: a **
   - `src/gr_sat/ml_config.py` — defines `MODEL_DIR`, `PROCESSED_DIR` etc.
   - `src/gr_sat/training.py` — hardcodes `Path("data/processed")` despite importing `ml_config`
   - `src/gr_sat/evaluation.py` — hardcodes `models_dir="models"`, `processed_dir="data/processed"`
-  - `src/gr_sat/watchdog.py` — hardcodes `models_dir=Path("models")`
+  - `src/gr_sat/wedjat.py` — hardcodes `models_dir=Path("models")`
   - `src/api/dashboard_data.py` — hardcodes `Path("models")` separately
   - `scripts/predict_passes.py` — hardcodes latitude/longitude
 
@@ -266,7 +266,7 @@ The single most critical structural failure is `src/api/dashboard_data.py`: a **
 
 **Steps:**
 1. **Make `__init__.py` imports lazy** — Use `__getattr__` pattern or conditional imports so that `import gr_sat` doesn't trigger torch loading.
-2. **Split the package** — Consider splitting `gr_sat` into `gr_sat.core` (profiles, processing, telemetry — no torch) and `gr_sat.ml` (models, training, watchdog — requires torch). This allows lightweight consumers (simulator, scripts that only fetch data) to avoid the torch dependency entirely.
+2. **Split the package** — Consider splitting `gr_sat` into `gr_sat.core` (profiles, processing, telemetry — no torch) and `gr_sat.ml` (models, training, wedjat — requires torch). This allows lightweight consumers (simulator, scripts that only fetch data) to avoid the torch dependency entirely.
 
 ### Directive 9: Establish Frontend Data Layer (Priority: MEDIUM)
 
@@ -325,7 +325,7 @@ The single most critical structural failure is `src/api/dashboard_data.py`: a **
                      │  model_artifacts.py ──► models, ml_config       │
                      │  training.py ──► model_artifacts, models, ...   │
                      │  evaluation.py ──► model_artifacts, models, ... │
-                     │  watchdog.py ──► model_artifacts, models, ...   │
+                     │  wedjat.py ──► model_artifacts, models, ...   │
                      │                                                  │
                      │  ✅ Clean DAG — no circular dependencies         │
                      └─────────────────────────────────────────────────┘
@@ -337,7 +337,7 @@ The single most critical structural failure is `src/api/dashboard_data.py`: a **
 |------|-------|-------|------------|
 | `src/api/dashboard_data.py` | ~1,200 | 45,840 | 🔴 **CRITICAL** |
 | `src/gr_sat/telemetry.py` | 294 | 9,566 | 🟢 Clean |
-| `src/gr_sat/watchdog.py` | 254 | 8,916 | 🟡 Moderate |
+| `src/gr_sat/wedjat.py` | 254 | 8,916 | 🟡 Moderate |
 | `src/gr_sat/evaluation.py` | 251 | 9,735 | 🟡 Moderate |
 | `src/gr_sat/model_artifacts.py` | 250 | 8,330 | 🟡 Moderate |
 | `src/gr_sat/decoders/uwe4.py` | 222 | — | 🟢 Clean |

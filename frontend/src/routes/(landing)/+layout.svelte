@@ -48,7 +48,7 @@
       <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
           <a class="text-lg font-semibold tracking-[0.18em] text-muted uppercase" href="/">
-            Project Watchdog
+            Project Wedjat
           </a>
           <p class="mt-1 max-w-xl text-sm text-ink-3">
             A low-latency operator shell for live telemetry, anomaly scoring,

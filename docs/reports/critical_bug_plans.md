@@ -7,7 +7,7 @@ This document turns the accepted critical review findings into implementation pl
 1. Fix frame identity and deduplication.
 2. Make inference deterministic.
 3. Move threshold calibration into the training artifact flow.
-4. Build the online watchdog runtime on top of the corrected artifact contract.
+4. Build the online wedjat runtime on top of the corrected artifact contract.
 
 ## 1. Frame Identity and Deduplication
 
@@ -119,11 +119,11 @@ Persist a single model contract containing:
 - Benchmarking uses the stored threshold unchanged.
 - The scoring path is identical across validation, test, and future live inference.
 
-## 4. Online Watchdog Runtime
+## 4. Online Wedjat Runtime
 
 ### Problem
 
-The repository currently has no implemented live watchdog service. There is no packet-ingest runtime, no model-serving loop, no stream-gap handling, and no alerting path.
+The repository currently has no implemented live wedjat service. There is no packet-ingest runtime, no model-serving loop, no stream-gap handling, and no alerting path.
 
 ### Goal
 

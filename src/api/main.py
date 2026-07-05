@@ -54,7 +54,7 @@ def create_app(repository: DashboardDataRepository | None = None) -> FastAPI:
         data = repository
 
     app = FastAPI(
-        title="gr_sat Watchdog API",
+        title="gr_sat Wedjat API",
         description="FastAPI backend for satellite telemetry dashboard data.",
         version="0.1.0",
         lifespan=lifespan,
@@ -90,7 +90,7 @@ def create_app(repository: DashboardDataRepository | None = None) -> FastAPI:
     def read_root() -> dict:
         return {
             "status": "online",
-            "message": "gr_sat Watchdog API is online.",
+            "message": "gr_sat Wedjat API is online.",
             "links": {
                 "status": "/api/status",
                 "dashboard_summary": "/api/dashboard/summary",

@@ -185,7 +185,7 @@ Two distinct environments sharing a single *Shared Core*.
     - *Action:* Train Autoencoder
   ],
   [
-    *B. The Watchdog (Edge Deployment)*
+    *B. The Wedjat (Edge Deployment)*
     - Live anomaly detection (5 Docker Microservices)
     - Source: Live Antenna -> SDR -> MQTT
     - *Action:* FastAPI backend inference & SvelteKit dashboard

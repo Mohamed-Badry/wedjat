@@ -1,5 +1,5 @@
 /**
- * Shared TypeScript contracts for Watchdog API response shapes.
+ * Shared TypeScript contracts for Wedjat API response shapes.
  * Single source of truth — used by page loaders, components, and data transforms.
  */
 

@@ -216,7 +216,7 @@ def status_components(
             "name": "api",
             "status": "online",
             "detail": "FastAPI process is responding.",
-            "metadata": {"title": "gr_sat Watchdog API"},
+            "metadata": {"title": "gr_sat Wedjat API"},
         },
         database_status(),
         _processed_data_component(dataset_ids, processed_dir),

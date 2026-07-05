@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# deploy_vps.sh - Project Watchdog Cloud Deployment
+# deploy_vps.sh - Project Wedjat Cloud Deployment
 # Target: Ubuntu/Debian VPS
 
 set -e
@@ -38,7 +38,7 @@ for var in POSTGRES_USER POSTGRES_PASSWORD POSTGRES_DB; do
 done
 
 # Ensure fallback defaults are not used in production
-if grep -q "^POSTGRES_PASSWORD=watchdog_pass$" .env; then
+if grep -q "^POSTGRES_PASSWORD=wedjat_pass$" .env; then
     log_warn "You are using the default development database password. This is highly discouraged for VPS deployment."
     read -p "Do you want to continue anyway? (y/N) " -n 1 -r
     echo ""

@@ -1,7 +1,7 @@
 # Orbit Decay AI Engine - Research & Implementation Methods
 
 ## Overview
-The Orbit Decay AI predictor is a core module of the Watchdog Dashboard that forecasts atmospheric drag and orbital degradation based on real-time solar telemetry. It utilizes an ensemble machine learning approach to predict the orbital drop of amateur satellites over 7-day and 30-day horizons.
+The Orbit Decay AI predictor is a core module of the Wedjat Dashboard that forecasts atmospheric drag and orbital degradation based on real-time solar telemetry. It utilizes an ensemble machine learning approach to predict the orbital drop of amateur satellites over 7-day and 30-day horizons.
 
 ## Research Methods
 The physics of low earth orbit (LEO) satellites are heavily influenced by the atmospheric density, which expands and contracts dynamically in response to space weather—specifically solar flux (F10.7) and geomagnetic storms (Kp/Ap indices).

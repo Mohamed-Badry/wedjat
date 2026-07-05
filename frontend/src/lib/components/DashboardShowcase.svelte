@@ -202,7 +202,7 @@
         Explore the <span class="text-transparent bg-clip-text bg-gradient-to-r from-brand to-info">Dashboard.</span>
       </h2>
       <p class="text-sm md:text-base text-ink-3 mt-2 max-w-2xl leading-relaxed">
-        A comprehensive suite of tools designed for Edge Operators. Scroll to explore the different modules available in the Watchdog platform.
+        A comprehensive suite of tools designed for Edge Operators. Scroll to explore the different modules available in the Wedjat platform.
       </p>
     </div>
 

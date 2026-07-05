@@ -24,14 +24,14 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 COPY --from=builder /install /usr/local
 
-RUN useradd -m -s /bin/bash watchdog
+RUN useradd -m -s /bin/bash wedjat
 WORKDIR /app
 
 COPY src/simulator /app/src/simulator
 COPY src/gr_sat /app/src/gr_sat
 
-RUN chown -R watchdog:watchdog /app
-USER watchdog
+RUN chown -R wedjat:wedjat /app
+USER wedjat
 
 WORKDIR /app/src/simulator
 

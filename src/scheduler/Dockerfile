@@ -30,15 +30,15 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 COPY --from=builder /install /usr/local
 
-RUN useradd -m -s /bin/bash watchdog
+RUN useradd -m -s /bin/bash wedjat
 WORKDIR /app
 
 # The scheduler needs access to all scripts and gr_sat core/ml
 COPY src/ /app/src/
 COPY scripts/ /app/scripts/
 
-RUN chown -R watchdog:watchdog /app
-USER watchdog
+RUN chown -R wedjat:wedjat /app
+USER wedjat
 
 WORKDIR /app/src/scheduler
 

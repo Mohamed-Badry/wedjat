@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# deploy_edge.sh - Project Watchdog Edge Node Deployment
+# deploy_edge.sh - Project Wedjat Edge Node Deployment
 # Target: Raspberry Pi or local antenna PC
 
 set -e
