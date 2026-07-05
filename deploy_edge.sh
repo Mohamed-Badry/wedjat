@@ -43,7 +43,7 @@ if [ ! -d "data/raw" ]; then
     mkdir -p data/raw
 fi
 
-log_info "Building and starting edge services (broker, simulator)..."
-docker compose --profile edge up -d --build
+log_info "Building and starting local edge broker..."
+docker compose up -d --build broker
 
 log_info "Edge deployment completed successfully."

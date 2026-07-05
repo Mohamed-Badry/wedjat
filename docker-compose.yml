@@ -15,7 +15,7 @@ services:
     build: ./mosquitto
     container_name: wedjat_broker
     ports:
-      - "1883:1883"
+      - "127.0.0.1:9001:9001"
     environment:
       # WARNING: Fallbacks (wedjat/secretpassword) are for local dev ONLY.
       - MQTT_USERNAME=${MQTT_USERNAME:-wedjat}

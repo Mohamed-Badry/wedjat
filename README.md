@@ -185,18 +185,61 @@ just frontend-preview               # Preview the production build
 
 ---
 
-## Production Deployment
+## Production Deployment & Ingestion
 
 The project utilizes Docker Compose profiles to cleanly separate cloud resources from edge devices. Two deployment scripts are provided in the root directory:
 
-**1. The Cloud VPS (`./deploy_vps.sh`)**
-Spins up the TimescaleDB, PyTorch Backend, and the native Bun SvelteKit frontend. 
-*   **Firewall Rules:** The VPS requires inbound ports `80/443` (TCP) for web traffic, and `1883` (TCP) for the MQTT broker.
-*   **Security Note:** Do not expose port `5432` (PostgreSQL) or `8000` (FastAPI) to the public internet; they communicate internally via Docker.
+### 1. The Cloud VPS (`./deploy_vps.sh`)
+Spins up the TimescaleDB, PyTorch Backend, and the production Bun SvelteKit frontend.
+*   **Closed Ports (Secure Setup):** Do **not** expose port `1883` (unencrypted MQTT), `9001` (WebSocket MQTT), `5432` (PostgreSQL), or `8000` (FastAPI) to the public internet. They are closed or bound strictly to `127.0.0.1`.
+*   **Caddy reverse proxy (TLS/HTTPS):** Caddy terminates TLS and routes standard traffic to the correct containers. Add this block to your `/etc/caddy/Caddyfile` on the VPS to support secure real-time telemetry publishing:
+    ```caddy
+    wedjat.space {
+        # Secure MQTT over WebSockets (WSS)
+        handle /mqtt {
+            reverse_proxy localhost:9001
+        }
 
-**2. The Edge Device (`./deploy_edge.sh`)**
-Spins up the local data buffer and simulator/radio software.
-*   **Firewall Rules:** No inbound ports need to be opened on the edge device. Standard outbound internet access is sufficient.
+        # FastAPI API & WebSockets
+        handle /api/* {
+            reverse_proxy localhost:8000
+        }
+
+        # Svelte frontend
+        handle {
+            reverse_proxy localhost:5173
+        }
+    }
+    ```
+
+### 2. The Edge Device / Laptop (`./deploy_edge.sh`)
+Spins up the local data buffer and Mosquitto broker on your antenna PC or Raspberry Pi. 
+*   **Scope:** It now only boots the local broker container. This keeps the environment clean and avoids replaying simulated historical frames when setting up a fresh ground station.
+*   **Publishing Telemetry:** Your local SDR software (like `gr-satellites`) publishes decoded frames to your local broker on `localhost:1883`.
+
+---
+
+### 📡 Ground Station Data Ingestion Schema
+
+To send decoded packets from your SDR antenna station, connect to the secure broker at `wss://wedjat.space/mqtt` on Port `443` (via the Caddy reverse proxy) and publish to the topic **`telemetry/live/{norad_id}`**. 
+
+The payload must be a JSON string structured exactly as follows:
+
+```json
+{
+  "norad_id": 43880,
+  "timestamp": "2026-07-06T03:02:38Z",
+  "raw_frame": "8A8A8A8A8A8A608A8A8A8A8A8A6103F025821E130201...",
+  "station_id": "laptop_sdr_station_01",
+  "snr": 15.4
+}
+```
+
+*   **`norad_id`**: (Integer) The NORAD catalog identifier of the satellite (e.g., `43880` for UWE-4).
+*   **`timestamp`**: (String, ISO-8601 UTC format) The exact time the packet was observed.
+*   **`raw_frame`**: (String, Hex-encoded) The raw binary frame output from the demodulator.
+*   **`station_id`**: (String, optional) Ground station identifier.
+*   **`snr`**: (Float, optional) Signal-to-noise ratio of the signal.
 
 ---
 
