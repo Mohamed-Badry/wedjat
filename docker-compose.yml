@@ -183,6 +183,7 @@ services:
       - ./logs:/app/logs
     environment:
       API_URL: http://backend:8000
+      DATABASE_URL: postgresql://${POSTGRES_USER:-wedjat}:${POSTGRES_PASSWORD:-wedjat_pass}@db:5432/${POSTGRES_DB:-wedjat_db}
     depends_on:
       - backend
     restart: unless-stopped
