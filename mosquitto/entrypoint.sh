@@ -9,6 +9,11 @@ listener 1883
 protocol mqtt
 allow_anonymous false
 password_file /mosquitto/config/pwfile
+
+listener 9001
+protocol websockets
+allow_anonymous false
+password_file /mosquitto/config/pwfile
 EOF
 
 # Create password file
