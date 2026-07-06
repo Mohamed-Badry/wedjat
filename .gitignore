@@ -50,6 +50,7 @@ mosquitto/log/
 /src/data/
 other_components/**/data/
 other_components/**/models/
-other_components/**/*.pkl/
-other_components/**/*.csv/
-other_components/**/*.csv/
+other_components/**/*.pkl
+other_components/**/*.csv
+other_components/**/*.csv
+other_components/**/*.raw
