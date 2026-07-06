@@ -544,9 +544,9 @@ We have deployed the real-time wedjat as a 5-container microservice stack:
     - *State Vectors:* Live Cartesian positions and velocities (ECI coordinates).
   ],
   align(center + horizon)[
-    #image("../../frontend/static/screenshots/tracker-mission-dark.png", width: 100%)
+    #image("../../frontend/static/screenshots/tracker-mission-light.png", width: 100%)
     #v(-0.3em)
-    #text(size: 11pt, fill: luma(120))[Mission Control Panel (Dark Mode)]
+    #text(size: 11pt, fill: luma(120))[Mission Control Panel (Light Mode)]
   ]
 )
 
@@ -562,9 +562,9 @@ We have deployed the real-time wedjat as a 5-container microservice stack:
     - *Collision Probability:* Computes the mathematically exact collision risk utilizing the *Foster (1992)* probability formula on covariance matrices.
   ],
   align(center + horizon)[
-    #image("../../frontend/static/screenshots/tracker-conjunctions-dark.png", width: 100%)
+    #image("../../frontend/static/screenshots/tracker-conjunctions-light.png", width: 100%)
     #v(-0.3em)
-    #text(size: 11pt, fill: luma(120))[Conjunction Threat Assessment (Dark Mode)]
+    #text(size: 11pt, fill: luma(120))[Conjunction Threat Assessment (Light Mode)]
   ]
 )
 
