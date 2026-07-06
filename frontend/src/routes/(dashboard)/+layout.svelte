@@ -43,7 +43,7 @@
   <aside in:fly={{ x: -50, duration: 600, delay: 100 }} class="fixed inset-y-0 left-0 z-50 flex w-64 shrink-0 flex-col border-r border-border bg-panel shadow-panel backdrop-blur transition-all duration-300 md:sticky md:top-0 md:h-screen {mobileSidebarOpen ? 'translate-x-0' : '-translate-x-full'} {desktopSidebarOpen ? 'md:translate-x-0 md:ml-0' : 'md:-translate-x-full md:-ml-64'}">
     <div class="flex h-16 items-center justify-between border-b border-border px-6">
       <a class="flex items-center gap-3 text-lg font-semibold tracking-[0.18em] text-brand uppercase" href="/">
-        <img src="/favicon.svg" alt="Wedjat Logo" class="size-8" />
+        <img src="/favicon.svg" alt="Wedjat Logo" class="size-10" />
         Wedjat
       </a>
       <button class="text-ink-2 hover:text-brand transition-colors p-1.5 -mr-1.5 rounded-lg hover:bg-surface hidden md:block" onclick={toggleSidebar} aria-label="Collapse sidebar">
@@ -116,7 +116,7 @@
     <header in:fly={{ y: -20, duration: 500, delay: 200 }} class="flex h-14 shrink-0 items-center border-b border-border bg-panel/80 backdrop-blur-md px-6 sticky top-0 z-30 transition-all duration-300 {desktopSidebarOpen ? 'md:-mt-14 md:border-b-transparent md:opacity-0 pointer-events-none' : 'md:mt-0 pointer-events-auto'}">
       <!-- Mobile Center Logo -->
       <a class="flex items-center gap-2 text-[13px] font-bold tracking-[0.2em] text-brand uppercase md:hidden absolute left-1/2 -translate-x-1/2" href="/">
-        <img src="/favicon.svg" alt="Wedjat Logo" class="size-7" />
+        <img src="/favicon.svg" alt="Wedjat Logo" class="size-9" />
         Wedjat
       </a>
       
@@ -126,7 +126,7 @@
           <Menu class="size-5" />
         </button>
         <a class="flex items-center gap-2 text-[13px] font-bold tracking-[0.2em] text-brand uppercase" href="/">
-          <img src="/favicon.svg" alt="Wedjat Logo" class="size-7" />
+          <img src="/favicon.svg" alt="Wedjat Logo" class="size-9" />
           Wedjat
         </a>
       </div>

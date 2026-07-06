@@ -48,7 +48,7 @@
       <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
           <a class="flex items-center gap-3 text-xl font-semibold tracking-[0.18em] text-muted uppercase hover:text-brand transition-colors" href="/">
-            <img src="/favicon.svg" alt="Project Wedjat Logo" class="size-8" />
+            <img src="/favicon.svg" alt="Project Wedjat Logo" class="size-10" />
             Project Wedjat
           </a>
           <p class="mt-1 max-w-xl text-sm text-ink-3">
