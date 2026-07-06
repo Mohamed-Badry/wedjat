@@ -43,7 +43,12 @@ if [ ! -d "data/raw" ]; then
     mkdir -p data/raw
 fi
 
-log_info "Building and starting local edge broker..."
-docker compose up -d --build broker
+if [ ! -d "data/iq" ]; then
+    log_info "Creating data/iq directory for SDR IQ recordings."
+    mkdir -p data/iq
+fi
+
+log_info "Building and starting local edge broker and demodulator..."
+docker compose up -d --build broker demodulator
 
 log_info "Edge deployment completed successfully."

@@ -135,7 +135,7 @@ services:
     restart: unless-stopped
 
   simulator:
-    profiles: ["dev", "edge"]
+    profiles: ["dev"]
     build:
       context: .
       dockerfile: src/simulator/Dockerfile
@@ -186,6 +186,25 @@ services:
       DATABASE_URL: postgresql://${POSTGRES_USER:-wedjat}:${POSTGRES_PASSWORD:-wedjat_pass}@db:5432/${POSTGRES_DB:-wedjat_db}
     depends_on:
       - backend
+    restart: unless-stopped
+
+  demodulator:
+    profiles: ["edge"]
+    build:
+      context: .
+      dockerfile: src/demodulator/Dockerfile
+    container_name: wedjat_demodulator
+    volumes:
+      - ./data/iq:/app/data/iq
+    environment:
+      MQTT_BROKER_URL: broker
+      MQTT_BROKER_PORT: "1883"
+      MQTT_USERNAME: ${MQTT_USERNAME:-wedjat}
+      MQTT_PASSWORD: ${MQTT_PASSWORD:-secretpassword}
+      WATCH_DIR: /app/data/iq
+      STATION_ID: ${STATION_ID:-edge_station_sdr}
+    depends_on:
+      - broker
     restart: unless-stopped
 
 volumes:

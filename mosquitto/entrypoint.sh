@@ -5,15 +5,14 @@ echo "Generating mosquitto configuration..."
 
 # Write configuration
 cat <<EOF > /mosquitto/config/mosquitto.conf
-listener 1883
-protocol mqtt
 allow_anonymous false
 password_file /mosquitto/config/pwfile
 
+listener 1883
+protocol mqtt
+
 listener 9001
 protocol websockets
-allow_anonymous false
-password_file /mosquitto/config/pwfile
 EOF
 
 # Create password file
