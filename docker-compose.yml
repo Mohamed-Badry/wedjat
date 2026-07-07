@@ -207,6 +207,7 @@ services:
       ZMQ_ENDPOINT: ${ZMQ_ENDPOINT:-tcp://host.docker.internal:5555}
       WATCH_DIR: /app/data/iq
       STATION_ID: ${STATION_ID:-edge_station_sdr}
+      TARGET_NORAD_ID: ${TARGET_NORAD_ID:-43880}
       PYTHONDONTWRITEBYTECODE: 1
     extra_hosts:
       - "host.docker.internal:host-gateway"

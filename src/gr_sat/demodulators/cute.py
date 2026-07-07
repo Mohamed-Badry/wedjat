@@ -3,7 +3,7 @@ from pathlib import Path
 from typing import List
 
 try:
-    from gnuradio import gr, blocks
+    from gnuradio import gr, blocks, zeromq
     import pmt
     HAS_GNURADIO = True
 except ImportError:
@@ -15,58 +15,12 @@ except ImportError:
 
 from gr_sat.demodulators.base import BaseDemodulator
 from gr_sat.demodulators.registry import DemodulatorRegistry
+from gr_sat.demodulators.utils import FrameCollector, is_valid_ax25, deduplicate_frames
 
 logger = logging.getLogger("cute_demodulator")
 
 SAMP_RATE = 57600
 BAUD_RATE = 9600
-
-
-class FrameCollector(gr.basic_block):
-    """Collects decoded AX.25 PDU frames from msg port."""
-
-    def __init__(self):
-        gr.basic_block.__init__(self, name="Frame Collector", in_sig=[], out_sig=[])
-        self.frames = []
-        self.message_port_register_in(pmt.intern("in"))
-        self.set_msg_handler(pmt.intern("in"), self._handle_msg)
-
-    def _handle_msg(self, msg):
-        try:
-            # Extract byte data from PMT u8vector inside PDU
-            data = bytes(pmt.u8vector_elements(pmt.cdr(msg)))
-            self.frames.append(data)
-        except Exception as e:
-            logger.debug(f"Failed to parse PDU message: {e}")
-
-
-def is_valid_ax25(frame: bytes) -> bool:
-    """Validate AX.25 UI frame structure."""
-    if len(frame) < 17:
-        return False
-
-    # Check source and destination callsigns
-    for b in frame[0:6] + frame[7:13]:
-        ch = b >> 1
-        if ch < 0x20 or ch > 0x7E:
-            return False
-
-    # Control = 0x03 (UI frame), PID = 0xF0 (no layer 3)
-    if frame[14] != 0x03 or frame[15] != 0xF0:
-        return False
-
-    return True
-
-
-def deduplicate_frames(frames: List[bytes]) -> List[bytes]:
-    """Remove duplicate frames, preserving order."""
-    seen = set()
-    unique = []
-    for f in frames:
-        if f not in seen:
-            seen.add(f)
-            unique.append(f)
-    return unique
 
 
 @DemodulatorRegistry.register(49263)
@@ -98,7 +52,7 @@ class CUTEDemodulator(BaseDemodulator):
 
         tb = gr.top_block("CUTE Demodulator")
 
-        # Source: complex float IQ
+        # Source: complex float IQ (Legacy CUTE implementation uses complex)
         src = blocks.file_source(gr.sizeof_gr_complex, str(iq_path), False)
 
         # FSK Demodulator
@@ -130,3 +84,51 @@ class CUTEDemodulator(BaseDemodulator):
         # Filter and deduplicate
         valid = [f for f in collector.frames if is_valid_ax25(f)]
         return deduplicate_frames(valid)
+
+    def start_live_stream(self, source_endpoint: str, callback: callable) -> None:
+        """Start a real-time GNU Radio flowgraph listening on a ZMQ socket."""
+        if not HAS_GNURADIO:
+            raise ImportError("GNU Radio and gr-satellites are required for live streaming.")
+            
+        try:
+            import satellites.components.deframers
+            import satellites.components.demodulators
+        except ImportError as e:
+            raise ImportError("gr-satellites is required to run the CUTE demodulator.") from e
+
+        self.tb = gr.top_block("CUTE Live Stream Demodulator")
+
+        # Source: ZMQ PULL -> interleaved int16 IQ -> complex
+        # Note: 2 is sizeof_short
+        src = zeromq.pull_source(2, 1, source_endpoint, 100, False, -1)
+        i2c = blocks.interleaved_short_to_complex(False, False)
+        scale = blocks.multiply_const_cc(1.0 / 32768.0)
+
+        # Demodulator
+        demod = satellites.components.demodulators.fsk_demodulator(
+            baudrate=BAUD_RATE,
+            samp_rate=SAMP_RATE,
+            iq=True,
+            subaudio=False,
+            options=""
+        )
+
+        # Deframer
+        deframer = satellites.components.deframers.ax25_deframer(
+            g3ruh_scrambler=True,
+            options=""
+        )
+
+        # Collector WITH live callback
+        collector = FrameCollector(callback=callback)
+
+        # Connect signal chain
+        self.tb.connect(src, i2c, scale, demod)
+        self.tb.connect(demod, deframer)
+        self.tb.msg_connect(deframer, "out", collector, "in")
+
+        # Keep Python references alive to prevent C++ segfault
+        self._live_blocks = [src, i2c, scale, demod, deframer, collector]
+
+        # Start asynchronously
+        self.tb.start()
