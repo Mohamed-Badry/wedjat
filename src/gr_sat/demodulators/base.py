@@ -24,3 +24,8 @@ class BaseDemodulator(ABC):
             callback: Function to invoke with bytes of each decoded valid frame.
         """
         pass
+
+    @abstractmethod
+    def stop_live_stream(self) -> None:
+        """Stop the currently running live stream flowgraph and clean up resources."""
+        pass

@@ -197,6 +197,7 @@ services:
     container_name: wedjat_demodulator
     volumes:
       - ./data/iq:/app/data/iq
+      - ./data/raw:/app/data/raw
     environment:
       MQTT_BROKER_URL: ${MQTT_BROKER_URL:-broker}
       MQTT_BROKER_PORT: ${MQTT_BROKER_PORT:-1883}
@@ -223,6 +224,41 @@ services:
           target: /app/src/gr_sat
         - action: rebuild
           path: src/demodulator/Dockerfile
+
+  autotrack:
+    profiles: ["dev-edge", "edge"]
+    build:
+      context: .
+      dockerfile: src/scheduler/Dockerfile
+    container_name: wedjat_autotrack
+    env_file:
+      - .env
+    volumes:
+      - ./src:/app/src
+      - ./scripts:/app/scripts
+      - ./data:/app/data
+    environment:
+      MQTT_BROKER_URL: ${MQTT_BROKER_URL:-broker}
+      MQTT_BROKER_PORT: ${MQTT_BROKER_PORT:-1883}
+      MQTT_USE_WSS: ${MQTT_USE_WSS:-false}
+      MQTT_USE_TLS: ${MQTT_USE_TLS:-false}
+      MQTT_USERNAME: ${MQTT_USERNAME:-wedjat}
+      MQTT_PASSWORD: ${MQTT_PASSWORD:-secretpassword}
+      STATION_ID: ${STATION_ID:-edge_station_sdr}
+      GS_LAT: ${GS_LAT:-34.0522}
+      GS_LON: ${GS_LON:-118.2437}
+      GS_ELEV: ${GS_ELEV:-0.0}
+    working_dir: /app
+    command: ["python", "scripts/edge_autotrack.py"]
+    restart: unless-stopped
+    develop:
+      watch:
+        - action: sync+restart
+          path: scripts/edge_autotrack.py
+          target: /app/scripts/edge_autotrack.py
+        - action: sync+restart
+          path: src/api/pass_predictor.py
+          target: /app/src/api/pass_predictor.py
 
 volumes:
   timescaledb_data:

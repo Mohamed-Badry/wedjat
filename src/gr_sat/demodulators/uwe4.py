@@ -189,3 +189,11 @@ class UWE4Demodulator(BaseDemodulator):
         # Start asynchronously
         self.tb.start()
 
+
+    def stop_live_stream(self) -> None:
+        """Stop the currently running live stream flowgraph."""
+        if hasattr(self, "tb") and self.tb is not None:
+            self.tb.stop()
+            self.tb.wait()
+            self.tb = None
+            self._live_blocks = []

@@ -53,6 +53,6 @@ if [ ! -d "data/iq" ]; then
 fi
 
 log_info "Building and starting local edge demodulator..."
-COMPOSE_PROFILES=edge docker compose up -d --build demodulator
+COMPOSE_PROFILES=edge docker compose up -d --build demodulator autotrack
 
 log_info "Edge deployment completed successfully."
