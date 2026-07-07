@@ -11,7 +11,7 @@
 
 services:
   broker:
-    profiles: ["dev", "cloud", "edge"]
+    profiles: ["dev-cloud", "dev-edge", "cloud", "edge"]
     build: ./mosquitto
     container_name: wedjat_broker
     ports:
@@ -26,7 +26,7 @@ services:
     restart: unless-stopped
 
   db:
-    profiles: ["dev", "cloud"]
+    profiles: ["dev-cloud", "cloud"]
     image: timescale/timescaledb:2.26.4-pg15
     container_name: wedjat_db
     ports:
@@ -47,7 +47,7 @@ services:
     restart: unless-stopped
 
   backend:
-    profiles: ["dev", "cloud"]
+    profiles: ["dev-cloud", "cloud"]
     build:
       context: .
       dockerfile: src/api/Dockerfile
@@ -87,7 +87,7 @@ services:
           path: pyproject.toml
 
   frontend:
-    profiles: ["dev"]
+    profiles: ["dev-cloud"]
     build:
       context: ./frontend
       dockerfile: Dockerfile
@@ -135,7 +135,7 @@ services:
     restart: unless-stopped
 
   simulator:
-    profiles: ["dev"]
+    profiles: ["dev-cloud"]
     build:
       context: .
       dockerfile: src/simulator/Dockerfile
@@ -150,6 +150,7 @@ services:
       # WARNING: Fallbacks are for local dev ONLY.
       MQTT_USERNAME: ${MQTT_USERNAME:-wedjat}
       MQTT_PASSWORD: ${MQTT_PASSWORD:-secretpassword}
+      PYTHONDONTWRITEBYTECODE: 1
     depends_on:
       - broker
     restart: unless-stopped
@@ -168,7 +169,7 @@ services:
           path: src/simulator/Dockerfile
 
   scheduler:
-    profiles: ["dev", "cloud"]
+    profiles: ["dev-cloud", "cloud"]
     build:
       context: .
       dockerfile: src/scheduler/Dockerfile
@@ -189,7 +190,7 @@ services:
     restart: unless-stopped
 
   demodulator:
-    profiles: ["edge"]
+    profiles: ["dev-edge", "edge"]
     build:
       context: .
       dockerfile: src/demodulator/Dockerfile
@@ -197,15 +198,30 @@ services:
     volumes:
       - ./data/iq:/app/data/iq
     environment:
-      MQTT_BROKER_URL: broker
-      MQTT_BROKER_PORT: "1883"
+      MQTT_BROKER_URL: ${MQTT_BROKER_URL:-broker}
+      MQTT_BROKER_PORT: ${MQTT_BROKER_PORT:-1883}
+      MQTT_USE_WSS: ${MQTT_USE_WSS:-false}
+      MQTT_USE_TLS: ${MQTT_USE_TLS:-false}
       MQTT_USERNAME: ${MQTT_USERNAME:-wedjat}
       MQTT_PASSWORD: ${MQTT_PASSWORD:-secretpassword}
+      ZMQ_ENDPOINT: ${ZMQ_ENDPOINT:-tcp://host.docker.internal:5555}
       WATCH_DIR: /app/data/iq
       STATION_ID: ${STATION_ID:-edge_station_sdr}
-    depends_on:
-      - broker
+      PYTHONDONTWRITEBYTECODE: 1
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    # Demodulator connects directly to the cloud broker over WebSockets, so no depends_on: broker needed
     restart: unless-stopped
+    develop:
+      watch:
+        - action: sync+restart
+          path: src/demodulator
+          target: /app/src/demodulator
+        - action: sync+restart
+          path: src/gr_sat
+          target: /app/src/gr_sat
+        - action: rebuild
+          path: src/demodulator/Dockerfile
 
 volumes:
   timescaledb_data:

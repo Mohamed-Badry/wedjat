@@ -50,6 +50,6 @@ fi
 log_info "Initializing Cloud deployment sequence."
 
 log_info "Building and starting cloud services (db, backend, frontend-prod, broker, scheduler)..."
-docker compose --profile cloud up -d --build
+COMPOSE_PROFILES=cloud docker compose up -d --build
 
 log_info "Cloud deployment completed successfully."

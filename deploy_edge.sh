@@ -35,6 +35,10 @@ if ! grep -q "^MQTT_USERNAME=" .env || ! grep -q "^MQTT_PASSWORD=" .env; then
     log_error "Missing MQTT_USERNAME or MQTT_PASSWORD in .env file. Edge deployment requires secure MQTT credentials."
 fi
 
+if ! grep -q "^MQTT_USE_WSS=true" .env; then
+    log_warn "MQTT_USE_WSS is not set to true in .env. We strongly recommend using secure WebSockets via Caddy (port 443) for Edge deployments."
+fi
+
 log_info "Initializing Edge deployment sequence."
 
 # Prepare local storage structures
@@ -48,7 +52,7 @@ if [ ! -d "data/iq" ]; then
     mkdir -p data/iq
 fi
 
-log_info "Building and starting local edge broker and demodulator..."
-docker compose up -d --build broker demodulator
+log_info "Building and starting local edge demodulator..."
+COMPOSE_PROFILES=edge docker compose up -d --build demodulator
 
 log_info "Edge deployment completed successfully."

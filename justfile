@@ -6,6 +6,21 @@ set shell := ["bash", "-c"]
 default:
     @just --list
 
+# --- Local Development ---
+
+# Run both the cloud and edge development stacks concurrently
+dev:
+    @echo "Starting both dev-cloud and dev-edge profiles in parallel..."
+    COMPOSE_PROFILES=dev-cloud,dev-edge docker compose up --build --watch
+
+# Run only the cloud development stack
+dev-cloud:
+    COMPOSE_PROFILES=dev-cloud docker compose up --build --watch
+
+# Run only the edge development stack
+dev-edge:
+    COMPOSE_PROFILES=dev-edge docker compose up --build --watch
+
 # --- Phase 1: The Lab (Data Pipeline) ---
 
 # Fetch raw telemetry from SatNOGS DB API → data/raw/
@@ -131,3 +146,19 @@ docs:
         echo "Compiling $deck to docs/slides/$name.pdf"; \
         cd docs && typst compile --root .. "slides/$filename" "slides/$name.pdf" && cd ..; \
     done
+
+# --- SDR Hardware ---
+
+# Verify that the RTL-SDR hardware is connected and accessible
+# Usage: just verify-sdr
+verify-sdr:
+    @echo "Checking RTL-SDR hardware connection..."
+    rtl_test -t || (echo "Failed to connect to RTL-SDR. Is it plugged in?" && exit 1)
+    @echo "RTL-SDR is connected and ready!"
+
+# Capture live RF from RTL-SDR and bridge to the Edge ZMQ Demodulator
+# Usage: just live-sdr 437.375M
+# Or to override sample rate: just live-sdr 437.375M 57600
+live-sdr freq samp_rate='57600':
+    @echo "Starting live SDR bridge at {{freq}} with sample rate {{samp_rate}}..."
+    rtl_sdr -f {{freq}} -s {{samp_rate}} - | pixi run python scripts/rtl_sdr_zmq_bridge.py

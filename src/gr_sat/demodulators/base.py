@@ -14,3 +14,13 @@ class BaseDemodulator(ABC):
             List of decoded unique, valid AX.25 frame bytes.
         """
         pass
+
+    @abstractmethod
+    def start_live_stream(self, source_endpoint: str, callback: callable) -> None:
+        """Start a real-time GNU Radio flowgraph listening on a ZMQ socket.
+
+        Args:
+            source_endpoint: ZMQ connection string (e.g., 'tcp://0.0.0.0:5555')
+            callback: Function to invoke with bytes of each decoded valid frame.
+        """
+        pass

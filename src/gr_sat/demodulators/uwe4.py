@@ -4,7 +4,7 @@ from typing import List
 import numpy as np
 
 try:
-    from gnuradio import gr, blocks, filter as gr_filter, digital, analog
+    from gnuradio import gr, blocks, filter as gr_filter, digital, analog, zeromq
     from gnuradio.fft import window
     import pmt
     HAS_GNURADIO = True
@@ -54,9 +54,10 @@ class NRZIDecoder(gr.sync_block):
 class FrameCollector(gr.basic_block):
     """Collects decoded HDLC/AX.25 PDU frames from message port."""
 
-    def __init__(self):
+    def __init__(self, callback=None):
         gr.basic_block.__init__(self, name="Frame Collector", in_sig=[], out_sig=[])
         self.frames = []
+        self.callback = callback
         self.message_port_register_in(pmt.intern("in"))
         self.set_msg_handler(pmt.intern("in"), self._handle_msg)
 
@@ -64,6 +65,9 @@ class FrameCollector(gr.basic_block):
         try:
             data = bytes(pmt.u8vector_elements(pmt.cdr(msg)))
             self.frames.append(data)
+            print(f"FrameCollector: Got raw frame of len {len(data)}")
+            if self.callback and is_valid_ax25(data):
+                self.callback(data)
         except Exception:
             pass
 
@@ -179,3 +183,56 @@ class UWE4Demodulator(BaseDemodulator):
                         best_frames = valid
 
         return best_frames
+
+    def start_live_stream(self, source_endpoint: str, callback: callable) -> None:
+        """Start a real-time GNU Radio flowgraph listening on a ZMQ socket."""
+        if not HAS_GNURADIO:
+            raise ImportError("GNU Radio is required for live streaming.")
+            
+        sps = SAMP_RATE / BAUD_RATE
+        self.tb = gr.top_block("UWE-4 Live Stream Demodulator")
+
+        # Source: ZMQ PULL -> interleaved int16 IQ -> complex
+        # Note: 2 is sizeof_short
+        src = zeromq.pull_source(2, 1, source_endpoint, 100, False, -1)
+        i2c = blocks.interleaved_short_to_complex(False, False)
+        scale = blocks.multiply_const_cc(1.0 / 32768.0)
+
+        # LPF Bandpass filtering
+        taps = gr_filter.firdes.low_pass(
+            1.0, SAMP_RATE, FILTER_CUTOFF, FILTER_TRANS, window.WIN_HAMMING
+        )
+        lpf = gr_filter.fir_filter_ccf(1, taps)
+
+        # FM demodulation (default params for live stream: invert=False)
+        gain = SAMP_RATE / (2 * math.pi * DEVIATION)
+        demod = analog.quadrature_demod_cf(gain)
+
+        # Clock recovery (Mueller & Müller)
+        gain_mu = 0.175
+        clk = digital.clock_recovery_mm_ff(
+            sps, 0.25 * gain_mu**2, 0.5, gain_mu, 0.005
+        )
+
+        # Decision + decoding
+        slicer = digital.binary_slicer_fb()
+        descrambler = digital.descrambler_bb(
+            DESCRAMBLER_POLY, 0, DESCRAMBLER_LEN
+        )
+        nrzi = NRZIDecoder()
+        hdlc = digital.hdlc_deframer_bp(HDLC_MIN_LEN, HDLC_MAX_LEN)
+        
+        # Collector WITH live callback
+        collector = FrameCollector(callback=callback)
+
+        # Connect signal chain (descramble_first=True by default)
+        self.tb.connect(src, i2c, scale, lpf, demod, clk, slicer)
+        self.tb.connect(slicer, descrambler, nrzi, hdlc)
+        self.tb.msg_connect(hdlc, "out", collector, "in")
+
+        # Keep Python references alive to prevent C++ segfault
+        self._live_blocks = [src, i2c, scale, lpf, demod, clk, slicer, descrambler, nrzi, hdlc, collector]
+
+        # Start asynchronously
+        self.tb.start()
+

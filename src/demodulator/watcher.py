@@ -7,7 +7,7 @@ import time
 from datetime import datetime, timezone
 from pathlib import Path
 import paho.mqtt.client as mqtt
-
+from typing import Optional
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
@@ -138,5 +138,4 @@ def main():
 
 
 if __name__ == "__main__":
-    from typing import Optional  # Local import just in case
     main()
